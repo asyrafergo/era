@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ergonomics Risk Assessment Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        textarea {
+            min-height: 100px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .remove-btn {
+            background-color: #dc3545;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST</h1>
+    <form id="assessmentForm">
+        <label>Assessor:
+            <input type="text" id="assessor" required>
+        </label>
+        <label>Date:
+            <input type="date" id="date" required>
+        </label>
+        <label>Department:
+            <input type="text" id="department" required>
+        </label>
+        <label>Task Description:
+            <textarea id="taskDescription" required placeholder="Provide a detailed task description..."></textarea>
+        </label>
+        <div id="photoContainer"></div>
+        <button type="button" onclick="addPhotoSection()">Add Photo & Description</button>
+        <button type="button" onclick="generatePDF()">Generate PDF</button>
+    </form>
+    
+    <script>
+        function addPhotoSection() {
+            const container = document.getElementById('photoContainer');
+            const index = container.children.length;
+            const group = document.createElement('div');
+            group.classList.add('photo-group');
+            group.innerHTML = `
+                <label>Photo:
+                    <input type="file" id="photo${index}" accept="image/*">
+                </label>
+                <label>Description:
+                    <textarea id="photoDescription${index}" placeholder="Describe the uploaded photo..."></textarea>
+                </label>
+                <button type="button" class="remove-btn" onclick="removePhotoSection(this)">Remove</button>
+            `;
+            container.appendChild(group);
+        }
+
+        function removePhotoSection(button) {
+            button.parentElement.remove();
+        }
+
+        function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    doc.setFontSize(14);
+    doc.text("INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
+
+    // Format date as "dd mm yyyy"
+    const dateInput = document.getElementById("date").value;
+    const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB').replace(/\//g, ' ') : '';
+
+    const tableData = [
+        [
+            { content: "Assessor", styles: { fontStyle: 'bold', fillColor: [200, 200, 200] } },
+            { content: document.getElementById("assessor").value, colSpan: 2 },
+            { content: "Date", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
+            { content: formattedDate }
+        ],
+        [
+            { content: "Department", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
+            { content: document.getElementById("department").value, colSpan: 4 }
+        ],
+        [
+            { content: "Task Description", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
+            { content: document.getElementById("taskDescription").value, colSpan: 4 }
+        ]
+    ];
+
+    const groups = document.querySelectorAll('.photo-group');
+    const imagesData = [];
+    let imagesLoaded = 0;
+
+    groups.forEach((group, index) => {
+        const desc = document.getElementById(`photoDescription${index}`).value;
+        const fileInput = group.querySelector(`input[type="file"]`);
+        const file = fileInput.files[0];
+        const photoLabel = index === 0 ? "Photos and Descriptions" : "";
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagesData[index] = {
+                    label: photoLabel,
+                    desc: desc,
+                    imgData: event.target.result
+                };
+                imagesLoaded++;
+                if (imagesLoaded === groups.length) {
+                    finalizePDF();
+                }
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagesData[index] = {
+                label: photoLabel,
+                desc: desc,
+                imgData: null
+            };
+            imagesLoaded++;
+            if (imagesLoaded === groups.length) {
+                finalizePDF();
+            }
+        }
+    });
+
+    function finalizePDF() {
+        imagesData.forEach((item) => {
+            tableData.push([
+                { content: item.label, styles: { fontStyle: 'bold', fillColor: [200, 200, 200] } },
+                { content: '', colSpan: 2, styles: { minCellHeight: 40 } },
+                { content: item.desc, colSpan: 2 }
+            ]);
+        });
+
+        doc.autoTable({
+            startY: 25,
+            body: tableData,
+            theme: 'grid',
+            styles: { fontSize: 10 },
+            columnStyles: {
+                0: { cellWidth: 30 },
+                1: { cellWidth: 50 },
+                2: { cellWidth: 10 },
+                3: { cellWidth: 40 },
+                4: { cellWidth: 40 }
+            },
+            didDrawCell: function (data) {
+                const imageIndex = data.row.index - 3;
+                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
+                    const img = imagesData[imageIndex].imgData;
+                    const imgProps = doc.getImageProperties(img);
+                    const maxWidth = 60;
+                    const maxHeight = 40;
+                    let imgWidth = maxWidth;
+                    let imgHeight = (imgProps.height * maxWidth) / imgProps.width;
+
+                    if (imgHeight > maxHeight) {
+                        imgHeight = maxHeight;
+                        imgWidth = (imgProps.width * maxHeight) / imgProps.height;
+                    }
+
+                    const x = data.cell.x + (data.cell.width - imgWidth) / 2;
+                    const y = data.cell.y + (data.cell.height - imgHeight) / 2;
+
+                    doc.addImage(img, 'JPEG', x, y, imgWidth, imgHeight);
+                }
+            },
+            willDrawCell: function (data) {
+                const imageIndex = data.row.index - 3;
+                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
+                    const img = imagesData[imageIndex].imgData;
+                    const imgProps = doc.getImageProperties(img);
+                    const maxWidth = 60;
+                    const maxHeight = 40;
+                    let imgHeight = (imgProps.height * maxWidth) / imgProps.width;
+
+                    if (imgHeight > maxHeight) {
+                        imgHeight = maxHeight;
+                    }
+
+                    data.row.height = Math.max(data.row.height, imgHeight + 4);
+                }
+            }
+        });
+
+        doc.save("Ergonomics_Assessment.pdf");
+    }
+} 
+
+    </script>
+</body>
+</html>
