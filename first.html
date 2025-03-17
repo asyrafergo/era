@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Sistem Log in UniMAP</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-image: url('dark-blue-plain-kskl9bwuubcnb6r3.jpg');
+            background-size: cover; /* Ensures the background covers the entire screen */
+            background-repeat: no-repeat; /* Prevents the background from repeating */
+            background-attachment: fixed; /* Makes the background fixed during scrolling */
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .container-login {
+            display: flex;
+            flex-direction: column;
+            width: 450px;
+            padding: 20px;
+            border: 1px solid skyblue;
+            border-radius: 10px;
+            margin: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        input {
+            flex: 1;
+            margin: 10px 0;
+            height: 35px;
+            padding: 7px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .header h1 {
+            font-size: 28px; /* Increased font size */
+            margin-bottom: 5px;
+            font-family: 'Roboto', Arial, sans-serif; /* Modern font */
+            color: black; /* White font color */
+            text-align: center; /* Center alignment */
+            font-weight: bold; /* Bold font weight */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Subtle text shadow */
+        }
+
+        button {
+            height: 45px;
+            width: 100%;
+            background-color: skyblue;
+            border: none;
+            border-radius: 5px;
+            color: #333;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #333;
+            color: skyblue;
+        }
+        .logo {
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .logo img {
+            width: 300px;
+            height: auto;
+        }
+        a {
+            color: white;
+            text-decoration: underline;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 700px) {
+            .container-login {
+                width: 85%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-login">
+        <div class="logo">
+            <img src="496-4963999_unimap-clipart.png" alt="UniMAP Logo">
+        </div>
+        <div class="header">
+            <h1>Login System</h1>
+        </div>
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+            </div>
+            <button type="submit">Log In</button>
+        </form>
+    </div>
+    <a href="https://aimanjitra.github.io/firebase2/password.html">Forget your password?</a>
+    <a href="https://aimanjitra.github.io/firebase2/register.html">Register</a>
+
+    <!-- Include Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js';
+        import { getDatabase, ref, get, set, child } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7eG27ukGiOKGMHf0u9TuItWfwtEcnt1o",
+            authDomain: "school-academic-420d4.firebaseapp.com",
+            databaseURL: "https://school-academic-420d4-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "school-academic-420d4",
+            storageBucket: "school-academic-420d4.appspot.com",
+            messagingSenderId: "1068385735336",
+            appId: "1:1068385735336:web:4b6810601847e45f7e689d",
+            measurementId: "G-GW3XE8MEH3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const database = getDatabase(app);
+
+        // Predefined list of subjects
+        const subjectsList = [
+            { code: 'uzw195' },
+            { code: 'ekt124' },
+            { code: 'ekt103' },
+            { code: 'ekt119' },
+            { code: 'eqt102' },
+            { code: 'ekt104' }
+        ];
+
+        // Function to initialize subjects for a user
+        function initializeSubjects(userId) {
+            const dbRef = ref(database, 'users/' + userId + '/subjects');
+            get(dbRef).then((snapshot) => {
+                if (!snapshot.exists()) {
+                    subjectsList.forEach((subject) => {
+                        set(child(dbRef, subject.code.toLowerCase()), {
+                            grade: null
+                        });
+                    });
+                    console.log('Subjects initialized.');
+                } else {
+                    console.log('Subjects already exist.');
+                }
+            }).catch((error) => {
+                console.error('Error initializing subjects:', error);
+            });
+        }
+
+        // Function to verify username and password
+        function verifyUser(username, password) {
+            const dbRef = ref(database);
+            get(child(dbRef, 'users')).then((snapshot) => {
+                if (snapshot.exists()) {
+                    let authenticated = false;
+                    let userId = null;
+                    let usernameExists = false;
+                    snapshot.forEach((userSnapshot) => {
+                        const userData = userSnapshot.val();
+                        if (userData.username === username) {
+                            usernameExists = true;
+                            if (userData.password === password) {
+                                authenticated = true;
+                                userId = userSnapshot.key;
+
+                                // Store the userId for later use
+                                sessionStorage.setItem('userId', userId);
+                                sessionStorage.setItem('username', username);
+                                sessionStorage.setItem('password', password);
+
+                                // Initialize subjects for the user
+                                initializeSubjects(userId);
+
+                                // Check the number of subjects with grades
+                                checkGradesAndRedirect(userId);
+                            }
+                        }
+                    });
+                    if (!authenticated) {
+                        if (usernameExists) {
+                            alert('Incorrect password.');
+                        } else {
+                            alert('Invalid username or password.');
+                        }
+                    }
+                } else {
+                    console.log("No data available");
+                }
+            }).catch((error) => {
+                console.error('Error reading user data:', error);
+            });
+        }
+
+        function checkGradesAndRedirect(userId) {
+            const dbRef = ref(database, 'users/' + userId + '/subjects');
+            const username = sessionStorage.getItem('username');
+            const password = sessionStorage.getItem('password');
+
+            get(dbRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    let subjectCount = 0;
+                    snapshot.forEach((subjectSnapshot) => {
+                        const subjectData = subjectSnapshot.val();
+                        if (subjectData.grade) {
+                            subjectCount++;
+                        }
+                    });
+
+                    // Redirect based on the number of subjects with grades
+                    if (subjectCount > 14) {
+                        window.location.href = `https://aimanjitra.github.io/firebase2/result1.html?username=${username}&password=${password}`;
+                    } else {
+                        window.location.href = `https://aimanjitra.github.io/firebase2/select1.html?username=${username}&password=${password}`;
+                    }
+                } else {
+                    window.location.href = `https://aimanjitra.github.io/firebase2/select1.html?username=${username}&password=${password}`;
+                }
+            }).catch((error) => {
+                console.error('Error reading subjects data:', error);
+            });
+        }
+
+        // Event listener for login form submission
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            verifyUser(username, password);
+        });
+    </script>
+</body>
+</html>
