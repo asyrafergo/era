@@ -264,13 +264,36 @@ doc.text("Forceful Exertion (Manual Handling)", 14, 15);
   // Add Figure 1 image below the title
 const figureImage = new Image();
 figureImage.src = 'Figure_1.png';
-await new Promise(resolve => figureImage.onload = resolve);
 
-const figWidth = 60; // adjust width as needed
-const figScale = figWidth / figureImage.width;
-const figHeight = figureImage.height * figScale;
+await new Promise(resolve => {
+  figureImage.onload = resolve;
+});
 
-doc.addImage(figureImage, 'PNG', 14, 20, figWidth, figHeight);
+// Get original image size
+const imgWidth = figureImage.width;
+const imgHeight = figureImage.height;
+
+// Get PDF page size
+const pageWidth = doc.internal.pageSize.getWidth();
+const pageHeight = doc.internal.pageSize.getHeight();
+
+// Center X position
+const centerX = (pageWidth - imgWidth) / 2;
+
+// Optional: scale down if image is too big for the page
+let drawWidth = imgWidth;
+let drawHeight = imgHeight;
+
+if (imgWidth > pageWidth - 20) { // 20 for margin
+  drawWidth = pageWidth - 20;
+  const scale = drawWidth / imgWidth;
+  drawHeight = imgHeight * scale;
+}
+
+const finalX = (pageWidth - drawWidth) / 2;
+const finalY = 20; // adjust Y position as needed
+
+doc.addImage(figureImage, 'PNG', finalX, finalY, drawWidth, drawHeight);
 
 // Adjust the Y position of the table below the image
 const tableStartY = 20 + figHeight + 10;
