@@ -22,10 +22,10 @@
 </head>
 <body>
 
-<h2 style="text-align: center;">Ergonomics Risk Assessment - Page 3</h2>
+<h2 style="text-align: center;">Ergonomics Risk Assessment</h2>
 
 <form id="page3Form">
-  <div class="section-title">STATIC & SUSTAINED WORK POSTURE</div>
+  <div class="section-title">ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE</div>
   <table>
     <thead>
       <tr>
@@ -40,7 +40,13 @@
     <tbody id="staticPostureTable"></tbody>
   </table>
 
-  <div class="section-title">FORCEFUL EXERTION (MANUAL HANDLING)</div>
+  <div class="section-title">ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)</div>
+  <div style="font-size: 16px; margin-top: 8px; text-align: center;">
+    <strong>Ergonomics Risk Factors: Forceful Exertion</strong>
+  </div>
+  <div style="font-size: 16px; margin-bottom: 12px; text-align: center;">
+    <strong>(Manual handling – Lifting and/or lowering)</strong>
+  </div> 
   <div class="logo">
             <img src="Figure_1.png" alt="Figure">
   </div>
@@ -128,7 +134,7 @@
   const doc = new jsPDF();
 
   doc.setFontSize(14);
-  doc.text("Static and Sustained Work Posture", 14, 15);
+  doc.text("ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", 14, 15);
 
   const rows = [];
   const imageDataArray = [];
@@ -259,7 +265,11 @@
   // MANUAL HANDLING TABLE
 doc.addPage();
 doc.setFontSize(14);
-doc.text("Forceful Exertion (Manual Handling)", 14, 15);
+doc.text("ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)", 14, 15);
+
+doc.setFontSize(12); // Slightly smaller font for subtext
+doc.text("Ergonomics Risk Factors: Forceful Exertion", 16, 22);
+doc.text("(Manual handling – Lifting and/or lowering)", 16, 28);
 
   // Add Figure 1 image below the title
 const figureImage = new Image();
@@ -278,7 +288,7 @@ const pageWidth = doc.internal.pageSize.getWidth();
 const centerX = (pageWidth - scaledWidth) / 2;
 
 // Y position (below the title)
-const figY = 20;
+const figY = 30;
 
 // Add the image to the PDF centered and scaled
 doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
