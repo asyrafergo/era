@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ergonomics Risk Assessment</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table, th, td { border: 1px solid #ccc; }
+        th, td { padding: 10px; text-align: center; vertical-align: middle; }
+        th { background-color: #f2f2f2; }
+        input[type="file"] { display: block; margin-top: 5px; }
+        .summary { margin-top: 20px; }
+        .total { font-weight: bold; }
+        button { padding: 10px 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align: center;">Ergonomics Risk Assessment Form</h2>
+<form id="assessmentForm">
+    <table>
+        <thead>
+            <tr>
+                <th>Body Part</th>
+                <th>Risk Factor</th>
+                <th>Exposure Duration</th>
+                <th>Yes</th>
+                <th>No</th>
+                <th>Remarks/Photo</th>
+            </tr>
+        </thead>
+        <tbody id="formBody"></tbody>
+    </table>
+
+    <button type="button" onclick="generatePDF()">Generate PDF</button>
+
+    <div class="summary" style="display: none;">
+        <p class="total">Total Yes: <span id="totalYes">0</span></p>
+    </div>
+</form>
+
+<script>
+    const questions = [
+        { part: "Shoulders", factor: "Work with hand above the head OR the elbow above the shoulder", duration: "More than 2 hours per day" },
+        { part: "Shoulders", factor: "Work with shoulder raised", duration: "More than 2 hours per day" },
+        { part: "Shoulders", factor: "Work repetitively by raising the hand above the head OR the elbow above the shoulder more than once per minute", duration: "More than 2 hours per day" },
+        { part: "Head", factor: "Work with head bent downwards more than 45 degrees", duration: "More than 2 hours per day" },
+        { part: "Head", factor: "Work with head bent backwards", duration: "More than 2 hours per day" },
+        { part: "Head", factor: "Work with head bent sideways", duration: "More than 2 hours per day" },
+        { part: "Back", factor: "Work with back bent forward more than 30 degrees OR bent sideways", duration: "More than 2 hours per day" },
+        { part: "Back", factor: "Work with body twisted", duration: "More than 2 hours per day" },
+        { part: "Hand/ Elbow/ Wrist", factor: "Work with wrist flexion OR extension OR radial deviation more than 15 degrees", duration: "More than 2 hours per day" },
+        { part: "Hand/ Elbow/ Wrist", factor: "Work with arm abduction sideways", duration: "More than 4 hours per day" },
+        { part: "Hand/ Elbow/ Wrist", factor: "Work with arm forward more than 45 degrees OR arm backward more than 20 degrees", duration: "More than 2 hours per day" },
+        { part: "Leg/ Knees", factor: "Work in a squat position", duration: "More than 2 hours per day" },
+        { part: "Leg/ Knees", factor: "Work in a kneeling position", duration: "More than 2 hours per day" }
+    ];
+
+    const formBody = document.getElementById('formBody');
+
+    questions.forEach((q, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${q.part}</td>
+            <td>${q.factor}</td>
+            <td>${q.duration}</td>
+            <td><input type="radio" name="q${index}" value="Yes"></td>
+            <td><input type="radio" name="q${index}" value="No"></td>
+            <td>
+                <input type="text" placeholder="Remarks" id="remark${index}">
+                <input type="file" accept="image/*" id="file${index}">
+            </td>
+        `;
+        formBody.appendChild(row);
+    });
+
+    async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('ERGONOMICS RISK FACTORS: AWKWARD POSTURE', 50, 15);
+
+    const rows = [];
+    let totalYes = 0;
+    const imageDataArray = [];
+
+    for (let i = 0; i < questions.length; i++) {
+    const yesInput = document.querySelector(`input[name='q${i}'][value='Yes']`);
+    const noInput = document.querySelector(`input[name='q${i}'][value='No']`);
+
+    const yesChecked = yesInput?.checked;
+    const noChecked = noInput?.checked;
+
+    let finalYes = yesChecked || false;
+    let finalNo = noChecked || (!yesChecked && !noChecked); // assume No if both are unchecked
+
+    if (finalYes) totalYes++;
+
+    const remark = finalYes ? (document.getElementById(`remark${i}`).value || '') : '';
+    const fileInput = document.getElementById(`file${i}`);
+    let maxImgWidth = 40;
+    let maxImgHeight = 40;
+
+    // Only process image if "Yes" is selected
+    if (finalYes && fileInput.files[0]) {
+        try {
+            const file = fileInput.files[0];
+
+            if (file.size > 1024 * 1024) {
+                console.warn(`Image ${file.name} too large. Skipped.`);
+                rows.push([
+                    questions[i].part,
+                    questions[i].factor,
+                    questions[i].duration,
+                    finalYes ? '/' : '',
+                    finalNo ? '/' : '',
+                    'Image too large to include.'
+                ]);
+                continue;
+            }
+
+            const readerResult = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (err) => reject(err);
+                reader.readAsDataURL(file);
+            });
+
+            const img = new Image();
+            img.src = readerResult;
+
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+
+            let imgWidth = img.width;
+            let imgHeight = img.height;
+            const aspectRatio = imgWidth / imgHeight;
+
+            if (imgWidth > maxImgWidth) {
+                imgWidth = maxImgWidth;
+                imgHeight = imgWidth / aspectRatio;
+            }
+            if (imgHeight > maxImgHeight) {
+                imgHeight = maxImgHeight;
+                imgWidth = imgHeight * aspectRatio;
+            }
+
+            imageDataArray.push({
+                index: i,
+                data: readerResult,
+                width: imgWidth,
+                height: imgHeight
+            });
+
+            rows.push([
+                questions[i].part,
+                questions[i].factor,
+                questions[i].duration,
+                finalYes ? '/' : '',
+                finalNo ? '/' : '',
+                '' // Placeholder for image
+            ]);
+        } catch (error) {
+            console.error(`Error processing image for row ${i}:`, error);
+            rows.push([
+                questions[i].part,
+                questions[i].factor,
+                questions[i].duration,
+                finalYes ? '/' : '',
+                finalNo ? '/' : '',
+                'Error loading image.'
+            ]);
+        }
+    } else {
+        rows.push([
+            questions[i].part,
+            questions[i].factor,
+            questions[i].duration,
+            finalYes ? '/' : '',
+            finalNo ? '/' : '',
+            remark
+        ]);
+    }
+}
+
+    doc.autoTable({
+        head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
+        body: rows,
+        startY: 20,
+        theme: 'grid',
+        styles: {
+            fontSize: 10,
+            cellPadding: 3,
+            valign: 'middle',
+            align: 'center',
+            overflow: 'linebreak'
+        },
+        headStyles: {
+            fillColor: [120, 120, 120],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        columnStyles: {
+            0: { cellWidth: 28 },
+            1: { cellWidth: 38 },
+            2: { cellWidth: 28 },
+            3: { cellWidth: 14 },
+            4: { cellWidth: 14 },
+            5: { cellWidth: 'auto' }
+        },
+        didParseCell: function (data) {
+            if (data.section === 'body' && data.column.index === 5) {
+                const image = imageDataArray.find(img => img.index === data.row.index);
+                if (image) {
+                    // Inject blank lines to increase height
+                    const lines = Math.ceil((image.height * 1.2) / 3); // tweak for size
+                    data.cell.text = Array(lines).fill('\n'); // add blank lines
+                }
+            }
+        },
+        didDrawCell: function (data) {
+            if (data.section === 'body' && data.column.index === 5) {
+                const rowIndex = data.row.index;
+                const image = imageDataArray.find(img => img.index === rowIndex);
+
+                if (image) {
+                    const imgWidthMM = image.width * 1.2;
+                    const imgHeightMM = image.height * 1.2;
+
+                    const cellX = data.cell.x;
+                    const cellY = data.cell.y;
+                    const cellWidth = data.cell.width;
+                    const cellHeight = data.cell.height;
+
+                    const imgX = cellX + (cellWidth - imgWidthMM) / 2;
+                    const imgY = cellY + (cellHeight - imgHeightMM) / 2;
+
+                    const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+                    doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+                }
+            }
+        }
+    });
+
+    doc.autoTable({
+        body: [[`Sub Total (Number of tick(s)): ${totalYes}`]],
+        startY: doc.previousAutoTable.finalY + 10,
+        styles: {
+            fontSize: 12,
+            fontStyle: 'bold'
+        }
+    });
+
+    doc.save('Ergonomics_Risk_Assessment.pdf');
+}
+
+</script>
+</body>
+</html>
