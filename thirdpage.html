@@ -264,39 +264,27 @@ doc.text("Forceful Exertion (Manual Handling)", 14, 15);
   // Add Figure 1 image below the title
 const figureImage = new Image();
 figureImage.src = 'Figure_1.png';
+await new Promise(resolve => figureImage.onload = resolve);
 
-await new Promise(resolve => {
-  figureImage.onload = resolve;
-});
+// Get original image dimensions
+const figWidth = figureImage.width;
+const figHeight = figureImage.height;
 
-// Get original image size
-const imgWidth = figureImage.width;
-const imgHeight = figureImage.height;
-
-// Get PDF page size
+// Get PDF page width
 const pageWidth = doc.internal.pageSize.getWidth();
-const pageHeight = doc.internal.pageSize.getHeight();
 
-// Center X position
-const centerX = (pageWidth - imgWidth) / 2;
+// Calculate X to center the image
+const centerX = (pageWidth - figWidth) / 2;
 
-// Optional: scale down if image is too big for the page
-let drawWidth = imgWidth;
-let drawHeight = imgHeight;
+// Y position (below the title)
+const figY = 20; // Adjust this if you have a title above
 
-if (imgWidth > pageWidth - 20) { // 20 for margin
-  drawWidth = pageWidth - 20;
-  const scale = drawWidth / imgWidth;
-  drawHeight = imgHeight * scale;
-}
-
-const finalX = (pageWidth - drawWidth) / 2;
-const finalY = 20; // adjust Y position as needed
-
-doc.addImage(figureImage, 'PNG', finalX, finalY, drawWidth, drawHeight);
+// Add the image to the PDF centered
+doc.addImage(figureImage, 'PNG', centerX, figY, figWidth, figHeight);
 
 // Adjust the Y position of the table below the image
-const tableStartY = 20 + figHeight + 10;
+const tableStartY = figY + figHeight + 10;
+
 //-----------------------------------------------------------------------------
   const mhRows = [];
   const mhImageDataArray = [];
