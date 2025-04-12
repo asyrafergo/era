@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ergonomics Risk Assessment - Page 3</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; vertical-align: middle; }
+    th { background-color: #f2f2f2; }
+    input[type="file"] { margin-top: 5px; }
+    .section-title { margin-top: 30px; font-weight: bold; font-size: 18px; text-align: center; }
+  </style>
+</head>
+<body>
+
+<h2 style="text-align: center;">Ergonomics Risk Assessment - Page 3</h2>
+
+<form id="page3Form">
+  <div class="section-title">STATIC & SUSTAINED WORK POSTURE</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Body Part</th>
+        <th>Physical Risk Factor</th>
+        <th>Max. Exposure Duration</th>
+        <th>Yes</th>
+        <th>No</th>
+        <th>Remarks / Photos</th>
+      </tr>
+    </thead>
+    <tbody id="staticPostureTable"></tbody>
+  </table>
+
+  <div class="section-title">FORCEFUL EXERTION (MANUAL HANDLING)</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Working Height</th>
+        <th>Recommended Weight</th>
+        <th>Current Weight</th>
+        <th>Exceed Limit?</th>
+        <th>Remarks / Photos</th>
+      </tr>
+    </thead>
+    <tbody id="manualHandlingTable"></tbody>
+  </table>
+
+  <button type="button" onclick="generatePDF()">Generate PDF</button>
+</form>
+
+<script>
+  const staticData = [
+    {
+      part: "Trunk/Head/Neck/Arm/Wrist",
+      factor: "Work in a static awkward position as in Table 1",
+      duration: "Refer Table 1"
+    },
+    {
+      part: "Leg/Knees",
+      factor: "Standing with minimal leg movement",
+      duration: "More than 2 hours"
+    },
+    {
+      part: "Leg/Knees",
+      factor: "Seated with minimal movement",
+      duration: "More than 30 mins"
+    }
+  ];
+
+  const manualData = [
+    { height: "Floor to mid-lower leg", recommended: "Based on guidelines" },
+    { height: "Mid-lower leg to knuckle", recommended: "Based on guidelines" },
+    { height: "Knuckle to elbow", recommended: "Based on guidelines" },
+    { height: "Elbow to shoulder", recommended: "Based on guidelines" },
+    { height: "Above shoulder", recommended: "Based on guidelines" }
+  ];
+
+  const staticTable = document.getElementById("staticPostureTable");
+  staticData.forEach((row, i) => {
+    staticTable.innerHTML += `
+      <tr>
+        <td>${row.part}</td>
+        <td>${row.factor}</td>
+        <td>${row.duration}</td>
+        <td><input type="radio" name="sp${i}" value="Yes"></td>
+        <td><input type="radio" name="sp${i}" value="No"></td>
+        <td>
+          <input type="text" placeholder="Remarks" id="spr${i}">
+          <input type="file" accept="image/*" id="spf${i}">
+        </td>
+      </tr>
+    `;
+  });
+
+  const manualTable = document.getElementById("manualHandlingTable");
+  manualData.forEach((row, i) => {
+    manualTable.innerHTML += `
+      <tr>
+        <td>${row.height}</td>
+        <td>${row.recommended}</td>
+        <td><input type="text" id="mhWeight${i}"></td>
+        <td>
+          <input type="radio" name="mh${i}" value="Yes"> Yes
+          <input type="radio" name="mh${i}" value="No"> No
+        </td>
+        <td>
+          <input type="text" placeholder="Remarks" id="mhr${i}">
+          <input type="file" accept="image/*" id="mhf${i}">
+        </td>
+      </tr>
+    `;
+  });
+
+  async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(14);
+  doc.text("Static and Sustained Work Posture", 14, 15);
+
+  const rows = [];
+  const imageDataArray = [];
+  let totalYes = 0;
+
+  // STATIC POSTURE TABLE
+  for (let i = 0; i < staticData.length; i++) {
+    const yesRadio = document.querySelector(`input[name="sp${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="sp${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`spr${i}`).value;
+    const file = document.getElementById(`spf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) totalYes++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        imageDataArray.push({
+          index: `sp${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        rows.push([
+          staticData[i].part,
+          staticData[i].factor,
+          staticData[i].duration,
+          isYes,
+          isNo,
+          ''
+        ]);
+      } catch (error) {
+        rows.push([
+          staticData[i].part,
+          staticData[i].factor,
+          staticData[i].duration,
+          isYes,
+          isNo,
+          'Error loading image.'
+        ]);
+      }
+    } else {
+      rows.push([
+        staticData[i].part,
+        staticData[i].factor,
+        staticData[i].duration,
+        isYes,
+        isNo,
+        finalRemark
+      ]);
+    }
+  }
+
+  // RENDER STATIC POSTURE TABLE
+  doc.autoTable({
+    head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
+    body: rows,
+    startY: 20,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      align: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 30 },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 14 },
+      4: { cellWidth: 14 },
+      5: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${totalYes}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold'
+    }
+  });
+
+  // MANUAL HANDLING TABLE
+  doc.addPage();
+  doc.setFontSize(14);
+  doc.text("Forceful Exertion (Manual Handling)", 14, 15);
+
+  const mhRows = [];
+  const mhImageDataArray = [];
+  let mhYesCount = 0;
+
+  for (let i = 0; i < manualData.length; i++) {
+    const currentWeight = document.getElementById(`mhWeight${i}`).value;
+    const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`mhr${i}`).value;
+    const file = document.getElementById(`mhf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) mhYesCount++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        mhImageDataArray.push({
+          index: `mh${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        mhRows.push([
+          manualData[i].height,
+          manualData[i].recommended,
+          currentWeight,
+          isYes + isNo,
+          ''
+        ]);
+      } catch (error) {
+        mhRows.push([
+          manualData[i].height,
+          manualData[i].recommended,
+          currentWeight,
+          isYes + isNo,
+          'Error loading image.'
+        ]);
+      }
+    } else {
+      mhRows.push([
+        manualData[i].height,
+        manualData[i].recommended,
+        currentWeight,
+        isYes + isNo,
+        finalRemark
+      ]);
+    }
+  }
+
+  doc.autoTable({
+    head: [['Working Height', 'Recommended Weight', 'Current Weight', 'Exceed Limit?', 'Remarks or Photos']],
+    body: mhRows,
+    startY: 20,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      align: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 40 },
+      1: { cellWidth: 32 },
+      2: { cellWidth: 23 },
+      3: { cellWidth: 20 },
+      4: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 4) {
+        const image = mhImageDataArray.find(img => img.index === `mh${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 4) {
+        const image = mhImageDataArray.find(img => img.index === `mh${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold'
+    }
+  });
+
+  doc.save("Page3_StaticPosture_ManualHandling.pdf");
+}
+
+
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
+
+</body>
+</html>
