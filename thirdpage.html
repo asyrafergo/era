@@ -266,24 +266,25 @@ const figureImage = new Image();
 figureImage.src = 'Figure_1.png';
 await new Promise(resolve => figureImage.onload = resolve);
 
-// Get original image dimensions
-const figWidth = figureImage.width;
-const figHeight = figureImage.height;
+// Set desired width (smaller than original)
+const scaledWidth = 100; // You can adjust this (e.g., 80, 120)
+const scaleRatio = scaledWidth / figureImage.width;
+const scaledHeight = figureImage.height * scaleRatio;
 
 // Get PDF page width
 const pageWidth = doc.internal.pageSize.getWidth();
 
 // Calculate X to center the image
-const centerX = (pageWidth - figWidth) / 2;
+const centerX = (pageWidth - scaledWidth) / 2;
 
 // Y position (below the title)
-const figY = 20; // Adjust this if you have a title above
+const figY = 20;
 
-// Add the image to the PDF centered
-doc.addImage(figureImage, 'PNG', centerX, figY, figWidth, figHeight);
+// Add the image to the PDF centered and scaled
+doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
 
 // Adjust the Y position of the table below the image
-const tableStartY = figY + figHeight + 10;
+const tableStartY = figY + scaledHeight + 10;
 
 //-----------------------------------------------------------------------------
   const mhRows = [];
