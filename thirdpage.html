@@ -86,11 +86,11 @@
   ];
 
   const manualData = [
-    { height: "Floor to mid-lower leg", recommended: "Based on guidelines" },
-    { height: "Mid-lower leg to knuckle", recommended: "Based on guidelines" },
-    { height: "Knuckle to elbow", recommended: "Based on guidelines" },
-    { height: "Elbow to shoulder", recommended: "Based on guidelines" },
-    { height: "Above shoulder", recommended: "Based on guidelines" }
+    { height: "Floor to mid-lower leg"},
+    { height: "Mid-lower leg to knuckle"},
+    { height: "Knuckle to elbow" },
+    { height: "Elbow to shoulder"},
+    { height: "Above shoulder"}
   ];
 
   const staticTable = document.getElementById("staticPostureTable");
@@ -115,7 +115,12 @@
     manualTable.innerHTML += `
       <tr>
         <td>${row.height}</td>
-        <td>${row.recommended}</td>
+        <td>
+            <div style="text-align: center;">
+    <label><input type="radio" name="gender${i}" value="Male"> Male</label>
+    <label><input type="radio" name="gender${i}" value="Female"> Female</label>
+    </div>
+  </td>
         <td><input type="text" id="mhWeight${i}"></td>
         <td>
           <input type="radio" name="mh${i}" value="Yes"> Yes
@@ -213,7 +218,7 @@
       fontSize: 10,
       cellPadding: 3,
       valign: 'middle',
-      align: 'center',
+      halign: 'center',
       overflow: 'linebreak'
     },
     headStyles: {
@@ -304,6 +309,8 @@ const tableStartY = figY + scaledHeight + 10;
   let mhYesCount = 0;
 
   for (let i = 0; i < manualData.length; i++) {
+    const maleRadio = document.querySelector(`input[name="gender${i}"][value="Male"]`);
+    const femaleRadio = document.querySelector(`input[name="gender${i}"][value="Female"]`);
     const currentWeight = document.getElementById(`mhWeight${i}`).value;
     const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
     const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
@@ -313,7 +320,7 @@ const tableStartY = figY + scaledHeight + 10;
     const file = document.getElementById(`mhf${i}`).files[0];
 
     const isYes = finalYes ? '/' : '';
-    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? 'X' : '';
     const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
 
     if (finalYes) mhYesCount++;
@@ -336,30 +343,31 @@ const tableStartY = figY + scaledHeight + 10;
           height: scaledHeight
         });
 
-        mhRows.push([
-          manualData[i].height,
-          manualData[i].recommended,
-          currentWeight,
-          isYes + isNo,
-          ''
-        ]);
+        // Determine selected gender
+let recommendedWeight = '';
+if (maleRadio && maleRadio.checked) {
+  recommendedWeight = 'Male';
+} else if (femaleRadio && femaleRadio.checked) {
+  recommendedWeight = 'Female';
+} else {
+  recommendedWeight = 'Not selected';
+}
+
+        mhRows.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, '']);
       } catch (error) {
-        mhRows.push([
-          manualData[i].height,
-          manualData[i].recommended,
-          currentWeight,
-          isYes + isNo,
-          'Error loading image.'
-        ]);
+        mhRows.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, 'Error loading image.']);
       }
     } else {
-      mhRows.push([
-        manualData[i].height,
-        manualData[i].recommended,
-        currentWeight,
-        isYes + isNo,
-        finalRemark
-      ]);
+      // Determine selected gender
+let recommendedWeight = '';
+if (maleRadio && maleRadio.checked) {
+  recommendedWeight = 'Male';
+} else if (femaleRadio && femaleRadio.checked) {
+  recommendedWeight = 'Female';
+} else {
+  recommendedWeight = 'Not selected';
+}
+        mhRows.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, finalRemark]);
     }
   }
 
@@ -372,7 +380,7 @@ const tableStartY = figY + scaledHeight + 10;
       fontSize: 10,
       cellPadding: 3,
       valign: 'middle',
-      align: 'center',
+      halign: 'center',
       overflow: 'linebreak'
     },
     headStyles: {
