@@ -134,7 +134,7 @@
   const doc = new jsPDF();
 
   doc.setFontSize(14);
-  doc.text("ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", 14, 15);
+  doc.text("ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", 14, 15, { align: "center" });
 
   const rows = [];
   const imageDataArray = [];
@@ -264,12 +264,14 @@
 
   // MANUAL HANDLING TABLE
 doc.addPage();
+// Set the font size for the title
 doc.setFontSize(14);
-doc.text("ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)", 14, 15);
+doc.text("ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
 
-doc.setFontSize(12); // Slightly smaller font for subtext
-doc.text("Ergonomics Risk Factors: Forceful Exertion", 16, 22);
-doc.text("(Manual handling – Lifting and/or lowering)", 16, 28);
+// Set slightly smaller font size for the subtext
+doc.setFontSize(12);
+doc.text("Ergonomics Risk Factors: Forceful Exertion", doc.internal.pageSize.getWidth() / 2, 22, { align: "center" });
+doc.text("(Manual handling – Lifting and/or lowering)", doc.internal.pageSize.getWidth() / 2, 28, { align: "center" });
 
   // Add Figure 1 image below the title
 const figureImage = new Image();
