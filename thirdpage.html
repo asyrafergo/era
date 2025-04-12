@@ -261,6 +261,20 @@ doc.addPage();
 doc.setFontSize(14);
 doc.text("Forceful Exertion (Manual Handling)", 14, 15);
 
+  // Add Figure 1 image below the title
+const figureImage = new Image();
+figureImage.src = 'Figure_1.png';
+await new Promise(resolve => figureImage.onload = resolve);
+
+const figWidth = 60; // adjust width as needed
+const figScale = figWidth / figureImage.width;
+const figHeight = figureImage.height * figScale;
+
+doc.addImage(figureImage, 'PNG', 14, 20, figWidth, figHeight);
+
+// Adjust the Y position of the table below the image
+const tableStartY = 20 + figHeight + 10;
+//-----------------------------------------------------------------------------
   const mhRows = [];
   const mhImageDataArray = [];
   let mhYesCount = 0;
@@ -328,7 +342,7 @@ doc.text("Forceful Exertion (Manual Handling)", 14, 15);
   doc.autoTable({
     head: [['Working Height', 'Recommended Weight', 'Current Weight', 'Exceed Limit?', 'Remarks or Photos']],
     body: mhRows,
-    startY: 20,
+    startY: tableStartY,
     theme: 'grid',
     styles: {
       fontSize: 10,
