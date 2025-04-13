@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Summary of Carrying Activity</title>
+  <style>
+    body {
+      font-family: Calibri, sans-serif;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px auto;
+      font-size: 14px;
+      text-align: center;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px;
+      vertical-align: middle;
+      text-align: center;
+    }
+    th {
+      background-color: #d9d9d9;
+      font-weight: bold;
+    }
+    .center {
+      text-align: center;
+    }
+    .add-btn {
+      margin: 10px 5px;
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .add-btn:hover {
+      background-color: #0056b3;
+    }
+    input[type="text"] {
+      width: 100%;
+      text-align: center;
+      border: none;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    .controls {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+    .preview {
+      display: none;
+      max-width: 100px;
+      margin-top: 5px;
+    }
+  </style>  
+</head>
+<body>
+
+<h2 class="center">Summary of Carrying Activity</h2>
+
+<table id="carryingTable">
+  <thead>
+    <tr>
+      <th>Factor</th>
+      <th>Condition</th>
+      <th>Outcome</th>
+      <th>Remarks or photos</th>
+      <th class="no-print">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Floor Surface</td>
+      <td>Dry and clean floor in good condition</td>
+      <td>Acceptable</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Floor Surface</td>
+      <td>Dry floor but in poor condition, worn or uneven</td>
+      <td>Conduct advanced ERA</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Floor Surface</td>
+      <td>Contaminated/wet or steep sloping floor or unstable surface or unsuitable footwear</td>
+      <td>Conduct advanced ERA</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Other environmental factors</td>
+      <td>No factors present</td>
+      <td>Acceptable</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Other environmental factors</td>
+      <td>One or more factors present (i.e. poor lighting condition and strong air movements)</td>
+      <td>Conduct advanced ERA</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Carry distance</td>
+      <td>2 m—10 m</td>
+      <td>Acceptable</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Carry distance</td>
+      <td>10 m or more</td>
+      <td>Conduct advanced ERA</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Obstacles en route</td>
+      <td>No obstacles and carry route is flat</td>
+      <td>Acceptable</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+    <tr>
+      <td>Obstacles en route</td>
+      <td>Steep slope or up steps or through closed doors or trip hazards or using ladders</td>
+      <td>Conduct advanced ERA</td>
+      <td><input type="text" placeholder="Remarks" class="remark-input">
+          <input type="file" accept="image/*" onchange="previewImage(this)">
+          <img class="preview"></td>
+      <td class="no-print"></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="controls" id="buttonGroup">
+  <button class="add-btn" onclick="addOtherRow()">Add 'Others' Row</button>
+  <button class="add-btn" onclick="downloadPDF()">Download as PDF</button>
+</div>
+
+<!-- jsPDF & html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+  let imageDataArray = [];
+
+  // Function to preview the image when uploaded
+  function previewImage(input) {
+    const file = input.files[0]; // Get the uploaded file
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.src = e.target.result; // Set the image source to the file data
+
+      // Find the preview image element
+      const preview = input.nextElementSibling; // Get the <img> element next to the input field
+
+      img.onload = function() {
+        preview.src = img.src; // Set the image src to the loaded file
+        preview.style.display = 'block'; // Show the preview image
+      }
+    };
+    reader.readAsDataURL(file); // Read the file as a Data URL
+  }
+
+// Read image files
+function readImages() {
+  imageDataArray = [];
+  const files = document.querySelectorAll('input[type="file"]');
+  const promises = [];
+
+  files.forEach((fileInput, index) => {
+    const file = fileInput.files[0];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (file) {
+      const reader = new FileReader();
+      const promise = new Promise((resolve) => {
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            imageDataArray.push({
+              index: `sp${index}`,
+              data: dataUrl,
+              width: img.width / 10,
+              height: img.height / 10
+            });
+            resolve();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      promises.push(promise);
+    }
+  });
+
+  return Promise.all(promises);
+}
+
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  await readImages();
+
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const table = document.getElementById('carryingTable');
+  const rows = table.querySelectorAll('tbody tr');
+
+  const tableData = Array.from(rows).map((row, rowIndex) => {
+    const cells = row.querySelectorAll('td');
+    const remarkInput = cells[3]?.querySelector('.remark-input');
+    const remark = remarkInput ? remarkInput.value : "";
+
+    return [
+      cells[0] ? cells[0].innerText : "",
+      cells[1] ? cells[1].innerText : "",
+      cells[2] ? cells[2].innerText : "",
+      remark, ""
+    ];
+  });
+
+  let startY = 20;  // Set a starting Y position for the first page
+  doc.autoTable({
+    head: [["Factor", "Condition", "Outcome", "Remarks/Photo"]],
+    body: tableData,
+    pageBreak: 'auto',
+    startY: startY,
+    styles: { valign: 'middle', font: 'helvetica', fontSize: 10},
+    columnStyles: {
+      0: { cellWidth: 38 },   // Factor
+      1: { cellWidth: 35 },   // Condition
+      2: { cellWidth: 28 },   // Outcome
+      3: { cellWidth: 'auto', halign: 'center'  },   // Remarks (text input)
+    },
+    didParseCell: function (data) {
+  if (data.section === 'body' && data.column.index === 3) {
+    const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+    if (image) {
+      const scale = 1.4;
+      const imgHeightMM = image.height * scale;
+      const lineHeightMM = 4.5;
+      const lines = Math.max(1, Math.ceil(Math.min(imgHeightMM, 40) / lineHeightMM));  // Cap space to avoid excessive gaps
+      data.cell.text = Array(lines).fill('\n');
+    } else {
+      const text = data.cell.text?.toString().trim();
+      if (!text) data.cell.text = "";
+    }
+  }
+},
+
+didDrawCell: function (data) {
+  if (data.section === 'body' && data.column.index === 3) {
+    const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+    if (image) {
+      const maxWidthMM = data.cell.width * 0.9;
+      const maxHeightMM = data.cell.height * 0.9;
+
+      let imgWidthMM = image.width * 1.2;
+      let imgHeightMM = image.height * 1.2;
+
+      const scale = Math.min(maxWidthMM / imgWidthMM, maxHeightMM / imgHeightMM, 1);
+      imgWidthMM *= scale;
+      imgHeightMM *= scale;
+
+      // Ensure minimum size
+      imgWidthMM = Math.max(imgWidthMM, 20);
+      imgHeightMM = Math.max(imgHeightMM, 20);
+
+      const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+      const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+
+      const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+      doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+    }
+  }
+}
+  });
+
+  doc.save('Summary_of_Carrying_Activity.pdf');
+}
+
+</script>
+
+</body>
+</html>
