@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Summary of Carrying Activity</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
   <style>
     body {
       font-family: Calibri, sans-serif;
@@ -66,15 +67,44 @@
       background-color: #c82333;
     }
     .preview {
-      display: none;
-      max-width: 100px;
-      margin-top: 5px;
-    }
+  display: block;
+  max-width: 100px;
+  margin: 5px auto; /* center horizontally */
+  max-height: 80px;
+}
+    .header-text {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-family: Calibri, sans-serif;
+}
+
+.header-text h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.header-text h3 {
+  font-size: 16px;
+  margin: 2px 0;
+}
+.logo img {
+  display: block;
+  margin: 10px auto;
+  max-height: 80px;
+}
+
   </style>  
 </head>
 <body>
 
-<h2 class="center">Summary of Carrying Activity</h2>
+<div class="header-text center">
+  <h2>Ergonomics Risk Factors: Forceful Exertion</h2>
+  <h3>(Handling in Seated Position)</h3>
+  <div class="logo">
+            <img src="Figure_2.png" alt="Figure">
+  </div>
+  <h3>Summary of Carrying Activity</h3>
+</div>
 
 <table id="carryingTable">
   <thead>
@@ -180,7 +210,31 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
+
   let imageDataArray = [];
+  
+  function addOtherRow() {
+  const table = document.getElementById('carryingTable').getElementsByTagName('tbody')[0];
+
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `
+    <td>Others</td>
+    <td><input type="text" placeholder="Condition"></td>
+    <td><input type="text" placeholder="Outcome"></td>
+    <td>
+      <input type="text" placeholder="Remarks" class="remark-input">
+      <input type="file" accept="image/*" onchange="previewImage(this)">
+      <img class="preview">
+    </td>
+    <td class="no-print"><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+  `;
+  table.appendChild(newRow);
+}
+
+function deleteRow(button) {
+  const row = button.closest('tr');
+  row.remove();
+}
 
   // Function to preview the image when uploaded
   function previewImage(input) {
@@ -246,29 +300,69 @@ async function downloadPDF() {
   await readImages();
 
   const doc = new jsPDF('p', 'mm', 'a4');
+
+const pageCenter = doc.internal.pageSize.getWidth() / 2;
+doc.setFontSize(14);
+doc.text("Ergonomics Risk Factors: Forceful Exertion", pageCenter, 15, { align: "center" });
+doc.text("(Handling in Seated Position)", pageCenter, 22, { align: "center" });
+
+   // Add Figure image below the title
+const figureImage = new Image();
+figureImage.src = 'Figure_2.png';
+await new Promise(resolve => figureImage.onload = resolve);
+
+// Set desired width (smaller than original)
+const scaledWidth = 100; // You can adjust this (e.g., 80, 120)
+const scaleRatio = scaledWidth / figureImage.width;
+const scaledHeight = figureImage.height * scaleRatio;
+
+// Get PDF page width
+const pageWidth = doc.internal.pageSize.getWidth();
+
+// Calculate X to center the image
+const centerX = (pageWidth - scaledWidth) / 2;
+
+// Y position (below the title)
+const figY = 30;
+
+// Add the image to the PDF centered and scaled
+doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
+
+// Adjust the Y position of the table below the image
+const tableStartY = figY + scaledHeight + 10;
+  ----------------------------------------
+  
+  doc.setFontSize(13);
+  doc.text("Summary of Carrying Activity", pageCenter, 29, { align: "center" });
+
+  // === Adjust table position to start below heading ===
+  const startY = 38;
+
   const table = document.getElementById('carryingTable');
   const rows = table.querySelectorAll('tbody tr');
 
   const tableData = Array.from(rows).map((row, rowIndex) => {
-    const cells = row.querySelectorAll('td');
-    const remarkInput = cells[3]?.querySelector('.remark-input');
-    const remark = remarkInput ? remarkInput.value : "";
+  const cells = row.querySelectorAll('td');
 
-    return [
-      cells[0] ? cells[0].innerText : "",
-      cells[1] ? cells[1].innerText : "",
-      cells[2] ? cells[2].innerText : "",
-      remark, ""
-    ];
-  });
+  const factor = cells[0] ? cells[0].innerText.trim() : "";
+  const conditionInput = cells[1]?.querySelector('input[type="text"]');
+  const condition = conditionInput ? conditionInput.value.trim() : cells[1]?.innerText.trim() || "";
 
-  let startY = 20;  // Set a starting Y position for the first page
+  const outcomeInput = cells[2]?.querySelector('input[type="text"]');
+  const outcome = outcomeInput ? outcomeInput.value.trim() : cells[2]?.innerText.trim() || "";
+
+  const remarkInput = cells[3]?.querySelector('.remark-input');
+  const remark = remarkInput ? remarkInput.value.trim() : "";
+
+  return [factor, condition, outcome, remark, ""];
+});
+
   doc.autoTable({
     head: [["Factor", "Condition", "Outcome", "Remarks/Photo"]],
     body: tableData,
     pageBreak: 'auto',
     startY: startY,
-    styles: { valign: 'middle', font: 'helvetica', fontSize: 10},
+    styles: { valign: 'middle', font: 'helvetica', fontSize: 10, halign: 'center'},
     columnStyles: {
       0: { cellWidth: 38 },   // Factor
       1: { cellWidth: 35 },   // Condition
