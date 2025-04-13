@@ -327,16 +327,12 @@ const figY = 30;
 
 // Add the image to the PDF centered and scaled
 doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
-
-// Adjust the Y position of the table below the image
-const tableStartY = figY + scaledHeight + 10;
-  //----------------------------------------
   
   doc.setFontSize(13);
   doc.text("Summary of Carrying Activity", pageCenter, 29, { align: "center" });
 
   // === Adjust table position to start below heading ===
-  const startY = 38;
+  const startY = 40;
 
   const table = document.getElementById('carryingTable');
   const rows = table.querySelectorAll('tbody tr');
