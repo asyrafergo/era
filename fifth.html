@@ -302,37 +302,35 @@ async function downloadPDF() {
   const doc = new jsPDF('p', 'mm', 'a4');
 
 const pageCenter = doc.internal.pageSize.getWidth() / 2;
+
+   // 1. Add main titles
 doc.setFontSize(14);
 doc.text("Ergonomics Risk Factors: Forceful Exertion", pageCenter, 15, { align: "center" });
 doc.text("(Handling in Seated Position)", pageCenter, 22, { align: "center" });
 
-   // Add Figure image below the title
+// 2. Load image and wait until it's ready
 const figureImage = new Image();
 figureImage.src = 'Figure_2.png';
 await new Promise(resolve => figureImage.onload = resolve);
 
-// Set desired width (smaller than original)
-const scaledWidth = 100; // You can adjust this (e.g., 80, 120)
+// 3. Scale and center the image
+const scaledWidth = 100;
 const scaleRatio = scaledWidth / figureImage.width;
 const scaledHeight = figureImage.height * scaleRatio;
 
-// Get PDF page width
-const pageWidth = doc.internal.pageSize.getWidth();
+const figY = 30; // Y position after the title
+const centerX = (doc.internal.pageSize.getWidth() - scaledWidth) / 2;
 
-// Calculate X to center the image
-const centerX = (pageWidth - scaledWidth) / 2;
-
-// Y position (below the title)
-const figY = 30;
-
-// Add the image to the PDF centered and scaled
+// 4. Add image
 doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
-  
-  doc.setFontSize(13);
-  doc.text("Summary of Carrying Activity", pageCenter, 29, { align: "center" });
 
-  // === Adjust table position to start below heading ===
-  const startY = 40;
+// 5. Add "Summary of Carrying Activity" heading BELOW image
+const summaryY = figY + scaledHeight + 8;
+doc.setFontSize(13);
+doc.text("Summary of Carrying Activity", pageCenter, summaryY, { align: "center" });
+
+// 6. Set table start Y BELOW the heading
+const tableStartY = summaryY + 6;
 
   const table = document.getElementById('carryingTable');
   const rows = table.querySelectorAll('tbody tr');
@@ -357,7 +355,7 @@ doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
     head: [["Factor", "Condition", "Outcome", "Remarks/Photo"]],
     body: tableData,
     pageBreak: 'auto',
-    startY: startY,
+    startY: tableStartY,
     styles: { valign: 'middle', font: 'helvetica', fontSize: 10, halign: 'center'},
     columnStyles: {
       0: { cellWidth: 38 },   // Factor
