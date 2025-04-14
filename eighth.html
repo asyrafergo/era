@@ -53,9 +53,26 @@
 td.col-F {
     display: none;
 }
+.selected-yes {
+  border: 2px solid red;
+  background-color: #ffcccc; /* Optional: Adds a background color for better visibility */
+}
   </style>
 </head>
 <body>
+
+  <h2>ERGONOMICS RISK FACTORS: ENVIRONMENTAL FACTORS</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Body Part</th>
+        <th>Yes</th>
+        <th>No</th>
+        <th>Remarks / Photos</th>
+      </tr>
+    </thead>
+    <tbody id="staticPostureTable"></tbody>
+  </table>
 
 <h2>Initial ERA Form</h2>
 <table id="eraTable">
@@ -121,12 +138,213 @@ td.col-F {
 </div>
 
 <script>
-    function generatePDF() {
+  function previewImage(event, index) {
+    const file = event.target.files[0];
+    const preview = document.getElementById(`imagePreview${index}`);
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        preview.src = reader.result;
+        preview.style.display = "block"; // Show image preview
+      }
+      reader.readAsDataURL(file);
+    } else {
+      preview.style.display = "none"; // Hide if no image is selected
+    }
+  }
+
+  // Convert image to base64
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+const staticData = [
+    {
+      part: "Inadequate lighting"
+    },
+    {
+      part: "Extreme temperature (hot/cold)"
+    },
+    {
+      part: "Inadequate air ventilation or poor IAQ"
+    },
+    {
+      part: "Noise exposure above PEL"
+    },
+    {
+      part: "Exposed to annoying noise more than 8 hours"
+    }
+  ];
+
+  const staticTable = document.getElementById("staticPostureTable");
+  staticData.forEach((row, i) => {
+    staticTable.innerHTML += `
+      <tr>
+        <td>${row.part}</td>
+        <td><input type="radio" name="sp${i}" value="Yes"></td>
+        <td><input type="radio" name="sp${i}" value="No"></td>
+        <td>
+          <input type="text" placeholder="Remarks" id="spr${i}">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, ${i})">
+          <br>
+          <img id="imagePreview${i}" style="max-width: 100px; max-height: 100px; display: none;" />
+        </td>
+      </tr>
+    `;
+  });
+
+document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+      const group = this.getAttribute('data-group');
+      const type = this.classList.contains('yes') ? 'yes' : 'no';
+
+      // If this is checked, uncheck the opposite
+      if (this.checked) {
+        const oppositeClass = type === 'yes' ? 'no' : 'yes';
+        const opposite = document.querySelector(`.${oppositeClass}[data-group="${group}"]`);
+        if (opposite) {
+          opposite.checked = false;
+        }
+      }
+    });
+  });
+  
+    async function generatePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-  
+
       doc.setFontSize(16);
-      doc.text("Initial ERA Form", 105, 15, null, null, "center");
+      doc.text("ERGONOMICS RISK FACTORS: ENVIRONMENTAL FACTORS", 105, 15, null, null, "center");
+
+      const rows1 = [];
+      const imageDataArray = [];
+      let totalYes = 0;
+
+              // STATIC POSTURE TABLE
+  for (let i = 0; i < staticData.length; i++) {
+    const yesRadio = document.querySelector(`input[name="sp${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="sp${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`spr${i}`).value;
+    const file = document.getElementById(`spf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) totalYes++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        imageDataArray.push({
+          index: `sp${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        rows1.push([
+          staticData[i].part,
+          isYes,
+          isNo,
+          ''
+        ]);
+      } catch (error) {
+        rows1.push([
+          staticData[i].part,
+          isYes,
+          isNo,
+          'Error loading image.'
+        ]);
+      }
+    } else {
+      rows1.push([
+        staticData[i].part,
+        isYes,
+        isNo,
+        finalRemark
+      ]);
+    }
+  }
+
+  doc.autoTable({
+    head: [['Body Part', 'Yes', 'No', 'Remarks or Photos']],
+    body: rows1,
+    startY: 25,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 45},
+      1: { cellWidth: 14},
+      2: { cellWidth: 14 },
+      3: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 3) {
+        const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 3) {
+        const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${totalYes}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold'
+    }
+  });
+
+  let afterTableY = doc.autoTableEndPosY(); // Get the position right after the table
+
+
+      const nextY = afterTableY + 20;
+      doc.setFontSize(16);
+      doc.text("Initial ERA Form", 105, nextY, null, null, "center");
   
       // Collect Result of Initial ERA values
       const resultInputs = document.querySelectorAll('input[name="result[]"]');
@@ -185,7 +403,7 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
   
       // Build table
       doc.autoTable({
-        startY: 25,
+        startY: nextY + 10,
         head: [[
           'Risk Factor', 'Total score', 'Minimum Requirements for Advance ERA',
           'Result of Initial ERA', 'Any pain or discomfort (Yes/No)', 'Need advanced ERA (Yes/No)'
