@@ -71,25 +71,44 @@
     
     <script>
         function addPhotoSection() {
-            const container = document.getElementById('photoContainer');
-            const index = container.children.length;
-            const group = document.createElement('div');
-            group.classList.add('photo-group');
-            group.innerHTML = `
-                <label>Photo:
-                    <input type="file" id="photo${index}" accept="image/*">
-                </label>
-                <label>Description:
-                    <textarea id="photoDescription${index}" placeholder="Describe the uploaded photo..."></textarea>
-                </label>
-                <button type="button" class="remove-btn" onclick="removePhotoSection(this)">Remove</button>
-            `;
-            container.appendChild(group);
-        }
+    const container = document.getElementById('photoContainer');
+    const index = container.children.length;
+    const group = document.createElement('div');
+    group.classList.add('photo-group');
+    group.innerHTML = `
+        <label>Photo:
+            <input type="file" id="photo${index}" accept="image/*" onchange="previewImage(this, 'preview${index}')">
+        </label>
+        <img id="preview${index}" src="" style="max-width: 200px; max-height: 150px; display: none; margin-top: 10px;" />
+        <label>Description:
+            <textarea id="photoDescription${index}" placeholder="Describe the uploaded photo..."></textarea>
+        </label>
+        <button type="button" class="remove-btn" onclick="removePhotoSection(this)">Remove</button>
+    `;
+    container.appendChild(group);
+}
 
         function removePhotoSection(button) {
             button.parentElement.remove();
         }
+
+        function previewImage(input, previewId) {
+    const file = input.files[0];
+    const preview = document.getElementById(previewId);
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.src = "";
+        preview.style.display = "none";
+    }
+}
+
 
         function generatePDF() {
     const { jsPDF } = window.jspdf;
@@ -177,43 +196,54 @@
                 3: { cellWidth: 40 },
                 4: { cellWidth: 40 }
             },
-            didDrawCell: function (data) {
-                const imageIndex = data.row.index - 3;
-                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
-                    const img = imagesData[imageIndex].imgData;
-                    const imgProps = doc.getImageProperties(img);
-                    const maxWidth = 60;
-                    const maxHeight = 40;
-                    let imgWidth = maxWidth;
-                    let imgHeight = (imgProps.height * maxWidth) / imgProps.width;
+            didParseCell: function (data) {
+    const imageIndex = data.row.index - 3;
+    if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
+        const img = imagesData[imageIndex].imgData;
+        const imgProps = doc.getImageProperties(img);
 
-                    if (imgHeight > maxHeight) {
-                        imgHeight = maxHeight;
-                        imgWidth = (imgProps.width * maxHeight) / imgProps.height;
-                    }
+        const baseWidth = 60;
+        const maxHeight = 70;
+        let imgHeight = (imgProps.height * baseWidth) / imgProps.width;
 
-                    const x = data.cell.x + (data.cell.width - imgWidth) / 2;
-                    const y = data.cell.y + (data.cell.height - imgHeight) / 2;
+        if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+        }
 
-                    doc.addImage(img, 'JPEG', x, y, imgWidth, imgHeight);
-                }
-            },
-            willDrawCell: function (data) {
-                const imageIndex = data.row.index - 3;
-                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
-                    const img = imagesData[imageIndex].imgData;
-                    const imgProps = doc.getImageProperties(img);
-                    const maxWidth = 60;
-                    const maxHeight = 40;
-                    let imgHeight = (imgProps.height * maxWidth) / imgProps.width;
+        const approxLineHeight = 4.5;
+        const lines = Math.ceil((imgHeight + 4) / approxLineHeight);
+        data.cell.text = Array(lines).fill('\n');
+    }
+},
 
-                    if (imgHeight > maxHeight) {
-                        imgHeight = maxHeight;
-                    }
+didDrawCell: function (data) {
+    const imageIndex = data.row.index - 3;
+    if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
+        const img = imagesData[imageIndex].imgData;
+        const imgProps = doc.getImageProperties(img);
 
-                    data.row.height = Math.max(data.row.height, imgHeight + 4);
-                }
-            }
+        const maxWidth = data.cell.width - 4;
+        const maxHeight = data.cell.height - 4;
+
+        const baseWidth = 60;
+        let scale = 1.4;
+        let imgWidth = baseWidth * scale;
+        let imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+        // Reduce scale if image too wide
+        while ((imgWidth > maxWidth || imgHeight > maxHeight) && scale > 0.5) {
+            scale -= 0.1;
+            imgWidth = baseWidth * scale;
+            imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        }
+
+        const x = data.cell.x + (data.cell.width - imgWidth) / 2;
+        const y = data.cell.y + (data.cell.height - imgHeight) / 2;
+
+        const format = img.includes('image/png') ? 'PNG' : 'JPEG';
+        doc.addImage(img, format, x, y, imgWidth, imgHeight);
+    }
+}
         });
 
         doc.save("Ergonomics_Assessment.pdf");
