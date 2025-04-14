@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>ERGONOMICS RISK FACTORS: REPETITIVE MOTION</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; vertical-align: middle; }
+    th { background-color: #f2f2f2; }
+    input[type="file"] { margin-top: 5px; }
+    .section-title { margin-top: 30px; font-weight: bold; font-size: 18px; text-align: center; }
+    img {
+  border: 1px solid #ccc;
+  padding: 3px;
+  border-radius: 4px;
+}
+  </style>
+</head>
+<body>
+
+<form id="page3Form">
+  <div class="section-title">ERGONOMICS RISK FACTORS: REPETITIVE MOTION</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Body Part</th>
+        <th>Physical Risk Factor</th>
+        <th>Max. Exposure Duration</th>
+        <th>Yes</th>
+        <th>No</th>
+        <th>Remarks / Photos</th>
+      </tr>
+    </thead>
+    <tbody id="MotionTable"></tbody>
+  </table>
+
+  <div class="section-title">ERGONOMICS RISK FACTORS: VIBRATION</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Body Part</th>
+        <th>Physical Risk Factor</th>
+        <th>Max. Exposure Duration</th>
+        <th>Yes</th>
+        <th>No</th>
+        <th>Remarks / Photos</th>
+      </tr>
+    </thead>
+    <tbody id="VibrationTable"></tbody>
+  </table>
+  <button type="button" onclick="generatePDF()">Generate PDF</button>
+</form>
+
+<script>
+  const MotionData = [
+    {
+      part: "Neck,shoulders,elbows,wrists, hands, knee",
+      factor: "Work involving repetitive sequence of movement more than twice per minute",
+      duration: "More than 3 hours on a “normal” workday OR More than 1 hour continuously without a break"
+    },
+    {
+      part: "Neck,shoulders,elbows,wrists, hands, knee",
+      factor: "Work involving intensive use of the fingers, hands or wrist or work involving intensive data entry (key-in)",
+      duration: "More than 3 hours on a “normal” workday OR More than 1 hour continuously without a break"
+    },
+    {
+      part: "Neck,shoulders,elbows,wrists, hands, knee",
+      factor: "Work involving repetitive shoulder/arm movement with some pauses OR continuous shoulder/arm movement",
+      duration: "More than 3 hours on a “normal” workday OR More than 1 hour continuously without a break"
+    },
+    {
+      part: "Neck,shoulders,elbows,wrists, hands, knee",
+      factor: "Work using the heel/base of palm as a “hammer” more than once per minute",
+      duration: "More than 2 hours per day"
+    },
+    {
+      part: "Neck,shoulders,elbows,wrists, hands, knee",
+      factor: "Work using the knee as a “hammer” more than once per minute",
+      duration: "More than 2 hours per day"
+    }
+  ];
+
+  const VibrationData = [
+  {
+      part: "Hand-Arm (segmental vibration)",
+      factor: "Work using power tools (e.g. battery powered/ electrical pneumatic/ hydraulic) without PPE",
+      duration: "More than 50 minutes in an hour"
+    },
+    {
+      part: "Hand-Arm (segmental vibration)",
+      factor: "Work using power tools (e.g. battery powered/ electrical pneumatic/ hydraulic) with PPE",
+      duration: "More than 5 hours in 8 hours shift work"
+    },
+    {
+      part: "Whole body",
+      factor: "Work involving exposure to whole body vibration",
+      duration: "More than 5 hours in 8 hours shift work"
+    },
+    {
+      part: "Whole body",
+      factor: "Work involving exposure to whole body vibration combined employee complaint of excessive body shaking",
+      duration: "More than 3 hours in 8 hours shift work"
+    }
+  ];
+  const MotionTable = document.getElementById("MotionTable");
+MotionData.forEach((row, i) => {
+  MotionTable.innerHTML += `
+    <tr>
+      <td>${row.part}</td>
+      <td>${row.factor}</td>
+      <td>${row.duration}</td>
+      <td><input type="radio" name="motion${i}" value="Yes"></td>
+      <td><input type="radio" name="motion${i}" value="No"></td>
+      <td>
+      <input type="text" placeholder="Remarks" id="remarkPhoto${i}">
+      <input type="file" accept="image/*" id="remarkPhoto${i}File" onchange="previewImage(this, 'preview${i}')">
+      <br>
+      <img id="preview${i}" style="max-width: 80px; max-height: 80px; margin-top: 5px;" />
+    </td>
+    </tr>
+  `;
+});
+
+const VibrationTable = document.getElementById("VibrationTable");
+VibrationData.forEach((row, i) => {
+  const index = i + MotionData.length;
+  VibrationTable.innerHTML += `
+    <tr>
+      <td>${row.part}</td>
+      <td>${row.factor}</td>
+      <td>${row.duration}</td>
+      <td><input type="radio" name="vibration${i}" value="Yes"></td>
+      <td><input type="radio" name="vibration${i}" value="No"></td>
+      <td>
+      <input type="text" placeholder="Remarks" id="remarkPhoto${index}">
+      <input type="file" accept="image/*" id="remarkPhoto${index}File" onchange="previewImage(this, 'preview${index}')">
+      <br>
+      <img id="preview${index}" style="max-width: 80px; max-height: 80px; margin-top: 5px;" />
+    </td>
+    </tr>
+  `;
+});
+
+function previewImage(fileInput, previewId) {
+  const file = fileInput.files[0];
+  const preview = document.getElementById(previewId);
+
+  if (file && file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.src = "";
+  }
+}
+
+
+async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const pageCenter = doc.internal.pageSize.getWidth() / 2;
+
+  const imageDataArray = [];
+  let totalYesRepetitive = 0;
+  let totalYesVibration = 0;
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("ERGONOMICS RISK FACTORS: REPETITIVE MOTION", doc.internal.pageSize.width / 2, 15, { align: "center" });
+
+
+  let startY = 6 + 15;
+
+  // Build first table: Motion Data
+  const motionRows = [];
+
+  for (let i = 0; i < MotionData.length; i++) {
+    const yesRadio = document.querySelector(`input[name="motion${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="motion${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`remarkPhoto${i}`).value;
+    const file = document.getElementById(`remarkPhoto${i}File`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) totalYesRepetitive++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        imageDataArray.push({
+          index: `motion${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        motionRows.push([MotionData[i].part, MotionData[i].factor, MotionData[i].duration, isYes, isNo, '']);
+      } catch {
+        motionRows.push([MotionData[i].part, MotionData[i].factor, MotionData[i].duration, isYes, isNo, 'Error loading image.']);
+      }
+    } else {
+      motionRows.push([MotionData[i].part, MotionData[i].factor, MotionData[i].duration, isYes, isNo, finalRemark]);
+    }
+  }
+
+  doc.autoTable({
+    head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
+    body: motionRows,
+    startY: startY,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [100, 100, 100],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 30 },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 14 },
+      4: { cellWidth: 14 },
+      5: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray.find(img => img.index === `motion${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray.find(img => img.index === `motion${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${totalYesRepetitive}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold',
+      halign: 'center'
+    }
+  });
+
+  // Second table: Vibration (similar to Motion Table)
+  const vibrationRows = [];
+  for (let i = 0; i < VibrationData.length; i++) {
+    const index = i + MotionData.length;
+    const yesRadio = document.querySelector(`input[name="vibration${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="vibration${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`remarkPhoto${index}`).value;
+    const file = document.getElementById(`remarkPhoto${index}File`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) totalYesVibration++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        imageDataArray.push({
+          index: `vibration${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        vibrationRows.push([VibrationData[i].part, VibrationData[i].factor, VibrationData[i].duration, isYes, isNo, '']);
+      } catch {
+        vibrationRows.push([VibrationData[i].part, VibrationData[i].factor, VibrationData[i].duration, isYes, isNo, 'Error loading image.']);
+      }
+    } else {
+      vibrationRows.push([VibrationData[i].part, VibrationData[i].factor, VibrationData[i].duration, isYes, isNo, finalRemark]);
+    }
+  }
+
+const pageHeight = doc.internal.pageSize.height;
+const remainingSpace = pageHeight - doc.previousAutoTable.finalY;
+
+// If not enough space, add a new page
+if (remainingSpace < 40) {
+  doc.addPage();
+}
+
+// Set Y-position: 20 if new page, otherwise just after last table
+const vibrationHeaderY = (remainingSpace < 40) ? 20 : doc.previousAutoTable.finalY + 10;
+doc.setFontSize(14);
+doc.setFont("helvetica", "bold");
+doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, vibrationHeaderY, { align: "center" });
+
+
+  doc.autoTable({
+    head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
+    body: vibrationRows,
+    startY: vibrationHeaderY + 6,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [100, 100, 100],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 30 },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 14 },
+      4: { cellWidth: 14 },
+      5: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray.find(img => img.index === `vibration${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray.find(img => img.index === `vibration${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${totalYesVibration}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold',
+      halign: 'center'
+    }
+  });
+
+  doc.save('ergonomics_risk_assessment.pdf');
+}
+
+async function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+</script>
+
+</body>
+</html>
