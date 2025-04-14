@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Ergonomics Risk Assessment - Page 3</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; vertical-align: middle; }
+    th { background-color: #f2f2f2; }
+    input[type="file"] { margin-top: 5px; }
+    .section-title { margin-top: 30px; font-weight: bold; font-size: 18px; text-align: center; }
+    .logo {
+            margin-bottom: 5px;
+            text-align: center;
+        }
+  </style>
+</head>
+<body>
+
+<form id="page3Form">
+  <div class="section-title">Summary of Forceful Exertion (Manual Handling)</div>
+  <div style="font-size: 16px; margin-top: 8px; text-align: center;">
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Activity</th>
+        <th>Recommended Weight</th>
+        <th style="width: 120px;">Exceed Limit?</th>
+        <th>Remarks / Photos</th>
+      </tr>
+    </thead>
+    <tbody id="manualHandlingTable"></tbody>
+  </table>
+
+  <button type="button" onclick="generatePDF()">Generate PDF</button>
+</form>
+
+<script>
+
+  const manualData = [
+    { activity: "Lifting and lowering; or", rweight: "Figure 3.1 & Table 3.3"},
+    { activity: "Repetitive lifting and lowering; or", rweight: "Figure 3.1 & Table 3.4"},
+    { activity: "Twisted body posture while lifting and lowering; or", rweight: "Figure 3.1 & Table 3.5" },
+    { activity: "Repetitive lifting and lowering with twisted body posture; or", rweight: "based on Figure 3.1, Table 3.4 and Table 3.5"},
+    { activity: "Pushing and Pulling; or", rweight: "based on Table 3.6" },
+    { activity: "Handling in seated position; or", rweight: "based on Figure 3.2" },
+    { activity: "Carrying", rweight: "based on Table 3.7" },
+    { activity: "Other Forceful Activity", rweight: "" }
+  ];
+
+  const manualTable = document.getElementById("manualHandlingTable");
+  manualData.forEach((row, i) => {
+    manualTable.innerHTML += `
+      <tr>
+        <td>${row.activity}</td>
+        <td>${row.rweight}</td>
+        <td>
+          <input type="radio" name="mh${i}" value="Yes"> Yes
+          <input type="radio" name="mh${i}" value="No"> No
+        </td>
+        <td>
+          <input type="text" placeholder="Remarks" id="mhr${i}"><br>
+          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'preview-mhf${i}')"><br>
+          <img id="preview-mhf${i}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px;">
+        </td>
+      </tr>
+    `;
+  });
+
+  function previewImage(event, previewId) {
+  const file = event.target.files[0];
+  const preview = document.getElementById(previewId);
+
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+  }
+}
+
+
+  async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const rows = [];
+  const imageDataArray = [];
+  let totalYes = 0;
+
+// Set the font size for the title
+doc.setFontSize(14);
+doc.text("Summary of Forceful Exertion (Manual Handling)", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
+
+  const mhRows = [];
+  const mhImageDataArray = [];
+  let mhYesCount = 0;
+
+  for (let i = 0; i < manualData.length; i++) {
+    const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`mhr${i}`).value;
+    const file = document.getElementById(`mhf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? 'X' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) mhYesCount++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        mhImageDataArray.push({
+          index: `mh${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        mhRows.push([manualData[i].activity, manualData[i].rweight, isYes + isNo, '']);
+      } catch (error) {
+        mhRows.push([manualData[i].activity, manualData[i].rweight, isYes + isNo, 'Error loading image.']);
+      }
+    } else {
+// No image: just show text
+const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
+    mhRows.push([manualData[i].activity, manualData[i].rweight, isYes + isNo, displayText]);
+    }
+  }
+
+  doc.autoTable({
+    head: [['Activity', 'Recommended Weight', 'Exceed Limit?', 'Remarks or Photos']],
+    body: mhRows,
+    startY: 35,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 45 },
+      1: { cellWidth: 35 },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 3) {
+        const image = mhImageDataArray.find(img => img.index === `mh${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 3) {
+        const image = mhImageDataArray.find(img => img.index === `mh${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold',
+      halign: 'center'
+    }
+  });
+
+  doc.save("SummaryOfForcefulExertion.pdf");
+}
+
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
+
+</body>
+</html>
