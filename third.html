@@ -235,6 +235,7 @@
     head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
     body: rows,
     startY: 20,
+    rowPageBreak: 'avoid',
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -283,6 +284,7 @@
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${totalYes}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid',
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
