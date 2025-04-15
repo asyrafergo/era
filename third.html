@@ -105,6 +105,7 @@
         <td>
           <input type="text" placeholder="Remarks" id="spr${i}">
           <input type="file" accept="image/*" id="spf${i}">
+          <div id="preview_spf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
     `;
@@ -129,10 +130,31 @@
         <td>
           <input type="text" placeholder="Remarks" id="mhr${i}">
           <input type="file" accept="image/*" id="mhf${i}">
+          <div id="preview_mhf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
     `;
   });
+
+  function previewImage(event, id) {
+    const file = event.target.files[0];
+    const previewId = `preview_${id}`;
+    const previewDiv = document.getElementById(previewId);
+
+    if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewDiv.innerHTML = `
+                <img src="${e.target.result}" 
+                     alt="Preview" 
+                     style="max-width: 100px; max-height: 100px; margin-top: 5px; border: 1px solid #ccc;">
+            `;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewDiv.innerHTML = `<p style="color:red;">Invalid image file</p>`;
+    }
+}
 
   async function generatePDF() {
   const { jsPDF } = window.jspdf;
@@ -422,6 +444,7 @@ if (maleRadio && maleRadio.checked) {
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', 
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
