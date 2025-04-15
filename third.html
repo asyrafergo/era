@@ -329,7 +329,7 @@ const remainingSpace = pageHeight - figY;
 
 // If the image won't fit in the remaining space, add a new page
 if (scaledHeight > remainingSpace) {
-    doc.addPage(); // Move to a new page
+    figY = subtextY + 40; 
 }
 
 // Add the image to the PDF centered and scaled
