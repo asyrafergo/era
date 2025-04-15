@@ -104,7 +104,7 @@
         <td><input type="radio" name="sp${i}" value="No"></td>
         <td>
           <input type="text" placeholder="Remarks" id="spr${i}">
-          <input type="file" accept="image/*" id="spf${i}">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, 'spf${i}')">
           <div id="preview_spf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
@@ -129,7 +129,7 @@
         </td>
         <td>
           <input type="text" placeholder="Remarks" id="mhr${i}">
-          <input type="file" accept="image/*" id="mhf${i}">
+          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'mhf${i}')">
           <div id="preview_mhf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
@@ -444,7 +444,6 @@ if (maleRadio && maleRadio.checked) {
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
     startY: doc.previousAutoTable.finalY + 10,
-    rowPageBreak: 'avoid', 
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
