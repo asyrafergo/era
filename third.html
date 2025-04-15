@@ -235,7 +235,6 @@
     head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
     body: rows,
     startY: 20,
-    rowPageBreak: 'avoid',
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -284,7 +283,6 @@
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${totalYes}`]],
     startY: doc.previousAutoTable.finalY + 10,
-    rowPageBreak: 'avoid',
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
@@ -307,7 +305,7 @@ doc.text("Ergonomics Risk Factors: Forceful Exertion", doc.internal.pageSize.get
 doc.text("(Manual handling – Lifting and/or lowering)", doc.internal.pageSize.getWidth() / 2, subtextY + 6, { align: "center" });
 
   // Add Figure 1 image below the title
-const figureImage = new Image();
+  const figureImage = new Image();
 figureImage.src = 'Figure_1.png';
 await new Promise(resolve => figureImage.onload = resolve);
 
@@ -318,12 +316,21 @@ const scaledHeight = figureImage.height * scaleRatio;
 
 // Get PDF page width
 const pageWidth = doc.internal.pageSize.getWidth();
+const pageHeight = doc.internal.pageSize.getHeight();
 
 // Calculate X to center the image
 const centerX = (pageWidth - scaledWidth) / 2;
 
 // Y position (below the title)
 const figY = subtextY + 12;
+
+// Calculate remaining space on the page
+const remainingSpace = pageHeight - figY;
+
+// If the image won't fit in the remaining space, add a new page
+if (scaledHeight > remainingSpace) {
+    doc.addPage(); // Move to a new page
+}
 
 // Add the image to the PDF centered and scaled
 doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
