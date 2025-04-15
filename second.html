@@ -72,11 +72,27 @@
             <td><input type="radio" name="q${index}" value="No"></td>
             <td>
                 <input type="text" placeholder="Remarks" id="remark${index}">
-                <input type="file" accept="image/*" id="file${index}">
+                <input type="file" accept="image/*" id="file${index}" onchange="previewImage(event, ${index})">
+                <div id="preview${index}" style="margin-top:5px;"></div>
             </td>
         `;
         formBody.appendChild(row);
     });
+
+    function previewImage(event, index) {
+          const previewDiv = document.getElementById(`preview${index}`);
+          const file = event.target.files[0];
+          
+          if (file && file.type.startsWith("image/")) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                  previewDiv.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100px; max-height: 100px; margin-top: 5px; border: 1px solid #ccc;">`;
+              };
+              reader.readAsDataURL(file);
+          } else {
+              previewDiv.innerHTML = `<p style="color:red;">Invalid image file</p>`;
+          }
+      }
 
     async function generatePDF() {
     const { jsPDF } = window.jspdf;
@@ -195,6 +211,7 @@
         head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
         body: rows,
         startY: 20,
+        rowPageBreak: 'avoid', // 👈 This prevents row splitting
         theme: 'grid',
         styles: {
             fontSize: 10,
