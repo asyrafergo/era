@@ -322,14 +322,23 @@ const pageHeight = doc.internal.pageSize.getHeight();
 const centerX = (pageWidth - scaledWidth) / 2;
 
 // Y position (below the title)
-const figY = subtextY + 12;
+let figY = subtextY + 12;
 
 // Calculate remaining space on the page
 const remainingSpace = pageHeight - figY;
 
-// If the image won't fit in the remaining space, add a new page
+// 👉 If only a small portion will be cut off, push it slightly up instead of a full page jump
 if (scaledHeight > remainingSpace) {
-    figY = 40; 
+  const overflow = scaledHeight - remainingSpace;
+
+  // If overflow is small (e.g., < 30), push image up slightly (pull back figY)
+  if (overflow < 10) {
+    figY = pageHeight - scaledHeight - 10; // Just enough so image fully fits
+  } else {
+    // If too much overflow, move to a new page cleanly
+    doc.addPage();
+    figY = 40; // Minimal margin from top
+  }
 }
 
 // Add the image to the PDF centered and scaled
