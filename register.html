@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - UniMAP</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"/>
+  <style>
+    body, html {
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      background: #001b3d;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-family: 'Roboto', Arial, sans-serif;
+      color: white;
+    }
+    .container-register {
+      display: flex; flex-direction: column; width: 450px; padding: 20px;
+      border: 1px solid skyblue; border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    }
+    .input-group { margin: 10px 0; }
+    input {
+      width: 100%; height: 35px; padding: 7px;
+      border-radius: 5px; border: 1px solid #ccc; margin-bottom: 5px;
+    }
+    button {
+      height: 45px; width: 100%;
+      background-color: skyblue; border: none; border-radius: 5px;
+      color: #333; cursor: pointer; font-size: 16px;
+    }
+    button:hover { background-color: #333; color: skyblue; }
+    .header h1 {
+      font-size: 28px; margin-bottom: 5px;
+      font-family: 'Roboto', Arial, sans-serif; color: black;
+      text-align: center; font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    a {
+      color: white; text-decoration: underline;
+      margin-top: 15px; display: inline-block;
+    }
+    @media (max-width: 700px) {
+      .container-register { width: 85%; padding: 15px; }
+    }
+    .button-container {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.next-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 28px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.next-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 0px;
+}
+  </style>
+</head>
+<body>
+  <div class="container-register">
+    <div class="logo">
+            <img src="photo_2025-03-17_23-35-03.jpg" alt="Logo">
+        </div>
+    <div class="header">
+      <h1>Register</h1>
+    </div>
+    <form id="registerForm">
+        <div id="step1">
+            <div class="input-group">
+              <input type="text" id="fullName" placeholder="Full Name" required />
+            </div>
+          
+            <div class="form-container">
+            <div class="input-group">
+              <label for="company" style="color: black;">Company</label>
+              <select id="company" required>
+                <option value="Company A">Company A</option>
+                <option value="Company B">Company B</option>
+                <option value="Company C">Company C</option>
+              </select>
+            </div>
+          
+            <div class="input-group">
+              <label for="department" style="color: black;">Department</label>
+              <select id="department" required>
+                <option value="Department A">Department A</option>
+                <option value="Department B">Department B</option>
+                <option value="Department C">Department C</option>
+              </select>
+            </div>
+          
+            <div class="input-group">
+              <label for="task" style="color: black;">Task</label>
+              <select id="task" required>
+                <option value="Task A">Task A</option>
+                <option value="Task B">Task B</option>
+                <option value="Task C">Task C</option>
+              </select>
+            </div>
+        </div>
+          
+            <button type="button" onclick="nextStep()">Next</button>
+          </div>          
+      <div id="step2" style="display:none;">
+        <div class="input-group">
+          <input type="text" id="username" placeholder="Username" required pattern="[a-zA-Z0-9]+" />
+        </div>
+        <div class="input-group">
+          <input type="password" id="password" placeholder="Password" required pattern="[a-zA-Z0-9]+" />
+        </div>
+        <button type="submit">Done Register</button>
+      </div>
+    </form>
+  </div>
+  <a href="https://asyrafergo.github.io/era/index.html">Back to Login</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
+      authDomain: "ergo-1140d.firebaseapp.com",
+      databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ergo-1140d",
+      storageBucket: "ergo-1140d.appspot.com",
+      messagingSenderId: "139659476541",
+      appId: "1:139659476541:web:78fd5c1593fae30f747454",
+      measurementId: "G-NNGVRF3E5D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const analytics = getAnalytics(app);
+
+    window.nextStep = async function () {
+  const fullName = document.getElementById('fullName').value.trim();
+  const company = document.getElementById('company').value;
+  const department = document.getElementById('department').value;
+  const task = document.getElementById('task').value;
+
+  if (!fullName || !company || !department || !task) {
+    alert('Please fill all required fields.');
+    return;
+  }
+
+  const matricNumber = await generateNextMatricNumber();
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+
+  const form = document.getElementById('registerForm');
+  form.dataset.matric = matricNumber;
+  form.dataset.company = company;
+  form.dataset.department = department;
+  form.dataset.task = task;
+}
+
+
+    async function generateNextMatricNumber() {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      let existingMatricNumbers = [];
+
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        for (const userId in users) {
+          if (users[userId].matrik) {
+            existingMatricNumbers.push(parseInt(users[userId].matrik));
+          }
+        }
+      }
+
+      existingMatricNumbers.sort((a, b) => a - b);
+      let newMatric = 0;
+
+      while (existingMatricNumbers.includes(newMatric)) {
+        newMatric++;
+      }
+
+      const newMatricFormatted = newMatric.toString().padStart(8, '0');
+      console.log("Generated Matric:", newMatricFormatted);
+      return newMatricFormatted;
+    }
+
+    async function checkFieldExists(field, value) {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        return Object.values(users).some(user => user[field] == value);
+      }
+      return false;
+    }
+
+    window.createUser = async function (fullName, matricNumber, username, password) {
+      const usernameExists = await checkFieldExists('username', username);
+      const passwordExists = await checkFieldExists('password', password);
+
+      if (usernameExists && passwordExists) {
+        alert('Username and password are already being used.');
+        return;
+      } else if (usernameExists) {
+        alert('Username is already being used.');
+        return;
+      } else if (passwordExists) {
+        alert('Password is already being used.');
+        return;
+      }
+
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      const usersCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+      const newUserId = 'user' + (usersCount + 1);
+
+      const newUser = {
+  Company: document.getElementById('registerForm').dataset.company,
+  Department: document.getElementById('registerForm').dataset.department,
+  Task: document.getElementById('registerForm').dataset.task,
+        fullname: fullName,
+        matrik: matricNumber,
+        username: username,
+        password: password,
+        PaperTask: {
+          Task1: false,
+          Task2: false,
+          Task3: false,
+          Task4: false,
+          Task5: false,
+          Task6: false,
+          Task7: false,
+          Task8: false
+        }
+      };
+
+      await set(child(usersRef, newUserId), newUser);
+      alert('User registered successfully!');
+      window.location.href = 'https://asyrafergo.github.io/era/index.html';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('fullName').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const matricNumber = document.getElementById('registerForm').dataset.matric;
+      createUser(fullName, matricNumber, username, password);
+    });
+  </script>
+</body>
+</html>
