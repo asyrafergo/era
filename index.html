@@ -131,120 +131,42 @@
           measurementId: "G-NNGVRF3E5D"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const database = getDatabase(app);
+// Simple login function without subject check
+function verifyUser(username, password) {
+  const dbRef = ref(database);
+  get(child(dbRef, 'users')).then((snapshot) => {
+    if (snapshot.exists()) {
+      let authenticated = false;
+      snapshot.forEach((userSnapshot) => {
+        const userData = userSnapshot.val();
+        if (userData.username === username && userData.password === password) {
+          authenticated = true;
+          sessionStorage.setItem('username', username);
+          sessionStorage.setItem('password', password);
 
-        // Predefined list of subjects
-        const subjectsList = [
-            { code: 'uzw195' },
-            { code: 'ekt124' },
-            { code: 'ekt103' },
-            { code: 'ekt119' },
-            { code: 'eqt102' },
-            { code: 'ekt104' }
-        ];
-
-        // Function to initialize subjects for a user
-        function initializeSubjects(userId) {
-            const dbRef = ref(database, 'users/' + userId + '/subjects');
-            get(dbRef).then((snapshot) => {
-                if (!snapshot.exists()) {
-                    subjectsList.forEach((subject) => {
-                        set(child(dbRef, subject.code.toLowerCase()), {
-                            grade: null
-                        });
-                    });
-                    console.log('Subjects initialized.');
-                } else {
-                    console.log('Subjects already exist.');
-                }
-            }).catch((error) => {
-                console.error('Error initializing subjects:', error);
-            });
+          // ✅ Redirect to your target page
+          window.location.href = `https://asyrafergo.github.io/era/first.html?username=${username}&password=${password}`;
         }
+      });
 
-        // Function to verify username and password
-        function verifyUser(username, password) {
-            const dbRef = ref(database);
-            get(child(dbRef, 'users')).then((snapshot) => {
-                if (snapshot.exists()) {
-                    let authenticated = false;
-                    let userId = null;
-                    let usernameExists = false;
-                    snapshot.forEach((userSnapshot) => {
-                        const userData = userSnapshot.val();
-                        if (userData.username === username) {
-                            usernameExists = true;
-                            if (userData.password === password) {
-                                authenticated = true;
-                                userId = userSnapshot.key;
+      if (!authenticated) {
+        alert('Invalid username or password.');
+      }
+    } else {
+      alert('No user data found.');
+    }
+  }).catch((error) => {
+    console.error('Error reading user data:', error);
+  });
+}
 
-                                // Store the userId for later use
-                                sessionStorage.setItem('userId', userId);
-                                sessionStorage.setItem('username', username);
-                                sessionStorage.setItem('password', password);
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  verifyUser(username, password);
+});
 
-                                // Initialize subjects for the user
-                                initializeSubjects(userId);
-
-                                // Check the number of subjects with grades
-                                checkGradesAndRedirect(userId);
-                            }
-                        }
-                    });
-                    if (!authenticated) {
-                        if (usernameExists) {
-                            alert('Incorrect password.');
-                        } else {
-                            alert('Invalid username or password.');
-                        }
-                    }
-                } else {
-                    console.log("No data available");
-                }
-            }).catch((error) => {
-                console.error('Error reading user data:', error);
-            });
-        }
-
-        function checkGradesAndRedirect(userId) {
-            const dbRef = ref(database, 'users/' + userId + '/subjects');
-            const username = sessionStorage.getItem('username');
-            const password = sessionStorage.getItem('password');
-
-            get(dbRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    let subjectCount = 0;
-                    snapshot.forEach((subjectSnapshot) => {
-                        const subjectData = subjectSnapshot.val();
-                        if (subjectData.grade) {
-                            subjectCount++;
-                        }
-                    });
-
-                    // Redirect based on the number of subjects with grades
-                    if (subjectCount > 14) {
-                        window.location.href = `https://aimanjitra.github.io/firebase2/result1.html?username=${username}&password=${password}`;
-                    } else {
-                        window.location.href = `https://aimanjitra.github.io/firebase2/select1.html?username=${username}&password=${password}`;
-                    }
-                } else {
-                    window.location.href = `https://aimanjitra.github.io/firebase2/select1.html?username=${username}&password=${password}`;
-                }
-            }).catch((error) => {
-                console.error('Error reading subjects data:', error);
-            });
-        }
-
-        // Event listener for login form submission
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-            verifyUser(username, password);
-        });
     </script>
 </body>
 </html>
