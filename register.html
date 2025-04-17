@@ -291,10 +291,13 @@ function loadCompanies() {
   });
 }
 
-function loadDepartmentsAndTasks() {
+window.loadDepartmentsAndTasks = function () {
   const selectedCompany = companyDropdown.value;
   const companies = JSON.parse(localStorage.getItem('companies')) || {};
   const companyData = companies[selectedCompany];
+
+  console.log("Data successfully loaded from localStorage:");
+  console.log(JSON.stringify(companies, null, 2));
 
   // Load Departments
   departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
@@ -317,7 +320,7 @@ function loadDepartmentsAndTasks() {
       taskDropdown.appendChild(option);
     });
   }
-}
+};
 
 // Initialize on page load
 window.onload = loadCompanies;
