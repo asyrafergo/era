@@ -107,28 +107,22 @@
             <div class="form-container">
             <div class="input-group">
               <label for="company" style="color: black;">Company</label>
-              <select id="company" required>
-                <option value="Company A">Company A</option>
-                <option value="Company B">Company B</option>
-                <option value="Company C">Company C</option>
+              <select id="company" required onchange="loadDepartmentsAndTasks()">
+                <option value="">-- Select Company --</option>
               </select>
             </div>
           
             <div class="input-group">
               <label for="department" style="color: black;">Department</label>
               <select id="department" required>
-                <option value="Department A">Department A</option>
-                <option value="Department B">Department B</option>
-                <option value="Department C">Department C</option>
+                <option value="">-- Select Department --</option>
               </select>
             </div>
           
             <div class="input-group">
               <label for="task" style="color: black;">Task</label>
               <select id="task" required>
-                <option value="Task A">Task A</option>
-                <option value="Task B">Task B</option>
-                <option value="Task C">Task C</option>
+                <option value="">-- Select Task --</option>
               </select>
             </div>
         </div>
@@ -149,6 +143,53 @@
   <a href="https://asyrafergo.github.io/era/index.html">Back to Login</a>
 
   <script type="module">
+    const companyDropdown = document.getElementById('company');
+  const departmentDropdown = document.getElementById('department');
+  const taskDropdown = document.getElementById('task');
+
+  function loadCompanies() {
+    const companies = JSON.parse(localStorage.getItem('companies')) || {};
+    companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
+
+    for (const name in companies) {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      companyDropdown.appendChild(option);
+    }
+  }
+
+  function loadDepartmentsAndTasks() {
+    const selectedCompany = companyDropdown.value;
+    const companies = JSON.parse(localStorage.getItem('companies')) || {};
+
+    departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
+    taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+
+    if (selectedCompany && companies[selectedCompany]) {
+      const { departments = [], tasks = [] } = companies[selectedCompany];
+
+      departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        departmentDropdown.appendChild(option);
+      });
+
+      tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task;
+        option.textContent = task;
+        taskDropdown.appendChild(option);
+      });
+    }
+  }
+
+  // Initialize on load
+  window.addEventListener('DOMContentLoaded', () => {
+    loadCompanies();
+  });
+    
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
