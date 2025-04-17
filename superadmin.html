@@ -56,6 +56,37 @@
   </header>
   <div class="container">
 
+    <div class="section">
+        <h2>Admin Users</h2>
+        <table id="adminTable">
+          <thead>
+            <tr>
+              <th>Full Name</th>
+              <th>Company</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>Respondents</h2>
+        <table id="respondentTable">
+          <thead>
+            <tr>
+              <th>Full Name</th>
+              <th>Company</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      
+
     <!-- Company Management Section -->
     <div class="section">
       <h2>Manage Companies</h2>
@@ -87,9 +118,92 @@
     <button onclick="logout()">Logout</button>
   </div>
 
-  <script>
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
+      authDomain: "ergo-1140d.firebaseapp.com",
+      databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ergo-1140d",
+      storageBucket: "ergo-1140d.appspot.com",
+      messagingSenderId: "139659476541",
+      appId: "1:139659476541:web:78fd5c1593fae30f747454",
+      measurementId: "G-NNGVRF3E5D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const analytics = getAnalytics(app);
+
     let companies = JSON.parse(localStorage.getItem('companies')) || {};
     let selectedCompany = "";
+
+    function loadUsersFromFirebase() {
+  const adminTbody = document.querySelector("#adminTable tbody");
+  const respondentTbody = document.querySelector("#respondentTable tbody");
+
+  adminTbody.innerHTML = "";
+  respondentTbody.innerHTML = "";
+
+  const dbRef = ref(database, 'users');
+  get(dbRef).then(snapshot => {
+    snapshot.forEach(childSnapshot => {
+      const userId = childSnapshot.key;
+      const user = childSnapshot.val();
+
+      const tr = document.createElement('tr');
+
+      const fullnameTd = document.createElement('td');
+      fullnameTd.textContent = user.fullname;
+      tr.appendChild(fullnameTd);
+
+      const companyTd = document.createElement('td');
+      companyTd.textContent = user.Company || '-';
+      tr.appendChild(companyTd);
+
+      const statusTd = document.createElement('td');
+      statusTd.textContent = user.status || 'user';
+      tr.appendChild(statusTd);
+
+      const actionTd = document.createElement('td');
+
+      const makeAdminBtn = document.createElement('button');
+      makeAdminBtn.textContent = 'Make Admin';
+      makeAdminBtn.onclick = () => updateUserStatus(userId, 'admin');
+
+      const revokeAdminBtn = document.createElement('button');
+      revokeAdminBtn.textContent = 'Revoke Admin';
+      revokeAdminBtn.onclick = () => updateUserStatus(userId, 'user');
+
+      if (user.status === 'admin') {
+        actionTd.appendChild(revokeAdminBtn);
+        tr.appendChild(actionTd);
+        adminTbody.appendChild(tr);
+      } else {
+        actionTd.appendChild(makeAdminBtn);
+        tr.appendChild(actionTd);
+        respondentTbody.appendChild(tr);
+      }
+    });
+  });
+}
+
+function updateUserStatus(userId, newStatus) {
+  set(ref(database, `users/${userId}/status`), newStatus)
+    .then(() => {
+      alert(`User status updated to: ${newStatus}`);
+      loadUsersFromFirebase();
+    })
+    .catch(err => console.error('Update failed:', err));
+}
+
+
+// Call this on page load
+loadUsersFromFirebase();
+
 
     function saveCompanyData() {
   const companyName = document.getElementById('companyInput').value.trim();
@@ -150,7 +264,7 @@
         document.getElementById('taskList').innerHTML = '';
         alert('Company deleted.');
         console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
+        console.log(JSON.stringify(companies, null, 2));
       }
     }
 
