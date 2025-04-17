@@ -143,53 +143,6 @@
   <a href="https://asyrafergo.github.io/era/index.html">Back to Login</a>
 
   <script type="module">
-    const companyDropdown = document.getElementById('company');
-  const departmentDropdown = document.getElementById('department');
-  const taskDropdown = document.getElementById('task');
-
-  function loadCompanies() {
-    const companies = JSON.parse(localStorage.getItem('companies')) || {};
-    companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
-
-    for (const name in companies) {
-      const option = document.createElement('option');
-      option.value = name;
-      option.textContent = name;
-      companyDropdown.appendChild(option);
-    }
-  }
-
-  function loadDepartmentsAndTasks() {
-    const selectedCompany = companyDropdown.value;
-    const companies = JSON.parse(localStorage.getItem('companies')) || {};
-
-    departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
-    taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
-
-    if (selectedCompany && companies[selectedCompany]) {
-      const { departments = [], tasks = [] } = companies[selectedCompany];
-
-      departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept;
-        option.textContent = dept;
-        departmentDropdown.appendChild(option);
-      });
-
-      tasks.forEach(task => {
-        const option = document.createElement('option');
-        option.value = task;
-        option.textContent = task;
-        taskDropdown.appendChild(option);
-      });
-    }
-  }
-
-  // Initialize on load
-  window.addEventListener('DOMContentLoaded', () => {
-    loadCompanies();
-  });
-    
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
@@ -321,6 +274,53 @@
       const matricNumber = document.getElementById('registerForm').dataset.matric;
       createUser(fullName, matricNumber, username, password);
     });
+
+    const companyDropdown = document.getElementById('company');
+  const departmentDropdown = document.getElementById('department');
+  const taskDropdown = document.getElementById('task');
+
+  function loadCompanies() {
+    const companies = JSON.parse(localStorage.getItem('companies')) || {};
+    companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
+
+    Object.keys(companies).forEach(companyName => {
+      const option = document.createElement('option');
+      option.value = companyName;
+      option.textContent = companyName;
+      companyDropdown.appendChild(option);
+    });
+  }
+
+  function loadDepartmentsAndTasks() {
+    const selectedCompany = companyDropdown.value;
+    const companies = JSON.parse(localStorage.getItem('companies')) || {};
+    const companyData = companies[selectedCompany];
+
+    // Reset and fill department
+    departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
+    if (companyData && companyData.departments) {
+      companyData.departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        departmentDropdown.appendChild(option);
+      });
+    }
+
+    // Reset and fill tasks
+    taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+    if (companyData && companyData.tasks) {
+      companyData.tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task;
+        option.textContent = task;
+        taskDropdown.appendChild(option);
+      });
+    }
+  }
+
+  // Load companies on page load
+  window.addEventListener('DOMContentLoaded', loadCompanies);
   </script>
 </body>
 </html>
