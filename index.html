@@ -158,7 +158,7 @@ function verifyUser(username, password) {
 
           // ✅ Redirect based on status with company info
           if (userData.status === 'admin') {
-            const company = encodeURIComponent(userData.company || '');
+            const company = encodeURIComponent(userData.Company || ''); // ✅ Correct case here too
             window.location.href = `https://asyrafergo.github.io/era/admin.html?username=${username}&password=${password}&company=${company}`;
           } else {
             window.location.href = `https://asyrafergo.github.io/era/first.html?username=${username}&password=${password}`;
