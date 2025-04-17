@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #001b3d;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      padding: 20px;
+    }
+    h2, h3 {
+      color: #001b3d;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: skyblue;
+    }
+    input {
+      margin: 5px 0;
+      padding: 7px;
+      width: 100%;
+    }
+    button {
+      margin: 5px 5px 15px 0;
+      padding: 10px 15px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Super Admin Dashboard</h1>
+    <p>Welcome, Mr Asyraf</p>
+  </header>
+  <div class="container">
+
+    <!-- Company Management Section -->
+    <div class="section">
+      <h2>Manage Companies</h2>
+      <input type="text" id="companyInput" placeholder="Enter new company name">
+      <button onclick="addCompany()">Add Company</button>
+
+      <select id="companySelect" onchange="selectCompany()">
+        <option value="">-- Select Company --</option>
+      </select>
+      <button onclick="deleteCompany()">Delete Company</button>
+    </div>
+
+    <!-- Department Management -->
+    <div class="section">
+      <h3>Departments</h3>
+      <input type="text" id="deptInput" placeholder="Enter department">
+      <button onclick="addDepartment()">Add Department</button>
+      <ul id="deptList"></ul>
+    </div>
+
+    <!-- Task Management -->
+    <div class="section">
+      <h3>Tasks</h3>
+      <input type="text" id="taskInput" placeholder="Enter task">
+      <button onclick="addTask()">Add Task</button>
+      <ul id="taskList"></ul>
+    </div>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    let companies = JSON.parse(localStorage.getItem('companies')) || {};
+    let selectedCompany = "";
+
+    function saveCompanies() {
+      localStorage.setItem('companies', JSON.stringify(companies));
+    }
+
+    function populateCompanySelect() {
+      const select = document.getElementById('companySelect');
+      select.innerHTML = '<option value="">-- Select Company --</option>';
+      for (const company in companies) {
+        const option = document.createElement('option');
+        option.value = company;
+        option.textContent = company;
+        select.appendChild(option);
+      }
+    }
+
+    function addCompany() {
+      const companyName = document.getElementById('companyInput').value.trim();
+      if (companyName && !companies[companyName]) {
+        companies[companyName] = { departments: [], tasks: [] };
+        saveCompanies();
+        populateCompanySelect();
+        document.getElementById('companyInput').value = '';
+        alert('Company added.');
+      }
+    }
+
+    function selectCompany() {
+      selectedCompany = document.getElementById('companySelect').value;
+      loadDepartments();
+      loadTasks();
+    }
+
+    function deleteCompany() {
+      if (selectedCompany && confirm(`Delete ${selectedCompany}?`)) {
+        delete companies[selectedCompany];
+        saveCompanies();
+        populateCompanySelect();
+        document.getElementById('deptList').innerHTML = '';
+        document.getElementById('taskList').innerHTML = '';
+        alert('Company deleted.');
+      }
+    }
+
+    function addDepartment() {
+      const deptName = document.getElementById('deptInput').value.trim();
+      if (selectedCompany && deptName) {
+        companies[selectedCompany].departments.push(deptName);
+        saveCompanies();
+        loadDepartments();
+        document.getElementById('deptInput').value = '';
+      }
+    }
+
+    function addTask() {
+      const taskName = document.getElementById('taskInput').value.trim();
+      if (selectedCompany && taskName) {
+        companies[selectedCompany].tasks.push(taskName);
+        saveCompanies();
+        loadTasks();
+        document.getElementById('taskInput').value = '';
+      }
+    }
+
+    function loadDepartments() {
+      const deptList = document.getElementById('deptList');
+      deptList.innerHTML = '';
+      (companies[selectedCompany]?.departments || []).forEach((dept, index) => {
+        const li = document.createElement('li');
+        li.textContent = dept + ' ';
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = () => {
+          companies[selectedCompany].departments.splice(index, 1);
+          saveCompanies();
+          loadDepartments();
+        };
+        li.appendChild(del);
+        deptList.appendChild(li);
+      });
+    }
+
+    function loadTasks() {
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';
+      (companies[selectedCompany]?.tasks || []).forEach((task, index) => {
+        const li = document.createElement('li');
+        li.textContent = task + ' ';
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = () => {
+          companies[selectedCompany].tasks.splice(index, 1);
+          saveCompanies();
+          loadTasks();
+        };
+        li.appendChild(del);
+        taskList.appendChild(li);
+      });
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = 'https://asyrafergo.github.io/era/index.html';
+    }
+
+    populateCompanySelect();
+  </script>
+</body>
+</html>
