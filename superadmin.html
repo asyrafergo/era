@@ -154,6 +154,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
       const userId = childSnapshot.key;
       const user = childSnapshot.val();
 
+      // Skip superadmin user from display
+      if (user.status === 'superadmin') return;
+
       const tr = document.createElement('tr');
 
       const fullnameTd = document.createElement('td');
@@ -190,6 +193,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     });
   });
 }
+
 
 function updateUserStatus(userId, newStatus) {
   set(ref(database, `users/${userId}/status`), newStatus)
