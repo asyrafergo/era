@@ -91,9 +91,27 @@
     let companies = JSON.parse(localStorage.getItem('companies')) || {};
     let selectedCompany = "";
 
-    function saveCompanies() {
-      localStorage.setItem('companies', JSON.stringify(companies));
-    }
+    function saveCompanyData() {
+  const companyName = document.getElementById('companyInput').value.trim();
+  const departmentList = Array.from(document.querySelectorAll('.department-input')).map(input => input.value.trim()).filter(Boolean);
+  const taskList = Array.from(document.querySelectorAll('.task-input')).map(input => input.value.trim()).filter(Boolean);
+
+  if (!companyName) {
+    alert("Please enter a company name.");
+    return;
+  }
+
+  const companies = JSON.parse(localStorage.getItem('companies')) || {};
+  companies[companyName] = {
+    departments: departmentList,
+    tasks: taskList
+  };
+
+  localStorage.setItem('companies', JSON.stringify(companies));
+  populateCompanySelect();
+  alert("Company data saved!");
+  console.log("Saved to localStorage:", JSON.stringify(companies, null, 2));
+}
 
     function populateCompanySelect() {
       const select = document.getElementById('companySelect');
@@ -107,15 +125,16 @@
     }
 
     function addCompany() {
-      const companyName = document.getElementById('companyInput').value.trim();
-      if (companyName && !companies[companyName]) {
-        companies[companyName] = { departments: [], tasks: [] };
-        saveCompanies();
-        populateCompanySelect();
-        document.getElementById('companyInput').value = '';
-        alert('Company added.');
-      }
-    }
+  const companyName = document.getElementById('companyInput').value.trim();
+  if (companyName && !companies[companyName]) {
+    companies[companyName] = { departments: [], tasks: [] };
+    saveCompanyData();
+    populateCompanySelect();
+    document.getElementById('companyInput').value = '';
+    debugLog(); // 👈 Add this line
+    alert('Company added.');
+  }
+}
 
     function selectCompany() {
       selectedCompany = document.getElementById('companySelect').value;
@@ -126,33 +145,36 @@
     function deleteCompany() {
       if (selectedCompany && confirm(`Delete ${selectedCompany}?`)) {
         delete companies[selectedCompany];
-        saveCompanies();
         populateCompanySelect();
         document.getElementById('deptList').innerHTML = '';
         document.getElementById('taskList').innerHTML = '';
         alert('Company deleted.');
+        console.log("Data successfully saved to localStorage:");
+console.log(JSON.stringify(companies, null, 2));
       }
     }
 
     function addDepartment() {
-      const deptName = document.getElementById('deptInput').value.trim();
-      if (selectedCompany && deptName) {
-        companies[selectedCompany].departments.push(deptName);
-        saveCompanies();
-        loadDepartments();
-        document.getElementById('deptInput').value = '';
-      }
-    }
+  const deptName = document.getElementById('deptInput').value.trim();
+  if (selectedCompany && deptName) {
+    companies[selectedCompany].departments.push(deptName);
+    localStorage.setItem('companies', JSON.stringify(companies)); // update storage
+    loadDepartments();
+    document.getElementById('deptInput').value = '';
+  }
+}
 
-    function addTask() {
-      const taskName = document.getElementById('taskInput').value.trim();
-      if (selectedCompany && taskName) {
-        companies[selectedCompany].tasks.push(taskName);
-        saveCompanies();
-        loadTasks();
-        document.getElementById('taskInput').value = '';
-      }
-    }
+function addTask() {
+  const taskName = document.getElementById('taskInput').value.trim();
+  if (selectedCompany && taskName) {
+    companies[selectedCompany].tasks.push(taskName);
+    localStorage.setItem('companies', JSON.stringify(companies)); // update storage
+    loadTasks();
+    document.getElementById('taskInput').value = '';
+    console.log("Data successfully saved to localStorage:");
+console.log(JSON.stringify(companies, null, 2));
+  }
+}
 
     function loadDepartments() {
       const deptList = document.getElementById('deptList');
@@ -164,12 +186,15 @@
         del.textContent = 'Delete';
         del.onclick = () => {
           companies[selectedCompany].departments.splice(index, 1);
-          saveCompanies();
           loadDepartments();
+          console.log("Data successfully saved to localStorage:");
+console.log(JSON.stringify(companies, null, 2));
         };
         li.appendChild(del);
         deptList.appendChild(li);
       });
+      console.log("Data successfully saved to localStorage:");
+console.log(JSON.stringify(companies, null, 2));
     }
 
     function loadTasks() {
@@ -182,12 +207,15 @@
         del.textContent = 'Delete';
         del.onclick = () => {
           companies[selectedCompany].tasks.splice(index, 1);
-          saveCompanies();
           loadTasks();
+          console.log("Data successfully saved to localStorage:");
+console.log(JSON.stringify(companies, null, 2));
         };
         li.appendChild(del);
         taskList.appendChild(li);
       });
+      console.log("Data successfully saved to localStorage:");
+console.log(JSON.stringify(companies, null, 2));
     }
 
     function logout() {
