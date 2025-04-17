@@ -154,7 +154,7 @@ function verifyUser(username, password) {
           sessionStorage.setItem('username', username);
           sessionStorage.setItem('password', password);
           sessionStorage.setItem('status', userData.status || 'user');
-          sessionStorage.setItem('company', userData.company || '');
+          sessionStorage.setItem('company', userData.Company || '');
 
           // ✅ Redirect based on status with company info
           if (userData.status === 'admin') {
