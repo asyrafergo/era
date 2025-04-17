@@ -276,51 +276,51 @@
     });
 
     const companyDropdown = document.getElementById('company');
-  const departmentDropdown = document.getElementById('department');
-  const taskDropdown = document.getElementById('task');
+const departmentDropdown = document.getElementById('department');
+const taskDropdown = document.getElementById('task');
 
-  function loadCompanies() {
-    const companies = JSON.parse(localStorage.getItem('companies')) || {};
-    companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
+function loadCompanies() {
+  const companies = JSON.parse(localStorage.getItem('companies')) || {};
+  companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
 
-    Object.keys(companies).forEach(companyName => {
+  Object.keys(companies).forEach(companyName => {
+    const option = document.createElement('option');
+    option.value = companyName;
+    option.textContent = companyName;
+    companyDropdown.appendChild(option);
+  });
+}
+
+function loadDepartmentsAndTasks() {
+  const selectedCompany = companyDropdown.value;
+  const companies = JSON.parse(localStorage.getItem('companies')) || {};
+  const companyData = companies[selectedCompany];
+
+  // Load Departments
+  departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
+  if (companyData && companyData.departments) {
+    companyData.departments.forEach(dept => {
       const option = document.createElement('option');
-      option.value = companyName;
-      option.textContent = companyName;
-      companyDropdown.appendChild(option);
+      option.value = dept;
+      option.textContent = dept;
+      departmentDropdown.appendChild(option);
     });
   }
 
-  function loadDepartmentsAndTasks() {
-    const selectedCompany = companyDropdown.value;
-    const companies = JSON.parse(localStorage.getItem('companies')) || {};
-    const companyData = companies[selectedCompany];
-
-    // Reset and fill department
-    departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
-    if (companyData && companyData.departments) {
-      companyData.departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept;
-        option.textContent = dept;
-        departmentDropdown.appendChild(option);
-      });
-    }
-
-    // Reset and fill tasks
-    taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
-    if (companyData && companyData.tasks) {
-      companyData.tasks.forEach(task => {
-        const option = document.createElement('option');
-        option.value = task;
-        option.textContent = task;
-        taskDropdown.appendChild(option);
-      });
-    }
+  // Load Tasks
+  taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+  if (companyData && companyData.tasks) {
+    companyData.tasks.forEach(task => {
+      const option = document.createElement('option');
+      option.value = task;
+      option.textContent = task;
+      taskDropdown.appendChild(option);
+    });
   }
+}
 
-  // Load companies on page load
-  window.addEventListener('DOMContentLoaded', loadCompanies);
+// Initialize on page load
+window.onload = loadCompanies;
   </script>
 </body>
 </html>
