@@ -120,7 +120,10 @@
 
   <script type="module">
 
-    if (document.referrer !== "https://asyrafergo.github.io/era/index.html") {
+    const username = sessionStorage.getItem("username");
+  const password = sessionStorage.getItem("password");
+
+  if (!(username === "asyraf" && password === "asyraf")) {
     alert("Unauthorized Access. Redirecting...");
     window.location.href = "https://asyrafergo.github.io/era/index.html";
   }
