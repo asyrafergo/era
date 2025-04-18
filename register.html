@@ -291,44 +291,56 @@ function loadCompanies() {
   });
 }
 
+// Load Departments and Tasks
 window.loadDepartmentsAndTasks = function () {
   const selectedCompany = companyDropdown.value;
   const companies = JSON.parse(localStorage.getItem('companies')) || {};
   const companyData = companies[selectedCompany];
 
-  // Clear and repopulate department dropdown
-  departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
-  taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+  console.log("Data successfully loaded from localStorage:");
+  console.log(JSON.stringify(companies, null, 2));
 
+  // Load Departments
+  departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
   if (companyData && companyData.departments) {
-    Object.keys(companyData.departments).forEach(dept => {
+    companyData.departments.forEach(dept => {
       const option = document.createElement('option');
       option.value = dept;
       option.textContent = dept;
       departmentDropdown.appendChild(option);
     });
+  }
 
-    // 🧠 Add onchange for department to load tasks dynamically
-    departmentDropdown.onchange = function () {
+  // Clear Tasks when company changes
+  taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+};
+
+// Load Tasks when Department is selected
+departmentDropdown.onchange = function () {
+  const selectedCompany = companyDropdown.value;
   const selectedDept = departmentDropdown.value;
+  const companies = JSON.parse(localStorage.getItem('companies')) || {};
+  const companyData = companies[selectedCompany];
+
+  // Clear and reset task dropdown
   taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
 
-  const tasks = companyData.departments[selectedDept];
-
-  // 🔐 Check if tasks is an array before looping
-  if (Array.isArray(tasks)) {
+  // Load tasks for selected department
+  if (companyData && companyData.tasks && companyData.tasks[selectedDept]) {
+    const tasks = companyData.tasks[selectedDept]; // Array of task names for the selected department
     tasks.forEach(task => {
       const option = document.createElement('option');
       option.value = task;
-      option.textContent = task;
+      option.textContent = task; // Display task name
       taskDropdown.appendChild(option);
     });
   } else {
-    console.warn("Tasks not found or not an array for:", selectedDept);
+    console.warn(`No tasks found for department: ${selectedDept}`);
   }
 };
-  }
-};
+
+// Trigger the loadDepartmentsAndTasks function when the page loads or a company is selected
+companyDropdown.onchange = loadDepartmentsAndTasks;
 
 // Initialize on page load
 window.onload = loadCompanies;
