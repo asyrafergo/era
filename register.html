@@ -312,7 +312,7 @@ window.loadDepartmentsAndTasks = function () {
 
   // Load Tasks
   taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
-  if (companyData && companyData.tasks) {
+  if (companyData && companyData.departments && companyData.tasks) {
     companyData.tasks.forEach(task => {
       const option = document.createElement('option');
       option.value = task;
