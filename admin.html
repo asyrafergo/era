@@ -76,211 +76,136 @@
   </div>
 
   <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
+    authDomain: "ergo-1140d.firebaseapp.com",
+    databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "ergo-1140d",
+    storageBucket: "ergo-1140d.appspot.com",
+    messagingSenderId: "139659476541",
+    appId: "1:139659476541:web:78fd5c1593fae30f747454",
+    measurementId: "G-NNGVRF3E5D"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
-      authDomain: "ergo-1140d.firebaseapp.com",
-      databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "ergo-1140d",
-      storageBucket: "ergo-1140d.appspot.com",
-      messagingSenderId: "139659476541",
-      appId: "1:139659476541:web:78fd5c1593fae30f747454",
-      measurementId: "G-NNGVRF3E5D"
-    };
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const analytics = getAnalytics(app);
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const analytics = getAnalytics(app);
+  let companies = JSON.parse(localStorage.getItem('companies')) || {};
+  let selectedCompany = "";
 
-    async function getCompanyFromFirebase(username, password) {
-  const usersRef = ref(database, 'users');
-  const snapshot = await get(usersRef);
+  async function getCompanyFromFirebase(username, password) {
+    const usersRef = ref(database, 'users');
+    const snapshot = await get(usersRef);
 
-  if (snapshot.exists()) {
-    const users = snapshot.val();
-    for (const key in users) {
-      const user = users[key];
-      if (user.username === username && user.password === password) {
-        return user.Company || null;
+    if (snapshot.exists()) {
+      const users = snapshot.val();
+      for (const key in users) {
+        const user = users[key];
+        if (user.username === username && user.password === password) {
+          return user.Company || null;
+        }
       }
     }
     alert("Invalid username or password.");
     return null;
-  } else {
-    alert("No users found in Firebase!");
-    return null;
-  }
-}
-
-    let companies = JSON.parse(localStorage.getItem('companies')) || {};
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get('username');
-    const password = urlParams.get('password');
-
-    getCompanyFromFirebase(username, password).then(company => {
-  if (company) {
-    selectedCompany = company;
-    document.getElementById("companyNameDisplay").textContent = selectedCompany;
-
-    if (!companies[selectedCompany]) {
-      companies[selectedCompany] = { departments: [], tasks: [] };
-      localStorage.setItem('companies', JSON.stringify(companies));
-    }
-
-    loadDepartments();
-    loadTasks();
-  } else {
-    alert("Could not load company info for this user.");
-  }
-});
-
-    // For example purposes, use username as company (customize logic as needed)
-    let selectedCompany = ""; // Will set this after getting from Firebase
-
-
-    function saveCompanyData() {
-  const companyName = document.getElementById('companyInput').value.trim();
-  const departmentList = Array.from(document.querySelectorAll('.department-input')).map(input => input.value.trim()).filter(Boolean);
-  const taskList = Array.from(document.querySelectorAll('.task-input')).map(input => input.value.trim()).filter(Boolean);
-
-  if (!companyName) {
-    alert("Please enter a company name.");
-    return;
   }
 
-  const companies = JSON.parse(localStorage.getItem('companies')) || {};
-  companies[companyName] = {
-    departments: departmentList,
-    tasks: taskList
-  };
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('username');
+  const password = urlParams.get('password');
 
-  localStorage.setItem('companies', JSON.stringify(companies));
-  populateCompanySelect();
-  alert("Company data saved!");
-  console.log("Saved to localStorage:", JSON.stringify(companies, null, 2));
-}
+  getCompanyFromFirebase(username, password).then(company => {
+    if (company) {
+      selectedCompany = company;
+      document.getElementById("companyNameDisplay").textContent = selectedCompany;
 
-    function populateCompanySelect() {
-      const select = document.getElementById('companySelect');
-      select.innerHTML = '<option value="">-- Select Company --</option>';
-      for (const company in companies) {
-        const option = document.createElement('option');
-        option.value = company;
-        option.textContent = company;
-        select.appendChild(option);
+      if (!companies[selectedCompany]) {
+        companies[selectedCompany] = { departments: [], tasks: [] };
+        localStorage.setItem('companies', JSON.stringify(companies));
       }
-    }
 
-    function addCompany() {
-  const companyName = document.getElementById('companyInput').value.trim();
-  if (companyName && !companies[companyName]) {
-    companies[companyName] = { departments: [], tasks: [] };
-    saveCompanyData();
-    populateCompanySelect();
-    document.getElementById('companyInput').value = '';
-    debugLog(); // 👈 Add this line
-    alert('Company added.');
-  }
-}
-
-    function selectCompany() {
-      selectedCompany = document.getElementById('companySelect').value;
       loadDepartments();
       loadTasks();
+    } else {
+      alert("Could not load company info for this user.");
     }
+  });
 
-    function deleteCompany() {
-      if (selectedCompany && confirm(`Delete ${selectedCompany}?`)) {
-        delete companies[selectedCompany];
-        populateCompanySelect();
-        document.getElementById('deptList').innerHTML = '';
-        document.getElementById('taskList').innerHTML = '';
-        alert('Company deleted.');
-        console.log("Data successfully saved to localStorage:");
-        console.log(JSON.stringify(companies, null, 2));
-      }
+  function addDepartment() {
+    const deptName = document.getElementById('deptInput').value.trim();
+    if (selectedCompany && deptName) {
+      companies[selectedCompany].departments.push(deptName);
+      saveCompanies();
+      loadDepartments();
+      document.getElementById('deptInput').value = '';
     }
-
-    function addDepartment() {
-  const deptName = document.getElementById('deptInput').value.trim();
-  if (selectedCompany && deptName) {
-    companies[selectedCompany].departments.push(deptName);
-    localStorage.setItem('companies', JSON.stringify(companies)); // update storage
-    loadDepartments();
-    document.getElementById('deptInput').value = '';
   }
-}
 
-function addTask() {
-  const taskName = document.getElementById('taskInput').value.trim();
-  if (selectedCompany && taskName) {
-    companies[selectedCompany].tasks.push(taskName);
-    localStorage.setItem('companies', JSON.stringify(companies)); // update storage
-    loadTasks();
-    document.getElementById('taskInput').value = '';
-    console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
+  function addTask() {
+    const taskName = document.getElementById('taskInput').value.trim();
+    if (selectedCompany && taskName) {
+      companies[selectedCompany].tasks.push(taskName);
+      saveCompanies();
+      loadTasks();
+      document.getElementById('taskInput').value = '';
+    }
   }
-}
 
-    function loadDepartments() {
-      const deptList = document.getElementById('deptList');
-      deptList.innerHTML = '';
-      (companies[selectedCompany]?.departments || []).forEach((dept, index) => {
-        const li = document.createElement('li');
-        li.textContent = dept + ' ';
-        const del = document.createElement('button');
-        del.textContent = 'Delete';
-        del.onclick = () => {
-          companies[selectedCompany].departments.splice(index, 1);
-          loadDepartments();
-          console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-        };
-        li.appendChild(del);
-        deptList.appendChild(li);
-      });
-      console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-    }
+  function loadDepartments() {
+    const deptList = document.getElementById('deptList');
+    deptList.innerHTML = '';
+    (companies[selectedCompany]?.departments || []).forEach((dept, index) => {
+      const li = document.createElement('li');
+      li.textContent = dept + ' ';
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = () => {
+        companies[selectedCompany].departments.splice(index, 1);
+        saveCompanies();
+        loadDepartments();
+      };
+      li.appendChild(del);
+      deptList.appendChild(li);
+    });
+  }
 
-    function loadTasks() {
-      const taskList = document.getElementById('taskList');
-      taskList.innerHTML = '';
-      (companies[selectedCompany]?.tasks || []).forEach((task, index) => {
-        const li = document.createElement('li');
-        li.textContent = task + ' ';
-        const del = document.createElement('button');
-        del.textContent = 'Delete';
-        del.onclick = () => {
-          companies[selectedCompany].tasks.splice(index, 1);
-          loadTasks();
-          console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-        };
-        li.appendChild(del);
-        taskList.appendChild(li);
-      });
-      console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-    }
+  function loadTasks() {
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = '';
+    (companies[selectedCompany]?.tasks || []).forEach((task, index) => {
+      const li = document.createElement('li');
+      li.textContent = task + ' ';
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = () => {
+        companies[selectedCompany].tasks.splice(index, 1);
+        saveCompanies();
+        loadTasks();
+      };
+      li.appendChild(del);
+      taskList.appendChild(li);
+    });
+  }
 
-    function logout() {
-      sessionStorage.clear();
-      window.location.href = 'https://asyrafergo.github.io/era/index.html';
-    }
+  function saveCompanies() {
+    localStorage.setItem('companies', JSON.stringify(companies));
+    console.log("Saved to localStorage:", JSON.stringify(companies, null, 2));
+  }
 
-    populateCompanySelect();
-    window.logout = logout;
-window.addCompany = addCompany;
-window.selectCompany = selectCompany;
-window.deleteCompany = deleteCompany;
-window.addDepartment = addDepartment;
-window.addTask = addTask;
-  </script>
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'https://asyrafergo.github.io/era/index.html';
+  }
+
+  // Expose functions to global scope for HTML buttons
+  window.logout = logout;
+  window.addDepartment = addDepartment;
+  window.addTask = addTask;
+</script>
 </body>
 </html>
