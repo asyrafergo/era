@@ -125,6 +125,15 @@
   </div>
 
   <script type="module">
+
+const username = sessionStorage.getItem("username");
+  const password = sessionStorage.getItem("password");
+
+  if (!(username === "asyraf" && password === "asyraf")) {
+    alert("Unauthorized Access. Redirecting...");
+    window.location.href = "https://asyrafergo.github.io/era/index.html";
+  }
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
@@ -147,17 +156,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     let companies = JSON.parse(localStorage.getItem('companies')) || {};
     let selectedCompany = "";
     let selectedDepartment = "";
-
-    document.getElementById('loginBtn').addEventListener('click', function () {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-
-  if (username === 'asyraf' && password === 'asyraf') {
-    window.location.href = 'superadmin.html'; // ✅ Same tab redirect (required for document.referrer to work)
-  } else {
-    alert('Invalid credentials!');
-  }
-});
 
     function loadUsersFromFirebase() {
   const adminTbody = document.querySelector("#adminTable tbody");
@@ -197,7 +195,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
       revokeAdminBtn.onclick = () => updateUserStatus(userId, 'user');
 
       // 🚫 Skip superadmin users
-  if (user.status === 'superadmin') continue;
+  if (user.status === 'superadmin') return;
 
       if (user.status === 'admin') {
         actionTd.appendChild(revokeAdminBtn);
