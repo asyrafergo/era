@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Admin Dashboard</title>
+  <title>Admin Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,21 +52,9 @@
 <body>
   <header>
     <h1>Admin Dashboard</h1>
-    <p>Welcome, Admin</p>
+    <p>Welcome, Admin of <strong id="companyNameDisplay"></strong></p>
   </header>
   <div class="container">
-
-    <!-- Company Management Section -->
-    <div class="section">
-      <h2>Manage Companies</h2>
-      <input type="text" id="companyInput" placeholder="Enter new company name">
-      <button onclick="addCompany()">Add Company</button>
-
-      <select id="companySelect" onchange="selectCompany()">
-        <option value="">-- Select Company --</option>
-      </select>
-      <button onclick="deleteCompany()">Delete Company</button>
-    </div>
 
     <!-- Department Management -->
     <div class="section">
@@ -108,8 +96,43 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     const database = getDatabase(app);
     const analytics = getAnalytics(app);
 
+    async function getCompanyFromFirebase(username) {
+  const userRef = ref(database, `users/${username}`);
+  const snapshot = await get(userRef);
+  if (snapshot.exists()) {
+    const userData = snapshot.val();
+    return userData.Company || null;
+  } else {
+    alert("User not found in Firebase!");
+    return null;
+  }
+}
+
     let companies = JSON.parse(localStorage.getItem('companies')) || {};
-    let selectedCompany = "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get('username');
+    const password = urlParams.get('password');
+
+    getCompanyFromFirebase(username).then(company => {
+  if (company) {
+    selectedCompany = company;
+    document.getElementById("companyNameDisplay").textContent = selectedCompany;
+
+    if (!companies[selectedCompany]) {
+      companies[selectedCompany] = { departments: [], tasks: [] };
+      localStorage.setItem('companies', JSON.stringify(companies));
+    }
+
+    loadDepartments();
+    loadTasks();
+  } else {
+    alert("Could not load company info for this user.");
+  }
+});
+
+    // For example purposes, use username as company (customize logic as needed)
+    let selectedCompany = ""; // Will set this after getting from Firebase
+
 
     function saveCompanyData() {
   const companyName = document.getElementById('companyInput').value.trim();
