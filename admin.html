@@ -96,14 +96,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     const database = getDatabase(app);
     const analytics = getAnalytics(app);
 
-    async function getCompanyFromFirebase(username) {
-  const userRef = ref(database, `users/${username}`);
-  const snapshot = await get(userRef);
+    async function getCompanyFromFirebase(username, password) {
+  const usersRef = ref(database, 'users');
+  const snapshot = await get(usersRef);
+
   if (snapshot.exists()) {
-    const userData = snapshot.val();
-    return userData.Company || null;
+    const users = snapshot.val();
+    for (const key in users) {
+      const user = users[key];
+      if (user.username === username && user.password === password) {
+        return user.Company || null;
+      }
+    }
+    alert("Invalid username or password.");
+    return null;
   } else {
-    alert("User not found in Firebase!");
+    alert("No users found in Firebase!");
     return null;
   }
 }
@@ -113,7 +121,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     const username = urlParams.get('username');
     const password = urlParams.get('password');
 
-    getCompanyFromFirebase(username).then(company => {
+    getCompanyFromFirebase(username, password).then(company => {
   if (company) {
     selectedCompany = company;
     document.getElementById("companyNameDisplay").textContent = selectedCompany;
