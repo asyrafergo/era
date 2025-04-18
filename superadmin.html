@@ -89,7 +89,7 @@
 
     <!-- Company Management Section -->
     <div class="section">
-      <h2>Manage Companies</h2>
+      <h2>Company Management</h2>
       <input type="text" id="companyInput" placeholder="Enter new company name">
       <button onclick="addCompany()">Add Company</button>
 
@@ -101,7 +101,7 @@
 
     <!-- Department Management -->
 <div class="section">
-  <h3>Departments for <span id="selectedCompanyName">[Select Company]</span></h3>
+  <h3>Department Management</h3>
   <input type="text" id="deptInput" placeholder="Enter new department">
   <button onclick="addDepartment()">Add Department</button>
 
@@ -148,6 +148,17 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     let selectedCompany = "";
     let selectedDepartment = "";
 
+    document.getElementById('loginBtn').addEventListener('click', function () {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+
+  if (username === 'asyraf' && password === 'asyraf') {
+    window.location.href = 'superadmin.html'; // ✅ Same tab redirect (required for document.referrer to work)
+  } else {
+    alert('Invalid credentials!');
+  }
+});
+
     function loadUsersFromFirebase() {
   const adminTbody = document.querySelector("#adminTable tbody");
   const respondentTbody = document.querySelector("#respondentTable tbody");
@@ -184,6 +195,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
       const revokeAdminBtn = document.createElement('button');
       revokeAdminBtn.textContent = 'Revoke Admin';
       revokeAdminBtn.onclick = () => updateUserStatus(userId, 'user');
+
+      // 🚫 Skip superadmin users
+  if (user.status === 'superadmin') continue;
 
       if (user.status === 'admin') {
         actionTd.appendChild(revokeAdminBtn);
