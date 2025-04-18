@@ -148,7 +148,7 @@
           sessionStorage.setItem('username', username);
           sessionStorage.setItem('password', password);
           sessionStorage.setItem('status', userData.status || 'user');
-          sessionStorage.setItem('company', user.Company || '');
+          sessionStorage.setItem('company', userData.Company || '');
 
           if (username === 'asyraf' && password === 'asyraf') {
             window.location.href = `https://asyrafergo.github.io/era/superadmin.html?username=${username}&password=${password}`;
@@ -156,7 +156,7 @@
           }
 
           if (userData.status === 'admin') {
-            const company = encodeURIComponent(user.Company || '');
+            const company = encodeURIComponent(userData.Company || '');
             window.location.href = `https://asyrafergo.github.io/era/admin.html?username=${username}&password=${password}&company=${company}`;
           } else {
             window.location.href = `https://asyrafergo.github.io/era/first.html?username=${username}&password=${password}`;
