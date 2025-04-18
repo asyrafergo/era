@@ -132,7 +132,6 @@ const username = sessionStorage.getItem("username");
     alert("Unauthorized Access. Redirecting...");
     window.location.href = "https://asyrafergo.github.io/era/index.html";
   }
-    
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
@@ -312,32 +311,39 @@ function selectDepartment() {
 
 function addTask() {
   const taskName = document.getElementById('taskInput').value.trim();
-
-  // Debug: Check if the task name is valid
-  console.log("Task Name: ", taskName);
-
-  if (taskName === '') {
+  
+  // Check for empty or invalid task name
+  if (!taskName) {
     alert('Task name cannot be empty!');
     return;
   }
 
-  // Debug: Check if the selected company and department are valid
-  console.log("Selected Company: ", selectedCompany);
-  console.log("Selected Department: ", selectedDepartment);
-
+  // Make sure we have valid selected company and department
+  if (!companies[selectedCompany]) {
+    console.log('Company not found!');
+    return;
+  }
   if (!companies[selectedCompany].tasks) {
-    companies[selectedCompany].tasks = {};
+    companies[selectedCompany].tasks = {}; // Ensure tasks object exists
   }
 
   if (!companies[selectedCompany].tasks[selectedDepartment]) {
     companies[selectedCompany].tasks[selectedDepartment] = [];
   }
 
+  // Add task only if it's valid
   companies[selectedCompany].tasks[selectedDepartment].push(taskName);
+
+  // Remove the empty task key if it exists
+  delete companies[selectedCompany].tasks[""]; // Remove any empty key in tasks
+  
   localStorage.setItem('companies', JSON.stringify(companies));
-  loadTasks();
-  document.getElementById('taskInput').value = '';
+
+  loadTasks(); // Refresh task list
+  console.log(JSON.parse(localStorage.getItem('companies')));
+  document.getElementById('taskInput').value = ''; // Clear input
 }
+
 
 function loadDepartments() {
   const deptSelect = document.getElementById('deptSelect');
