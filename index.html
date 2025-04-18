@@ -136,6 +136,7 @@
         const analytics = getAnalytics(app);
         const database = getDatabase(app);
 
+  function verifyUser(username, password) {
   const dbRef = ref(database);
   get(child(dbRef, 'users')).then((snapshot) => {
     if (snapshot.exists()) {
@@ -149,14 +150,13 @@
           sessionStorage.setItem('status', userData.status || 'user');
           sessionStorage.setItem('company', userData.Company || '');
 
-            if (username === 'asyraf' && password === 'asyraf') {
-    window.location.href = `https://asyrafergo.github.io/era/superadmin.html`;
-    return; // Stop further processing
-  }
+          if (username === 'asyraf' && password === 'asyraf') {
+            window.location.href = `https://asyrafergo.github.io/era/superadmin.html`;
+            return;
+          }
 
-          // ✅ Redirect based on status with company info
           if (userData.status === 'admin') {
-            const company = encodeURIComponent(userData.Company || ''); // ✅ Correct case here too
+            const company = encodeURIComponent(userData.Company || '');
             window.location.href = `https://asyrafergo.github.io/era/admin.html?username=${username}&password=${password}&company=${company}`;
           } else {
             window.location.href = `https://asyrafergo.github.io/era/first.html?username=${username}&password=${password}`;
@@ -174,7 +174,6 @@
     console.error('Error reading user data:', error);
   });
 }
-
 
 document.getElementById('loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
