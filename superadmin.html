@@ -125,7 +125,6 @@
   </div>
 
   <script type="module">
-
 const username = sessionStorage.getItem("username");
   const password = sessionStorage.getItem("password");
 
@@ -133,7 +132,7 @@ const username = sessionStorage.getItem("username");
     alert("Unauthorized Access. Redirecting...");
     window.location.href = "https://asyrafergo.github.io/era/index.html";
   }
-
+    
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
@@ -236,9 +235,12 @@ loadUsersFromFirebase();
 
   const companies = JSON.parse(localStorage.getItem('companies')) || {};
   companies[companyName] = {
-    departments: departmentList,
-    tasks: taskList
-  };
+  departments: {
+    [departmentName]: {
+      tasks: taskList // List of tasks for this department
+    }
+  }
+};
 
   localStorage.setItem('companies', JSON.stringify(companies));
   populateCompanySelect();
@@ -310,10 +312,18 @@ function selectDepartment() {
 
 function addTask() {
   const taskName = document.getElementById('taskInput').value.trim();
+
+  // Debug: Check if the task name is valid
+  console.log("Task Name: ", taskName);
+
   if (taskName === '') {
     alert('Task name cannot be empty!');
     return;
   }
+
+  // Debug: Check if the selected company and department are valid
+  console.log("Selected Company: ", selectedCompany);
+  console.log("Selected Department: ", selectedDepartment);
 
   if (!companies[selectedCompany].tasks) {
     companies[selectedCompany].tasks = {};
