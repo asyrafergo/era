@@ -100,16 +100,22 @@
     </div>
 
     <!-- Department Management -->
-    <div class="section">
-      <h3>Departments</h3>
-      <input type="text" id="deptInput" placeholder="Enter department">
-      <button onclick="addDepartment()">Add Department</button>
-      <ul id="deptList"></ul>
-    </div>
+<div class="section">
+  <h3>Departments for <span id="selectedCompanyName">[Select Company]</span></h3>
+  <input type="text" id="deptInput" placeholder="Enter new department">
+  <button onclick="addDepartment()">Add Department</button>
+
+  <select id="deptSelect" onchange="selectDepartment()">
+    <option value="">-- Select Department --</option> <!-- Default Option -->
+  </select>
+  <button onclick="deleteDepartment()">Delete Department</button>
+
+  <ul id="deptList"></ul> <!-- List of departments with Delete options -->
+</div>
 
     <!-- Task Management -->
     <div class="section">
-      <h3>Tasks</h3>
+      <h3>Tasks for <span id="selectedDeptName">[Select Department]</span></h3>
       <input type="text" id="taskInput" placeholder="Enter task">
       <button onclick="addTask()">Add Task</button>
       <ul id="taskList"></ul>
@@ -119,15 +125,6 @@
   </div>
 
   <script type="module">
-
-    const username = sessionStorage.getItem("username");
-  const password = sessionStorage.getItem("password");
-
-  if (!(username === "asyraf" && password === "asyraf")) {
-    alert("Unauthorized Access. Redirecting...");
-    window.location.href = "https://asyrafergo.github.io/era/index.html";
-  }
-    
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
@@ -149,6 +146,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
 
     let companies = JSON.parse(localStorage.getItem('companies')) || {};
     let selectedCompany = "";
+    let selectedDepartment = "";
 
     function loadUsersFromFirebase() {
   const adminTbody = document.querySelector("#adminTable tbody");
@@ -162,9 +160,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     snapshot.forEach(childSnapshot => {
       const userId = childSnapshot.key;
       const user = childSnapshot.val();
-
-      // Skip superadmin user from display
-      if (user.status === 'superadmin') return;
 
       const tr = document.createElement('tr');
 
@@ -202,7 +197,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     });
   });
 }
-
 
 function updateUserStatus(userId, newStatus) {
   set(ref(database, `users/${userId}/status`), newStatus)
@@ -254,20 +248,27 @@ loadUsersFromFirebase();
     function addCompany() {
   const companyName = document.getElementById('companyInput').value.trim();
   if (companyName && !companies[companyName]) {
-    companies[companyName] = { departments: [], tasks: [] };
-    saveCompanyData();
+    companies[companyName] = { departments: [] };
+    localStorage.setItem('companies', JSON.stringify(companies));
     populateCompanySelect();
     document.getElementById('companyInput').value = '';
-    debugLog(); // 👈 Add this line
     alert('Company added.');
   }
 }
 
-    function selectCompany() {
-      selectedCompany = document.getElementById('companySelect').value;
-      loadDepartments();
-      loadTasks();
-    }
+document.getElementById('deptSelect').onchange = function () {
+  selectedDepartment = this.value;
+  document.getElementById('selectedDeptName').textContent = selectedDepartment || "[Select Department]";
+  loadTasks();
+};
+
+function selectCompany() {
+  selectedCompany = document.getElementById('companySelect').value;
+  selectedDepartment = "";
+  document.getElementById('selectedDeptName').textContent = '[Select Department]';
+  loadDepartments();
+  document.getElementById('taskList').innerHTML = '';
+}
 
     function deleteCompany() {
       if (selectedCompany && confirm(`Delete ${selectedCompany}?`)) {
@@ -285,65 +286,95 @@ loadUsersFromFirebase();
   const deptName = document.getElementById('deptInput').value.trim();
   if (selectedCompany && deptName) {
     companies[selectedCompany].departments.push(deptName);
-    localStorage.setItem('companies', JSON.stringify(companies)); // update storage
-    loadDepartments();
-    document.getElementById('deptInput').value = '';
+    localStorage.setItem('companies', JSON.stringify(companies)); // Update storage
+    loadDepartments(); // Refresh departments
+    document.getElementById('deptInput').value = ''; // Clear input field
   }
+}
+
+function selectDepartment() {
+  selectedDepartment = document.getElementById('deptSelect').value;
 }
 
 function addTask() {
   const taskName = document.getElementById('taskInput').value.trim();
-  if (selectedCompany && taskName) {
-    companies[selectedCompany].tasks.push(taskName);
-    localStorage.setItem('companies', JSON.stringify(companies)); // update storage
-    loadTasks();
-    document.getElementById('taskInput').value = '';
-    console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
+  if (taskName === '') {
+    alert('Task name cannot be empty!');
+    return;
+  }
+
+  if (!companies[selectedCompany].tasks) {
+    companies[selectedCompany].tasks = {};
+  }
+
+  if (!companies[selectedCompany].tasks[selectedDepartment]) {
+    companies[selectedCompany].tasks[selectedDepartment] = [];
+  }
+
+  companies[selectedCompany].tasks[selectedDepartment].push(taskName);
+  localStorage.setItem('companies', JSON.stringify(companies));
+  loadTasks();
+  document.getElementById('taskInput').value = '';
+}
+
+function loadDepartments() {
+  const deptSelect = document.getElementById('deptSelect');
+  deptSelect.innerHTML = '<option value="">-- Select Department --</option>'; // Reset dropdown
+
+  if (companies[selectedCompany]) {
+    companies[selectedCompany].departments.forEach(dept => {
+      const option = document.createElement('option');
+      option.value = dept;
+      option.textContent = dept;
+      deptSelect.appendChild(option);
+    });
+  }
+
+  // Populate the department list below the dropdown
+  const deptList = document.getElementById('deptList');
+  deptList.innerHTML = ''; // Clear list first
+  companies[selectedCompany]?.departments.forEach((dept, index) => {
+    const li = document.createElement('li');
+    li.textContent = dept + ' ';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = () => {
+      deleteDepartment(index);
+    };
+    li.appendChild(delBtn);
+    deptList.appendChild(li);
+  });
+}
+
+function deleteDepartment(index) {
+  if (selectedCompany) {
+    companies[selectedCompany].departments.splice(index, 1);
+    localStorage.setItem('companies', JSON.stringify(companies)); // Update storage
+    loadDepartments(); // Refresh departments list
   }
 }
 
-    function loadDepartments() {
-      const deptList = document.getElementById('deptList');
-      deptList.innerHTML = '';
-      (companies[selectedCompany]?.departments || []).forEach((dept, index) => {
-        const li = document.createElement('li');
-        li.textContent = dept + ' ';
-        const del = document.createElement('button');
-        del.textContent = 'Delete';
-        del.onclick = () => {
-          companies[selectedCompany].departments.splice(index, 1);
-          loadDepartments();
-          console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-        };
-        li.appendChild(del);
-        deptList.appendChild(li);
-      });
-      console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-    }
+function deleteTask(index) {
+  companies[selectedCompany].tasks[selectedDepartment].splice(index, 1);
+  localStorage.setItem('companies', JSON.stringify(companies));
+  loadTasks();
+}
 
-    function loadTasks() {
-      const taskList = document.getElementById('taskList');
-      taskList.innerHTML = '';
-      (companies[selectedCompany]?.tasks || []).forEach((task, index) => {
-        const li = document.createElement('li');
-        li.textContent = task + ' ';
-        const del = document.createElement('button');
-        del.textContent = 'Delete';
-        del.onclick = () => {
-          companies[selectedCompany].tasks.splice(index, 1);
-          loadTasks();
-          console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-        };
-        li.appendChild(del);
-        taskList.appendChild(li);
-      });
-      console.log("Data successfully saved to localStorage:");
-console.log(JSON.stringify(companies, null, 2));
-    }
+function loadTasks() {
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = '';
+
+  const tasks = companies[selectedCompany]?.tasks?.[selectedDepartment] || [];
+  tasks.forEach((task, index) => {
+    const li = document.createElement('li');
+    li.textContent = task + ' ';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = () => deleteTask(index);
+    li.appendChild(delBtn);
+    taskList.appendChild(li);
+  });
+}
 
     function logout() {
       sessionStorage.clear();
@@ -354,6 +385,7 @@ console.log(JSON.stringify(companies, null, 2));
     window.logout = logout;
 window.addCompany = addCompany;
 window.selectCompany = selectCompany;
+window.selectDepartment = selectDepartment;
 window.deleteCompany = deleteCompany;
 window.addDepartment = addDepartment;
 window.addTask = addTask;
