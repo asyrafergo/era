@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ergonomics Risk Factors</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    h3 {
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 40px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #d9d9d9; /* Light gray background */
+      font-weight: bold;
+    }
+    .btn {
+      margin: 20px auto;
+      display: block;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h3>Ergonomics Risk Factors: Forceful Exertion<br>(Manual handling – Repetitive handling)</h3>
+  <table>
+    <tr>
+      <th>If employee repeats operations</th>
+      <th>Weight* should be reduced by</th>
+    </tr>
+    <tr>
+      <td>Once or twice per minutes</td>
+      <td>30%</td>
+    </tr>
+    <tr>
+      <td>Five to eight times per minute</td>
+      <td>50%</td>
+    </tr>
+    <tr>
+      <td>More than 12 times per minute</td>
+      <td>80%</td>
+    </tr>
+  </table>
+
+  <h3>Ergonomics Risk Factors: Forceful Exertion<br>(Manual handling – Lifting and lowering with twisted body posture)</h3>
+  <table>
+    <tr>
+      <th>If employee twists body from forward facing to the side</th>
+      <th>Weight* should be reduced by</th>
+    </tr>
+    <tr>
+      <td>45 degrees</td>
+      <td>10%</td>
+    </tr>
+    <tr>
+      <td>90 degrees</td>
+      <td>20%</td>
+    </tr>
+  </table>
+
+  <h3>Ergonomics Risk Factors: Forceful Exertion (Pushing and/or <u>Pulling</u>)</h3>
+  <table>
+    <tr>
+      <th rowspan="2">Activity</th>
+      <th colspan="2">Recommended weight</th>
+    </tr>
+    <tr>
+      <th>Male</th>
+      <th>Female</th>
+    </tr>
+    <tr>
+      <td>Stopping or starting a load</td>
+      <td>approximately 1000 kg load (equivalent to 200N pushing or pulling force) on smooth level surface using well maintained handling aid</td>
+      <td>approximately 750 kg load (equivalent to 150N pushing or pulling force) on smooth level surface using well maintained handling aid</td>
+    </tr>
+    <tr>
+      <td>Keeping the load in motion</td>
+      <td>approximately 100 kg load (equivalent to 100N pushing or pulling force) on uneven level surface using well maintained handling aid</td>
+      <td>approximately 70 kg load (equivalent to 70N pushing or pulling force) on uneven level surface using well maintained handling aid</td>
+    </tr>
+  </table>
+
+  <button class="btn" onclick="generatePDF()">Generate PDF</button>
+
+  <script>
+    async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const headerStyle = {
+  fillColor: [217, 217, 217], // Light gray background
+  textColor: [0, 0, 0],       // Set text to black
+  halign: 'center',
+  valign: 'middle',
+  fontStyle: 'bold',
+  lineColor: [0, 0, 0],     // black border
+  lineWidth: 0.2            // optional: makes the line clearly visible
+};
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+
+  // Section 1: Repetitive Handling
+  doc.text("Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
+  doc.text("(Manual handling – Repetitive handling)", 105, 22, { align: "center" });
+
+  doc.autoTable({
+    startY: 28,
+    head: [["If employee repeats operations", "Weight* should be reduced by"]],
+    body: [
+      ["Once or twice per minutes", "30%"],
+      ["Five to eight times per minute", "50%"],
+      ["More than 12 times per minute", "80%"],
+    ],
+    headStyles: headerStyle,
+    styles: {
+    lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+  }
+  });
+
+  // Section 2: Twisted posture
+  const secondHeaderY = doc.lastAutoTable.finalY + 10;
+  doc.text("Ergonomics Risk Factors: Forceful Exertion", 105, secondHeaderY, { align: "center" });
+  doc.text("(Manual handling – Lifting and lowering with twisted body posture)", 105, secondHeaderY + 7, { align: "center" });
+
+  doc.autoTable({
+    startY: secondHeaderY + 13,
+    head: [["If employee twists body from forward facing to the side", "Weight* should be reduced by"]],
+    body: [
+      ["45 degrees", "10%"],
+      ["90 degrees", "20%"],
+    ],
+    headStyles: headerStyle,
+    styles: {
+    lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+  }
+  });
+
+  // Section 3: Pushing and/or Pulling
+  const thirdHeaderY = doc.lastAutoTable.finalY + 10;
+  doc.text("Ergonomics Risk Factors: Forceful Exertion (Pushing and/or Pulling)", 105, thirdHeaderY, { align: "center" });
+
+  doc.autoTable({
+    startY: thirdHeaderY + 6,
+    head: [
+      ["Activity", { content: "Recommended weight", colSpan: 2 }]
+    ],
+    body: [
+      ["", "Male", "Female"],
+      [
+        "Stopping or starting a load",
+        "approximately 1000 kg load (equivalent to 200N pushing or pulling force) on smooth level surface using well maintained handling aid",
+        "approximately 750 kg load (equivalent to 150N pushing or pulling force) on smooth level surface using well maintained handling aid"
+      ],
+      [
+        "Keeping the load in motion",
+        "approximately 100 kg load (equivalent to 100N pushing or pulling force) on uneven level surface using well maintained handling aid",
+        "approximately 70 kg load (equivalent to 70N pushing or pulling force) on uneven level surface using well maintained handling aid"
+      ]
+    ],
+    headStyles: headerStyle,
+    styles: {
+    fontSize: 8,
+    lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+  }
+  });
+
+  doc.save("ergonomics_risk_factors.pdf");
+}
+  </script>
+</body>
+</html>
