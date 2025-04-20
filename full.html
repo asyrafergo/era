@@ -548,46 +548,6 @@ function deleteRow(button) {
     reader.readAsDataURL(file); // Read the file as a Data URL
   }
 
-// Read image files
-function readImages() {
-  imageDataArray = [];
-  const files = document.querySelectorAll('input[type="file"]');
-  const promises = [];
-
-  files.forEach((fileInput, index) => {
-    const file = fileInput.files[0];
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (file) {
-      const reader = new FileReader();
-      const promise = new Promise((resolve) => {
-        reader.onload = function (e) {
-          const img = new Image();
-          img.onload = function () {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-            imageDataArray.push({
-              index: `sp${index}`,
-              data: dataUrl,
-              width: img.width / 10,
-              height: img.height / 10
-            });
-            resolve();
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-      promises.push(promise);
-    }
-  });
-
-  return Promise.all(promises);
-}
-
     // PAGE 6: Manual Handling Table  nice 
     const manualData = [
         { activity: "Lifting and lowering; or", rweight: "Figure 3.1 & Table 3.3"},
