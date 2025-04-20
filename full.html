@@ -1139,7 +1139,7 @@ const centerX3 = (pageWidth3 - scaledWidth3) / 2;
 let figY3 = subtextY + 12;
 
 // Calculate remaining space on the page
-const remainingSpace3 = pageHeight - figY3;
+const remainingSpace3 = pageHeight3 - figY3;
 
 // 👉 If only a small portion will be cut off, push it slightly up instead of a full page jump
 if (scaledHeight3 > remainingSpace3) {
@@ -1147,7 +1147,7 @@ if (scaledHeight3 > remainingSpace3) {
 
   // If overflow is small (e.g., < 30), push image up slightly (pull back figY)
   if (overflow < 10) {
-    figY3 = pageHeight - scaledHeight - 10; // Just enough so image fully fits
+    figY3 = pageHeight3 - scaledHeight3 - 10; // Just enough so image fully fits
   } else {
     // If too much overflow, move to a new page cleanly
     doc.addPage();
@@ -1192,13 +1192,13 @@ const tableStartY3 = figY3 + scaledHeight3 + 10;
 
         const fixedWidth = 28;
         const scale = fixedWidth / img.width;
-        const scaledHeight = img.height * scale;
+        const scaledHeight3 = img.height * scale;
 
         mhImageDataArray.push({
           index: `mh3${i}`,
           data: base64,
           width: fixedWidth,
-          height: scaledHeight
+          height: scaledHeight3
         });
 
         // Determine selected gender
