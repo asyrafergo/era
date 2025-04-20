@@ -1126,7 +1126,7 @@ await new Promise(resolve => figureImage3.onload = resolve);
 // Set desired width (smaller than original)
 const scaledWidth3 = 100; // You can adjust this (e.g., 80, 120)
 const scaleRatio3 = scaledWidth3 / figureImage3.width;
-const scaledHeight3 = figureImage3.height * scaleRatio;
+const scaledHeight3 = figureImage3.height * scaleRatio3;
 
 // Get PDF page width
 const pageWidth3 = doc.internal.pageSize.getWidth();
