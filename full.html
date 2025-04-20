@@ -1366,7 +1366,7 @@ doc.text("Summary of Carrying Activity", 105, summaryY, { align: "center" });
 
 // 6. Set table start Y BELOW the heading
 const tableStartY = summaryY + 6;
-const imageDataArray = [];
+const imageDataArray5 = [];
 
   const table = document.getElementById('carryingTable');
   const rows6 = table.querySelectorAll('tbody tr');
@@ -1401,7 +1401,7 @@ const imageDataArray = [];
     },
     didParseCell: function (data) {
   if (data.section === 'body' && data.column.index === 3) {
-    const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+    const image = imageDataArray5.find(img => img.index === `sp${data.row.index}`);
     if (image) {
       const scale = 1.4;
       const imgHeightMM = image.height * scale;
@@ -1417,7 +1417,7 @@ const imageDataArray = [];
 
 didDrawCell: function (data) {
   if (data.section === 'body' && data.column.index === 3) {
-    const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
+    const image = imageDataArray5.find(img => img.index === `sp${data.row.index}`);
     if (image) {
       const maxWidthMM = data.cell.width * 0.9;
       const maxHeightMM = data.cell.height * 0.9;
