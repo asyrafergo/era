@@ -63,6 +63,52 @@
         <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
     </div>
 
+        <!-- PAGE 3 -->
+        <div class="form-page" id="page4">
+          <h2 style="text-align:center;">Ergonomics Risk Factors: Repetitive Motion</h2>
+          <form id="form5">
+            <div class="section-title">ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Body Part</th>
+                  <th>Physical Risk Factor</th>
+                  <th>Max. Exposure Duration</th>
+                  <th>Yes</th>
+                  <th>No</th>
+                  <th>Remarks / Photos</th>
+                </tr>
+              </thead>
+              <tbody id="staticPostureTable3"></tbody>
+            </table>
+          
+            <div class="section-title">ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)</div>
+            <div style="font-size: 16px; margin-top: 8px; text-align: center;">
+              <strong>Ergonomics Risk Factors: Forceful Exertion</strong>
+            </div>
+            <div style="font-size: 16px; margin-bottom: 12px; text-align: center;">
+              <strong>(Manual handling – Lifting and/or lowering)</strong>
+            </div> 
+            <div class="logo">
+                      <img src="Figure_1.png" alt="Figure">
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Working Height</th>
+                  <th>Recommended Weight</th>
+                  <th>Current Weight</th>
+                  <th>Exceed Limit?</th>
+                  <th>Remarks / Photos</th>
+                </tr>
+              </thead>
+              <tbody id="manualHandlingTable3"></tbody>
+            </table>          
+          </form>
+          <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+          <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+      </div>
+
     <!-- PAGE 4  nice--> 
     <div class="form-page" id="page2">
       <h3 style="text-align:center;">Ergonomics Risk Factors: Forceful Exertion<br>(Manual handling – Repetitive handling)</h3>
@@ -124,29 +170,7 @@
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
   </div>
 
-    <!-- PAGE 5 -->
-    <div class="form-page" id="page4">
-        <h2 style="text-align:center;">Ergonomics Risk Factors: Repetitive Motion</h2>
-        <form id="form5">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Body Part</th>
-                        <th>Risk Factor</th>
-                        <th>Exposure Duration</th>
-                        <th>Yes</th>
-                        <th>No</th>
-                        <th>Remarks/Photo</th>
-                    </tr>
-                </thead>
-                <tbody id="repetitiveMotionBody"></tbody>
-            </table>
-        </form>
-        <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
-        <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
-    </div>
-
-    <!-- PAGE new 5 -->
+    <!-- PAGE new 5 not nice -->
     <div class="form-page" id="page5">
       <h2 style="text-align:center;">Ergonomics Risk Factors: Contact Stress</h2>
       <form id="form6">
@@ -251,9 +275,7 @@
           </tbody>
         </table>
         
-        <div class="controls" id="buttonGroup">
-          <button class="add-btn" onclick="addOtherRow5()">Add 'Others' Row</button>
-        </div>
+          <button type="button" onclick="addOtherRow5()">Add 'Others' Row</button>
 
       </form>
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
@@ -480,30 +502,97 @@
         formBody.appendChild(row);
     });
 
-    // PAGE 5: Repetitive Motion
-    const repetitiveQuestions = [
-        { part: "Hand/Wrist", factor: "Repetitive hand movement", duration: "More than 2 hours per day" },
-        { part: "Arm", factor: "Repetitive arm movement", duration: "More than 2 hours per day" }
-    ];
-    const repetitiveMotionBody = document.getElementById('repetitiveMotionBody');
-    repetitiveQuestions.forEach((q, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${q.part}</td>
-            <td>${q.factor}</td>
-            <td>${q.duration}</td>
-            <td><input type="radio" name="repq${index}" value="Yes"></td>
-            <td><input type="radio" name="repq${index}" value="No"></td>
-            <td>
-                <input type="text" placeholder="Remarks" id="repremark${index}">
-                <input type="file" accept="image/*" id="repfile${index}" onchange="previewImage(event, 'reppreview${index}')">
-                <div id="reppreview${index}" style="margin-top:5px;"></div>
-            </td>
-        `;
-        repetitiveMotionBody.appendChild(row);
-    });
+    // PAGE 3 
+    const staticData3 = [
+    {
+      part: "Trunk/Head/Neck/Arm/Wrist",
+      factor: "Work in a static awkward position as in Table 1",
+      duration: "Refer Table 1"
+    },
+    {
+      part: "Leg/Knees",
+      factor: "Standing with minimal leg movement",
+      duration: "More than 2 hours"
+    },
+    {
+      part: "Leg/Knees",
+      factor: "Seated with minimal movement",
+      duration: "More than 30 mins"
+    }
+  ];
 
-    // PAGE 5 New
+  const manualData3 = [
+    { height: "Floor to mid-lower leg"},
+    { height: "Mid-lower leg to knuckle"},
+    { height: "Knuckle to elbow" },
+    { height: "Elbow to shoulder"},
+    { height: "Above shoulder"}
+  ];
+
+  const staticTable3 = document.getElementById("staticPostureTable3");
+  staticData3.forEach((row, i) => {
+    staticTable3.innerHTML += `
+      <tr>
+        <td>${row.part}</td>
+        <td>${row.factor}</td>
+        <td>${row.duration}</td>
+        <td><input type="radio" name="sp${i}" value="Yes"></td>
+        <td><input type="radio" name="sp${i}" value="No"></td>
+        <td>
+          <input type="text" placeholder="Remarks" id="spr${i}">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, 'preview_spf${i}')">
+<div id="preview_spf${i}" style="margin-top:5px;"></div>
+        </td>
+      </tr>
+    `;
+  });
+
+  const manualTable3 = document.getElementById("manualHandlingTable3");
+  manualData3.forEach((row, i) => {
+    manualTable3.innerHTML += `
+      <tr>
+        <td>${row.height}</td>
+        <td>
+            <div style="text-align: center;">
+    <label><input type="radio" name="gender${i}" value="Male"> Male</label>
+    <label><input type="radio" name="gender${i}" value="Female"> Female</label>
+    </div>
+  </td>
+        <td><input type="text" id="mhWeight${i}"></td>
+        <td>
+          <input type="radio" name="mh3${i}" value="Yes"> Yes
+          <input type="radio" name="mh3${i}" value="No"> No
+        </td>
+        <td>
+          <input type="text" placeholder="Remarks" id="mhr${i}">
+          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'mhf${i}')">
+          <div id="preview_mhf${i}" style="margin-top:5px;"></div>
+        </td>
+      </tr>
+    `;
+  });
+
+  function previewImage(event, id) {
+    const file = event.target.files[0];
+    const previewId = `preview_${id}`;
+    const previewDiv = document.getElementById(previewId);
+
+    if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewDiv.innerHTML = `
+                <img src="${e.target.result}" 
+                     alt="Preview" 
+                     style="max-width: 100px; max-height: 100px; margin-top: 5px; border: 1px solid #ccc;">
+            `;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewDiv.innerHTML = `<p style="color:red;">Invalid image file</p>`;
+    }
+}
+
+    // PAGE 5 New not click 
     let imageDataArray = [];
   
   function addOtherRow5() {
@@ -516,7 +605,7 @@
     <td><input type="text" placeholder="Outcome"></td>
     <td>
       <input type="text" placeholder="Remarks" class="remark-input">
-      <input type="file" accept="image/*" onchange="previewImage5(this)">
+      <input type="file" accept="image/*" onchange="previewImage(this)">
       <img class="preview">
     </td>
     <td class="no-print"><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
@@ -531,22 +620,48 @@ function deleteRow(button) {
 
   // Function to preview the image when uploaded
   function previewImage5(input) {
-    const file = input.files[0]; // Get the uploaded file
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.src = e.target.result; // Set the image source to the file data
-
-      // Find the preview image element
-      const preview = input.nextElementSibling; // Get the <img> element next to the input field
-
-      img.onload = function() {
-        preview.src = img.src; // Set the image src to the loaded file
-        preview.style.display = 'block'; // Show the preview image
-      }
-    };
-    reader.readAsDataURL(file); // Read the file as a Data URL
+    previewImage(input);  // reuse your universal preview function
   }
+
+// Read image files
+function readImages() {
+  imageDataArray = [];
+  const files = document.querySelectorAll('input[type="file"]');
+  const promises = [];
+
+  files.forEach((fileInput, index) => {
+    const file = fileInput.files[0];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (file) {
+      const reader = new FileReader();
+      const promise = new Promise((resolve) => {
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            imageDataArray.push({
+              index: `sp${index}`,
+              data: dataUrl,
+              width: img.width / 10,
+              height: img.height / 10
+            });
+            resolve();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      promises.push(promise);
+    }
+  });
+
+  return Promise.all(promises);
+}
 
     // PAGE 6: Manual Handling Table  nice 
     const manualData = [
@@ -578,7 +693,7 @@ function deleteRow(button) {
         `;
     });
 
-    // PAGE 7: Vibration
+    // PAGE 7: Vibration click
     const MotionData = [
     {
       part: "Neck,shoulders,elbows,wrists, hands, knee",
@@ -683,7 +798,7 @@ function previewImage(fileInput, previewId) {
   }
 }
 
-    // PAGE 8: Finalley
+    // PAGE 8: Finalley click
     const staticData = [
     {
       part: "Inadequate lighting"
@@ -857,98 +972,371 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
             }
         });
 
-        // --- PAGE 3 ---
+        // --- PAGE 3: Repetitive ---
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
-        const mhRows = [];
-        for (let i = 0; i < manualData.length; i++) {
-            const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
-            const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
-            const finalYes = yesRadio?.checked;
-            const finalNo = noRadio?.checked;
-            const remark = document.getElementById(`mhr${i}`).value;
-            const file = document.getElementById(`mhf${i}`).files[0];
-            let imgData = null;
-            if (finalYes && file && file.size <= 1024 * 1024) imgData = await toBase64(file);
-            mhRows.push([
-                manualData[i].activity,
-                manualData[i].rweight,
-                finalYes ? '/' : '',
-                finalNo ? '/' : '',
-                imgData ? '' : (remark || '')
-            ]);
-        }
-        doc.autoTable({
-            startY: 25,
-            head: [['Activity', 'Recommended Weight', 'Yes', 'No', 'Remarks/Photo']],
-            body: mhRows,
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 35 }, 2: { cellWidth: 10 }, 3: { cellWidth: 10 }, 4: { cellWidth: 60 } },
-            didDrawCell: function (data) {
-                if (data.column.index === 4) {
-                    const rowIndex = data.row.index;
-                    const fileInput = document.getElementById(`mhf${rowIndex}`);
-                    if (fileInput && fileInput.files[0]) {
-                        toBase64(fileInput.files[0]).then(img => {
-                            if (img) {
-                                const imgWidth = 30, imgHeight = 20;
-                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, imgWidth, imgHeight);
-                            }
-                        });
-                    }
-                }
-            }
+  doc.text("ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
+
+  const rows3 = [];
+  const imageDataArray3 = [];
+  let totalYes3 = 0;
+
+  // STATIC POSTURE TABLE
+  for (let i = 0; i < staticData3.length; i++) {
+    const yesRadio = document.querySelector(`input[name="sp${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="sp${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`spr${i}`).value;
+    const file = document.getElementById(`spf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) totalYes3++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        imageDataArray3.push({
+          index: `sp${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
         });
 
-        // --- PAGE 5: Repetitive ---
+        rows3.push([
+          staticData3[i].part,
+          staticData3[i].factor,
+          staticData3[i].duration,
+          isYes,
+          isNo,
+          ''
+        ]);
+      } catch (error) {
+        rows3.push([
+          staticData3[i].part,
+          staticData3[i].factor,
+          staticData3[i].duration,
+          isYes,
+          isNo,
+          'Error loading image.'
+        ]);
+      }
+    } else {
+      rows3.push([
+        staticData3[i].part,
+        staticData3[i].factor,
+        staticData3[i].duration,
+        isYes,
+        isNo,
+        finalRemark
+      ]);
+    }
+  }
+
+  // RENDER STATIC POSTURE TABLE
+  doc.autoTable({
+    head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
+    body: rows3,
+    startY: 20,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+  0: { cellWidth: 25 },
+  1: { cellWidth: 35 },
+  2: { cellWidth: 25 },
+  3: { cellWidth: 12 },
+  4: { cellWidth: 12 },
+  5: { cellWidth: 'auto' }
+},
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray3.find(img => img.index === `sp${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const image = imageDataArray3.find(img => img.index === `sp${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${totalYes3}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold'
+    }
+  });
+
+  // MANUAL HANDLING TABLE
+
+  // Add spacing after static posture subtotal
+const nextY3 = doc.previousAutoTable.finalY + 15;
+// Set the font size for the title
+doc.setFontSize(14);
+doc.text("ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)", doc.internal.pageSize.getWidth() / 2, nextY3, { align: "center" });
+
+const subtextY = nextY3 + 7;
+
+// Set slightly smaller font size for the subtext
+doc.setFontSize(12);
+doc.text("Ergonomics Risk Factors: Forceful Exertion", doc.internal.pageSize.getWidth() / 2, subtextY, { align: "center" });
+doc.text("(Manual handling – Lifting and/or lowering)", doc.internal.pageSize.getWidth() / 2, subtextY + 6, { align: "center" });
+
+  // Add Figure 1 image below the title
+  const figureImage3 = new Image();
+figureImage3.src = 'Figure_1.png';
+await new Promise(resolve => figureImage3.onload = resolve);
+
+// Set desired width (smaller than original)
+const scaledWidth3 = 100; // You can adjust this (e.g., 80, 120)
+const scaleRatio3 = scaledWidth3 / figureImage3.width;
+const scaledHeight3 = figureImage3.height * scaleRatio;
+
+// Get PDF page width
+const pageWidth3 = doc.internal.pageSize.getWidth();
+const pageHeight3 = doc.internal.pageSize.getHeight();
+
+// Calculate X to center the image
+const centerX3 = (pageWidth3 - scaledWidth3) / 2;
+
+// Y position (below the title)
+let figY3 = subtextY + 12;
+
+// Calculate remaining space on the page
+const remainingSpace3 = pageHeight - figY3;
+
+// 👉 If only a small portion will be cut off, push it slightly up instead of a full page jump
+if (scaledHeight3 > remainingSpace3) {
+  const overflow = scaledHeight3 - remainingSpace3;
+
+  // If overflow is small (e.g., < 30), push image up slightly (pull back figY)
+  if (overflow < 10) {
+    figY3 = pageHeight - scaledHeight - 10; // Just enough so image fully fits
+  } else {
+    // If too much overflow, move to a new page cleanly
+    doc.addPage();
+    figY3 = 40; // Minimal margin from top
+  }
+}
+
+// Add the image to the PDF centered and scaled
+doc.addImage(figureImage3, 'PNG', centerX3, figY3, scaledWidth3, scaledHeight3);
+
+// Adjust the Y position of the table below the image
+const tableStartY3 = figY3 + scaledHeight3 + 10;
+
+//-----------------------------------------------------------------------------
+  const mhRows3 = [];
+  const mhImageDataArray3 = [];
+  let mhYesCount3 = 0;
+
+  for (let i = 0; i < manualData3.length; i++) {
+    const maleRadio = document.querySelector(`input[name="gender${i}"][value="Male"]`);
+    const femaleRadio = document.querySelector(`input[name="gender${i}"][value="Female"]`);
+    const currentWeight = document.getElementById(`mhWeight${i}`).value;
+    const yesRadio = document.querySelector(`input[name="mh3${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="mh3${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`mhr${i}`).value;
+    const file = document.getElementById(`mhf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? 'X' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) mhYesCount++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        mhImageDataArray.push({
+          index: `mh3${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
+        });
+
+        // Determine selected gender
+let recommendedWeight = '';
+if (maleRadio && maleRadio.checked) {
+  recommendedWeight = 'Male';
+} else if (femaleRadio && femaleRadio.checked) {
+  recommendedWeight = 'Female';
+} else {
+  recommendedWeight = 'Not selected';
+}
+
+        mhRows3.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, '']);
+      } catch (error) {
+        mhRows3.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, 'Error loading image.']);
+      }
+    } else {
+      // Determine selected gender
+let recommendedWeight = '';
+if (maleRadio && maleRadio.checked) {
+  recommendedWeight = 'Male';
+} else if (femaleRadio && femaleRadio.checked) {
+  recommendedWeight = 'Female';
+} else {
+  recommendedWeight = 'Not selected';
+}
+        mhRows3.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, finalRemark]);
+    }
+  }
+
+  doc.autoTable({
+    head: [['Working Height', 'Recommended Weight', 'Current Weight', 'Exceed Limit?', 'Remarks or Photos']],
+    body: mhRows3,
+    startY: tableStartY,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 40 },
+      1: { cellWidth: 32 },
+      2: { cellWidth: 23 },
+      3: { cellWidth: 20 },
+      4: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 4) {
+        const image = mhImageDataArray3.find(img => img.index === `mh3${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 4) {
+        const image = mhImageDataArray3.find(img => img.index === `mh3${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold'
+    }
+  });
+
+        // --- PAGE 4 ---  click
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('Ergonomics Risk Factors: Repetitive Motion', 105, 15, { align: "center" });
-        const repRows = [];
-        for (let i = 0; i < repetitiveQuestions.length; i++) {
-            const yesInput = document.querySelector(`input[name='repq${i}'][value='Yes']`);
-            const noInput = document.querySelector(`input[name='repq${i}'][value='No']`);
-            const yesChecked = yesInput?.checked;
-            const noChecked = noInput?.checked;
-            const remark = document.getElementById(`repremark${i}`).value || '';
-            const fileInput = document.getElementById(`repfile${i}`);
-            let imgData = null;
-            if (yesChecked && fileInput?.files[0]) imgData = await toBase64(fileInput.files[0]);
-            repRows.push([
-                repetitiveQuestions[i].part,
-                repetitiveQuestions[i].factor,
-                repetitiveQuestions[i].duration,
-                yesChecked ? '/' : '',
-                noChecked ? '/' : '',
-                imgData ? '' : remark
-            ]);
-        }
+        doc.text('Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
         doc.autoTable({
             startY: 25,
-            head: [['Body Part', 'Risk Factor', 'Exposure Duration', 'Yes', 'No', 'Remarks/Photo']],
-            body: repRows,
+            head: [["If employee repeats operations", "Weight* should be reduced by"]],
+            body: [
+                ["Once or twice per minute", "30%"],
+                ["Five to eight times per minute", "50%"],
+                ["More than 12 times per minute", "80%"]
+            ],
             theme: 'grid',
-            styles: { fontSize: 10 },
-            columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 50 }, 2: { cellWidth: 30 }, 3: { cellWidth: 10 }, 4: { cellWidth: 10 }, 5: { cellWidth: 60 } },
-            didDrawCell: function (data) {
-                if (data.column.index === 5) {
-                    const rowIndex = data.row.index;
-                    const fileInput = document.getElementById(`repfile${rowIndex}`);
-                    if (fileInput && fileInput.files[0]) {
-                        toBase64(fileInput.files[0]).then(img => {
-                            if (img) {
-                                const imgWidth = 30, imgHeight = 20;
-                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, imgWidth, imgHeight);
-                            }
-                        });
-                    }
-                }
-            }
+            styles: { fontSize: 10 }
+        });
+        doc.text('(Manual handling – Lifting and lowering with twisted body posture)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [["If employee twists body from forward facing to the side", "Weight* should be reduced by"]],
+            body: [
+                ["45 degrees", "10%"],
+                ["90 degrees", "20%"]
+            ],
+            theme: 'grid',
+            styles: { fontSize: 10 }
+        });
+        doc.text('Ergonomics Risk Factors: Forceful Exertion (Pushing and/or Pulling)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [
+                ["Activity", { content: "Recommended weight", colSpan: 2 }]
+            ],
+            body: [
+                ["", "Male", "Female"],
+                [
+                    "Stopping or starting a load",
+                    "approximately 1000 kg load (equivalent to 200N pushing or pulling force) on smooth level surface using well maintained handling aid",
+                    "approximately 750 kg load (equivalent to 150N pushing or pulling force) on smooth level surface using well maintained handling aid"
+                ],
+                [
+                    "Keeping the load in motion",
+                    "approximately 100 kg load (equivalent to 100N pushing or pulling force) on uneven level surface using well maintained handling aid",
+                    "approximately 70 kg load (equivalent to 70N pushing or pulling force) on uneven level surface using well maintained handling aid"
+                ]
+            ],
+            theme: 'grid',
+            styles: { fontSize: 8 }
         });
 
-        // --- PAGE 6: Contact Stress ---
+
+        // --- PAGE 5 not click meh  ---
         doc.addPage();
    // 1. Add main titles
 doc.setFontSize(14);
@@ -1054,57 +1442,52 @@ didDrawCell: function (data) {
 }
   });
 
-        // --- PAGE 6 ---  click
+        // --- PAGE 6 click ---
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
+        doc.text('Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
+        const mhRows = [];
+        for (let i = 0; i < manualData.length; i++) {
+            const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
+            const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
+            const finalYes = yesRadio?.checked;
+            const finalNo = noRadio?.checked;
+            const remark = document.getElementById(`mhr${i}`).value;
+            const file = document.getElementById(`mhf${i}`).files[0];
+            let imgData = null;
+            if (finalYes && file && file.size <= 1024 * 1024) imgData = await toBase64(file);
+            mhRows.push([
+                manualData[i].activity,
+                manualData[i].rweight,
+                finalYes ? '/' : '',
+                finalNo ? '/' : '',
+                imgData ? '' : (remark || '')
+            ]);
+        }
         doc.autoTable({
             startY: 25,
-            head: [["If employee repeats operations", "Weight* should be reduced by"]],
-            body: [
-                ["Once or twice per minute", "30%"],
-                ["Five to eight times per minute", "50%"],
-                ["More than 12 times per minute", "80%"]
-            ],
+            head: [['Activity', 'Recommended Weight', 'Yes', 'No', 'Remarks/Photo']],
+            body: mhRows,
             theme: 'grid',
-            styles: { fontSize: 10 }
-        });
-        doc.text('(Manual handling – Lifting and lowering with twisted body posture)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 15,
-            head: [["If employee twists body from forward facing to the side", "Weight* should be reduced by"]],
-            body: [
-                ["45 degrees", "10%"],
-                ["90 degrees", "20%"]
-            ],
-            theme: 'grid',
-            styles: { fontSize: 10 }
-        });
-        doc.text('Ergonomics Risk Factors: Forceful Exertion (Pushing and/or Pulling)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 15,
-            head: [
-                ["Activity", { content: "Recommended weight", colSpan: 2 }]
-            ],
-            body: [
-                ["", "Male", "Female"],
-                [
-                    "Stopping or starting a load",
-                    "approximately 1000 kg load (equivalent to 200N pushing or pulling force) on smooth level surface using well maintained handling aid",
-                    "approximately 750 kg load (equivalent to 150N pushing or pulling force) on smooth level surface using well maintained handling aid"
-                ],
-                [
-                    "Keeping the load in motion",
-                    "approximately 100 kg load (equivalent to 100N pushing or pulling force) on uneven level surface using well maintained handling aid",
-                    "approximately 70 kg load (equivalent to 70N pushing or pulling force) on uneven level surface using well maintained handling aid"
-                ]
-            ],
-            theme: 'grid',
-            styles: { fontSize: 8 }
+            styles: { fontSize: 10 },
+            columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 35 }, 2: { cellWidth: 10 }, 3: { cellWidth: 10 }, 4: { cellWidth: 60 } },
+            didDrawCell: function (data) {
+                if (data.column.index === 4) {
+                    const rowIndex = data.row.index;
+                    const fileInput = document.getElementById(`mhf${rowIndex}`);
+                    if (fileInput && fileInput.files[0]) {
+                        toBase64(fileInput.files[0]).then(img => {
+                            if (img) {
+                                const imgWidth = 30, imgHeight = 20;
+                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, imgWidth, imgHeight);
+                            }
+                        });
+                    }
+                }
+            }
         });
 
-
-        // --- PAGE 7: Vibration ---
+        // --- PAGE 7: Vibration click ---
         doc.addPage();
         const pageCenter = doc.internal.pageSize.getWidth() / 2;
 
@@ -1341,7 +1724,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
   });
 
 
-        // --- PAGE 8: Final Comments ---
+        // --- PAGE 8: Final Comments click ---
         doc.addPage();
          const rows1 = [];
       const imageDataArray = [];
