@@ -1181,7 +1181,7 @@ const tableStartY3 = figY3 + scaledHeight3 + 10;
     const isNo = finalNo || (!finalYes && !finalNo) ? 'X' : '';
     const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
 
-    if (finalYes) mhYesCount++;
+    if (finalYes) mhYesCount3++;
 
     if (finalYes && file && file.size <= 1024 * 1024) {
       try {
@@ -1278,7 +1278,7 @@ if (maleRadio && maleRadio.checked) {
   });
 
   doc.autoTable({
-    body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
+    body: [[`Sub Total (Number of tick(s)): ${mhYesCount3}`]],
     startY: doc.previousAutoTable.finalY + 10,
     styles: {
       fontSize: 12,
