@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Ergonomics Risk Assessment - Full 8 Pages</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
     <!-- jsPDF and AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -516,7 +516,7 @@
     });
 
     function previewImage2(event, id) {
-    previewImage(input);
+      previewImage(event.target, id);
 }
 
     // PAGE 3 
@@ -590,7 +590,7 @@
   });
 
   function previewImage3(event, id) {
-    previewImage(input);
+    previewImage(event.target, id);
 }
 
     // PAGE 5 New not click 
@@ -695,7 +695,7 @@ function readImages() {
     });
 
     function previewImage6(event, id) {
-    previewImage(input);
+      previewImage(event.target, id);
 }
     // PAGE 7: Vibration click
     const MotionData = [
@@ -788,7 +788,7 @@ VibrationData.forEach((row, i) => {
 });
 
 function previewImage7(fileInput, previewId) {
-  previewImage(input);
+  previewImage(input, id);
 }
 
     // PAGE 8: Finalley click
@@ -842,6 +842,10 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
       }
     });
   });
+
+  function previewImage8(event, id) {
+    previewImage(event.target, `imagePreview${id}`);
+}
 
     // PDF GENERATION
     async function generateAllPDF() {
@@ -1176,6 +1180,9 @@ const tableStartY3 = figY3 + scaledHeight3 + 10;
 
     if (finalYes) mhYesCount3++;
 
+    // Determine selected gender
+let recommendedWeight = '';
+
     if (finalYes && file && file.size <= 1024 * 1024) {
       try {
         const base64 = await toBase64(file);
@@ -1194,8 +1201,6 @@ const tableStartY3 = figY3 + scaledHeight3 + 10;
           height: scaledHeight3
         });
 
-        // Determine selected gender
-let recommendedWeight = '';
 if (maleRadio && maleRadio.checked) {
   recommendedWeight = 'Male';
 } else if (femaleRadio && femaleRadio.checked) {
