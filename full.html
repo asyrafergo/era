@@ -508,7 +508,7 @@
             <td><input type="radio" name="q${index}" value="No"></td>
             <td>
                 <input type="text" placeholder="Remarks" id="remark${index}">
-                <input type="file" accept="image/*" id="file${index}" onchange="previewImage(event, 'preview${index}b')">
+                <input type="file" accept="image/*" id="file${index}" onchange="previewImage(event, 'preview${index}')">
                 <div id="preview${index}b" style="margin-top:5px;"></div>
             </td>
         `;
@@ -578,7 +578,7 @@
         </td>
         <td>
           <input type="text" placeholder="Remarks" id="mhr${i}">
-          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'mhf${i}')">
+          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'mhf${i}')"><br>
           <div id="preview_mhf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
@@ -618,7 +618,7 @@
     <td><input type="text" placeholder="Outcome"></td>
     <td>
       <input type="text" placeholder="Remarks" class="remark-input">
-      <input type="file" accept="image/*" onchange="previewImage(this)">
+      <input type="file" accept="image/*" onchange="previewImage5(this)">
       <img class="preview">
     </td>
     <td class="no-print"><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
@@ -633,7 +633,13 @@ function deleteRow(button) {
 
   // Function to preview the image when uploaded
   function previewImage5(input) {
-    previewImage(input);  // reuse your universal preview function
+    if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      input.nextElementSibling.src = e.target.result; // assumes <img> follows input
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
   }
 
 // Read image files
