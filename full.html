@@ -1211,9 +1211,9 @@ if (maleRadio && maleRadio.checked) {
   recommendedWeight = 'Not selected';
 }
 
-        mhRows3.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, '']);
+        mhRows3.push([manualData3[i].height, recommendedWeight, currentWeight, isYes + isNo, '']);
       } catch (error) {
-        mhRows3.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, 'Error loading image.']);
+        mhRows3.push([manualData3[i].height, recommendedWeight, currentWeight, isYes + isNo, 'Error loading image.']);
       }
     } else {
       // Determine selected gender
@@ -1225,7 +1225,7 @@ if (maleRadio && maleRadio.checked) {
 } else {
   recommendedWeight = 'Not selected';
 }
-        mhRows3.push([manualData[i].height, recommendedWeight, currentWeight, isYes + isNo, finalRemark]);
+        mhRows3.push([manualData3[i].height, recommendedWeight, currentWeight, isYes + isNo, finalRemark]);
     }
   }
 
