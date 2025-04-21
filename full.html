@@ -24,22 +24,35 @@
     </style>
 </head>
 <body>
-<div id="formContainer">
-    <!-- PAGE 1 nice -->
-    <div class="form-page active" id="page0">
-        <h2 style="text-align:center;">INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST</h2>
-        <form id="form1">
-            <label>Assessor: <input type="text" id="assessor" required></label><br>
-            <label>Date: <input type="date" id="date" required></label><br>
-            <label>Department: <input type="text" id="department" required></label><br>
-            <label>Task Description:<br>
-                <textarea id="taskDescription" required placeholder="Provide a detailed task description..."></textarea>
-            </label>
-            <div id="photoContainer"></div>
-            <button type="button" onclick="addPhotoSection()">Add Photo & Description</button>
-        </form>
-        <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
-    </div>
+<!-- PAGE 1 Fixed -->
+<div class="form-page active" id="page0">
+  <h2 style="text-align:center;">INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST</h2>
+  <form id="form1">
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td style="padding: 10px;"><label>Assessor:</label></td>
+        <td style="padding: 10px;" colspan="3"><input type="text" id="assessor" required style="width: 100%;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;"><label>Date:</label></td>
+        <td style="padding: 10px;"><input type="date" id="date" required></td>
+        <td style="padding: 10px;"><label>Department:</label></td>
+        <td style="padding: 10px;"><input type="text" id="department" required></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;"><label>Task Description:</label></td>
+        <td style="padding: 10px;" colspan="3">
+          <textarea id="taskDescription" required placeholder="Provide a detailed task description..." style="width: 100%; height: 100px;"></textarea>
+        </td>
+      </tr>
+    </table>
+
+    <div id="photoContainer"></div>
+    <button type="button" class="nav-btn" onclick="addPhotoSection()">Add Photo & Description</button>
+  </form>
+
+  <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+</div>
 
     <!-- PAGE 2 nice -->
     <div class="form-page" id="page1">
@@ -495,12 +508,16 @@
             <td><input type="radio" name="q${index}" value="No"></td>
             <td>
                 <input type="text" placeholder="Remarks" id="remark${index}">
-                <input type="file" accept="image/*" id="file${index}" onchange="previewImage(event, 'preview${index}b')">
+                <input type="file" accept="image/*" id="file${index}" onchange="previewImage2(event, 'preview${index}b')">
                 <div id="preview${index}b" style="margin-top:5px;"></div>
             </td>
         `;
         formBody.appendChild(row);
     });
+
+    function previewImage2(event, id) {
+    previewImage(input);
+}
 
     // PAGE 3 
     const staticData3 = [
@@ -540,7 +557,7 @@
         <td><input type="radio" name="sp${i}" value="No"></td>
         <td>
           <input type="text" placeholder="Remarks" id="spr${i}">
-          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, 'preview_spf${i}')">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage3(event, 'preview_spf${i}')">
 <div id="preview_spf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
@@ -565,31 +582,15 @@
         </td>
         <td>
           <input type="text" placeholder="Remarks" id="mhr${i}">
-          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'mhf${i}')">
+          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage3(event, 'mhf${i}')">
           <div id="preview_mhf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
     `;
   });
 
-  function previewImage(event, id) {
-    const file = event.target.files[0];
-    const previewId = `preview_${id}`;
-    const previewDiv = document.getElementById(previewId);
-
-    if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewDiv.innerHTML = `
-                <img src="${e.target.result}" 
-                     alt="Preview" 
-                     style="max-width: 100px; max-height: 100px; margin-top: 5px; border: 1px solid #ccc;">
-            `;
-        };
-        reader.readAsDataURL(file);
-    } else {
-        previewDiv.innerHTML = `<p style="color:red;">Invalid image file</p>`;
-    }
+  function previewImage3(event, id) {
+    previewImage(input);
 }
 
     // PAGE 5 New not click 
@@ -605,7 +606,7 @@
     <td><input type="text" placeholder="Outcome"></td>
     <td>
       <input type="text" placeholder="Remarks" class="remark-input">
-      <input type="file" accept="image/*" onchange="previewImage(this)">
+      <input type="file" accept="image/*" onchange="previewImage5(this)">
       <img class="preview">
     </td>
     <td class="no-print"><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
@@ -686,13 +687,16 @@ function readImages() {
                 </td>
                 <td>
                     <input type="text" placeholder="Remarks" id="mhr${i}"><br>
-                    <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'preview-mhf${i}')"><br>
+                    <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage6(event, 'preview-mhf${i}')"><br>
                     <img id="preview-mhf${i}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px;">
                 </td>
             </tr>
         `;
     });
 
+    function previewImage6(event, id) {
+    previewImage(input);
+}
     // PAGE 7: Vibration click
     const MotionData = [
     {
@@ -755,7 +759,7 @@ MotionData.forEach((row, i) => {
       <td><input type="radio" name="motion${i}" value="No"></td>
       <td>
       <input type="text" placeholder="Remarks" id="remarkPhoto${i}">
-      <input type="file" accept="image/*" id="remarkPhoto${i}File" onchange="previewImage(this, 'preview${i}')">
+      <input type="file" accept="image/*" id="remarkPhoto${i}File" onchange="previewImage7(this, 'preview${i}')">
       <br>
       <img id="preview${i}" style="max-width: 80px; max-height: 80px; margin-top: 5px;" />
     </td>
@@ -775,7 +779,7 @@ VibrationData.forEach((row, i) => {
       <td><input type="radio" name="vibration${i}" value="No"></td>
       <td>
       <input type="text" placeholder="Remarks" id="remarkPhoto${index}">
-      <input type="file" accept="image/*" id="remarkPhoto${index}File" onchange="previewImage(this, 'preview${index}')">
+      <input type="file" accept="image/*" id="remarkPhoto${index}File" onchange="previewImage7(this, 'preview${index}')">
       <br>
       <img id="preview${index}" style="max-width: 80px; max-height: 80px; margin-top: 5px;" />
     </td>
@@ -783,19 +787,8 @@ VibrationData.forEach((row, i) => {
   `;
 });
 
-function previewImage(fileInput, previewId) {
-  const file = fileInput.files[0];
-  const preview = document.getElementById(previewId);
-
-  if (file && file.type.startsWith("image/")) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      preview.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  } else {
-    preview.src = "";
-  }
+function previewImage7(fileInput, previewId) {
+  previewImage(input);
 }
 
     // PAGE 8: Finalley click
@@ -826,7 +819,7 @@ function previewImage(fileInput, previewId) {
         <td><input type="radio" name="sp${i}" value="No"></td>
         <td>
           <input type="text" placeholder="Remarks" id="spr${i}">
-          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, ${i})">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage8(event, ${i})">
           <br>
           <img id="imagePreview${i}" style="max-width: 100px; max-height: 100px; display: none;" />
         </td>
