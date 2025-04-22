@@ -621,7 +621,6 @@
 }
 
     // PAGE 5 New not click 
-    let imageDataArray5 = [];
   
   function addOtherRow5() {
   const table = document.getElementById('carryingTable').getElementsByTagName('tbody')[0];
@@ -656,45 +655,6 @@ function deleteRow(button) {
     reader.readAsDataURL(input.files[0]);
   }
   }
-
-// Read image files
-function readImages() {
-  const files = document.querySelectorAll('input[type="file"]');
-  const promises = [];
-
-  files.forEach((fileInput, index) => {
-    const file = fileInput.files[0];
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (file) {
-      const reader = new FileReader();
-      const promise = new Promise((resolve) => {
-        reader.onload = function (e) {
-          const img = new Image();
-          img.onload = function () {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-            imageDataArray5.push({
-              index: `sp${index}`,
-              data: dataUrl,
-              width: img.width / 10,
-              height: img.height / 10
-            });
-            resolve();
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-      promises.push(promise);
-    }
-  });
-
-  return Promise.all(promises);
-}
 
     // PAGE 6: Manual Handling Table  nice 
     const manualData = [
@@ -1173,50 +1133,152 @@ didDrawCell: function (data) {
 }
   });
 
+  // Read image files
+function readImages() {
+  const files = document.querySelectorAll('input[type="file"]');
+  const promises = [];
+
+  files.forEach((fileInput, index) => {
+    const file = fileInput.files[0];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (file) {
+      const reader = new FileReader();
+      const promise = new Promise((resolve) => {
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            imageDataArray5.push({
+              index: `sp${index}`,
+              data: dataUrl,
+              width: img.width / 10,
+              height: img.height / 10
+            });
+            resolve();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      promises.push(promise);
+    }
+  });
+
+  return Promise.all(promises);
+}
+
         // --- PAGE 6 click ---
         doc.addPage();
         doc.setFontSize(14);
         doc.text('Page 6 : Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
         const mhRows = [];
+        const mhImageDataArray = [];
+        let mhYesCount = 0;
+
         for (let i = 0; i < manualData.length; i++) {
-            const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
-            const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
-            const finalYes = yesRadio?.checked;
-            const finalNo = noRadio?.checked;
-            const remark = document.getElementById(`mhr${i}`).value;
-            const file = document.getElementById(`mhf${i}`).files[0];
-            let imgData = null;
-            if (finalYes && file && file.size <= 1024 * 1024) imgData = await toBase64(file);
-            mhRows.push([
-                manualData[i].activity,
-                manualData[i].rweight,
-                finalYes ? '/' : '',
-                finalNo ? '/' : '',
-                imgData ? '' : (remark || '')
-            ]);
-        }
-        doc.autoTable({
-            startY: 25,
-            head: [['Activity', 'Recommended Weight', 'Yes', 'No', 'Remarks/Photo']],
-            body: mhRows,
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 35 }, 2: { cellWidth: 10 }, 3: { cellWidth: 10 }, 4: { cellWidth: 60 } },
-            didDrawCell: function (data) {
-                if (data.column.index === 4) {
-                    const rowIndex = data.row.index;
-                    const fileInput = document.getElementById(`mhf${rowIndex}`);
-                    if (fileInput && fileInput.files[0]) {
-                        toBase64(fileInput.files[0]).then(img => {
-                            if (img) {
-                                const imgWidth = 30, imgHeight = 20;
-                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, imgWidth, imgHeight);
-                            }
-                        });
-                    }
-                }
-            }
+    const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`input[name="mh${i}"][value="No"]`);
+    const finalYes = yesRadio?.checked;
+    const finalNo = noRadio?.checked;
+    const remark = document.getElementById(`mhr${i}`).value;
+    const file = document.getElementById(`mhf${i}`).files[0];
+
+    const isYes = finalYes ? '/' : '';
+    const isNo = finalNo || (!finalYes && !finalNo) ? 'X' : '';
+    const finalRemark = finalYes || finalNo ? remark || 'No remarks' : 'No picture or remarks';
+
+    if (finalYes) mhYesCount++;
+
+    if (finalYes && file && file.size <= 1024 * 1024) {
+      try {
+        const base64 = await toBase64(file);
+        const img = new Image();
+        img.src = base64;
+        await new Promise(resolve => img.onload = resolve);
+
+        const fixedWidth = 28;
+        const scale = fixedWidth / img.width;
+        const scaledHeight = img.height * scale;
+
+        mhImageDataArray.push({
+          index: `mh${i}`,
+          data: base64,
+          width: fixedWidth,
+          height: scaledHeight
         });
+
+        mhRows.push([manualData[i].activity, manualData[i].rweight, isYes + isNo, '']);
+      } catch (error) {
+        mhRows.push([manualData[i].activity, manualData[i].rweight, isYes + isNo, 'Error loading image.']);
+      }
+    } else {
+// No image: just show text
+const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
+    mhRows.push([manualData[i].activity, manualData[i].rweight, isYes + isNo, displayText]);
+    }
+  }
+
+  doc.autoTable({
+    head: [['Activity', 'Recommended Weight', 'Exceed Limit?', 'Remarks or Photos']],
+    body: mhRows,
+    startY: 35,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      valign: 'middle',
+      halign: 'center',
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [120, 120, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 45 },
+      1: { cellWidth: 35 },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 'auto' }
+    },
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 3) {
+        const image = mhImageDataArray.find(img => img.index === `mh${data.row.index}`);
+        if (image) {
+          const lines = Math.ceil((image.height * 1.2) / 3);
+          data.cell.text = Array(lines).fill('\n');
+        }
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section === 'body' && data.column.index === 3) {
+        const image = mhImageDataArray.find(img => img.index === `mh${data.row.index}`);
+        if (image) {
+          const imgWidthMM = image.width * 1.4;
+          const imgHeightMM = image.height * 1.4;
+          const imgX = data.cell.x + (data.cell.width - imgWidthMM) / 2;
+          const imgY = data.cell.y + (data.cell.height - imgHeightMM) / 2;
+          const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+        }
+      }
+    }
+  });
+
+  doc.autoTable({
+    body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
+    startY: doc.previousAutoTable.finalY + 10,
+    styles: {
+      fontSize: 12,
+      fontStyle: 'bold',
+      halign: 'center'
+    }
+  });
 
         // --- PAGE 7: Vibration click ---
         doc.addPage();
@@ -1679,7 +1741,7 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
             reader.onerror = reject;
             reader.readAsDataURL(file);
         })};
-        
+
     doc.addPage();
         doc.setFontSize(14);
   doc.text("PAGE 3: ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
