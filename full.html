@@ -977,7 +977,7 @@ function finalizePDF() {
         },
         didDrawCell: function (data) {
             const index = data.row.index - 3;
-            if (data.column.index === 1 && imagesData[index]?.imgData) {
+            if (data.pageNumber === 1 && data.column.index === 1 && imagesData[index]?.imgData) {
                 const imgProps = doc.getImageProperties(imagesData[index].imgData);
                 const maxW = data.cell.width * 0.9;
                 const maxH = data.cell.height * 0.9;
