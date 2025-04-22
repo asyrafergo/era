@@ -482,7 +482,7 @@
     };
 
     // PAGE 2: Awkward posture questions
-    const awkwardQuestions = [
+    const questions = [
         { part: "Shoulders", factor: "Work with hand above the head OR the elbow above the shoulder", duration: "More than 2 hours per day" },
         { part: "Shoulders", factor: "Work with shoulder raised", duration: "More than 2 hours per day" },
         { part: "Shoulders", factor: "Work repetitively by raising the hand above the head OR the elbow above the shoulder more than once per minute", duration: "More than 2 hours per day" },
@@ -647,15 +647,17 @@ function deleteRow(button) {
 
   // Function to preview the image when uploaded
   function previewImage5(input) {
-    if (input.files && input.files[0]) {
+  if (input.files && input.files[0]) {
     var reader = new FileReader();
     reader.onload = function(e) {
-      input.nextElementSibling.src = e.target.result; // assumes <img> follows input
+      var img = input.nextElementSibling; // assumes <img> follows <input>
+      img.src = e.target.result;
+      img.style.width = '120px'; // adjust as needed
+      img.style.height = 'auto'; // keeps aspect ratio
     }
     reader.readAsDataURL(input.files[0]);
   }
-  }
-
+}
     // PAGE 6: Manual Handling Table  nice 
     const manualData = [
         { activity: "Lifting and lowering; or", rweight: "Figure 3.1 & Table 3.3"},
