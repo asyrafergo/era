@@ -1175,36 +1175,44 @@ const imageDataArray5 = [];
   }
 
 // Read image files
-const table = document.getElementById('carryingTable');
-const rows5 = table.querySelectorAll('tbody tr');
-imageDataArray5.length = 0;
-const promises = [];
+function readImages() {
+  const files = document.querySelectorAll('input[type="file"]');
+  const promises = [];
+  imageDataArray5.length = 0;
 
-rows5.forEach((row, rowIndex) => {
-  const fileInput = row.querySelector('input[type="file"]');
-  const file = fileInput?.files?.[0];
+  files.forEach((fileInput, index) => {
+    const file = fileInput.files[0];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  if (file) {
-    const reader = new FileReader();
-    const promise = new Promise((resolve) => {
-      reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-          imageDataArray5.push({
-            index: rowIndex, 
-            data: e.target.result,
-            width: img.width / 10,
-            height: img.height / 10
-          });
-          resolve();
+    if (file) {
+      const reader = new FileReader();
+      const promise = new Promise((resolve) => {
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            imageDataArray5.push({
+              index: `a${index}`,
+              data: dataUrl,
+              width: img.width / 10,
+              height: img.height / 10
+            });
+            resolve();
+          };
+          img.src = e.target.result;
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-    promises.push(promise);
-  }
-});
+        reader.readAsDataURL(file);
+      });
+      promises.push(promise);
+    }
+  });
+
+  return Promise.all(promises);
+}
 
 // 2. Load image and wait until it's ready
 const figureImage = new Image();
@@ -1226,9 +1234,12 @@ doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
 const summaryY = figY + scaledHeight + 8;
 doc.setFontSize(13);
 doc.text("Summary of Carrying Activity", 105, summaryY, { align: "center" });
-
+await readImages();
 // 6. Set table start Y BELOW the heading
 const tableStartY = summaryY + 6;
+
+  const table = document.getElementById('carryingTable');
+  const rows5 = table.querySelectorAll('tbody tr');
 
   const tableData = Array.from(rows5).map((row, rowIndex) => {
   const cells = row.querySelectorAll('td');
@@ -1260,7 +1271,7 @@ const tableStartY = summaryY + 6;
     },
     didParseCell: function (data) {
   if (data.section === 'body' && data.column.index === 3) {
-    const image = imageDataArray5.find(img => img.index === data.row.index);
+    const image = imageDataArray5.find(img => img.index === `a${data.row.index}`);
     if (image) {
       const scale = 1.4;
       const imgHeightMM = image.height * scale;
@@ -1276,7 +1287,7 @@ const tableStartY = summaryY + 6;
 
 didDrawCell: function (data) {
   if (data.section === 'body' && data.column.index === 3) {
-    const image = imageDataArray5.find(img => img.index === data.row.index);
+    const image = imageDataArray5.find(img => img.index === `a${data.row.index}`);
     if (image) {
       const maxWidthMM = data.cell.width * 0.9;
       const maxHeightMM = data.cell.height * 0.9;
