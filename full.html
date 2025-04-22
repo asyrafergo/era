@@ -1178,7 +1178,7 @@ const imageDataArray5 = [];
 function readImages() {
   const files = document.querySelectorAll('input[type="file"]');
   const promises = [];
-  imageDataArray5 = [];
+  imageDataArray5.length = 0;
 
   files.forEach((fileInput, index) => {
     const file = fileInput.files[0];
@@ -1234,7 +1234,7 @@ doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
 const summaryY = figY + scaledHeight + 8;
 doc.setFontSize(13);
 doc.text("Summary of Carrying Activity", 105, summaryY, { align: "center" });
-
+await readImages();
 // 6. Set table start Y BELOW the heading
 const tableStartY = summaryY + 6;
 
