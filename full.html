@@ -621,7 +621,7 @@
 }
 
     // PAGE 5 New not click 
-    let imageDataArray = [];
+    let imageDataArray5 = [];
   
   function addOtherRow5() {
   const table = document.getElementById('carryingTable').getElementsByTagName('tbody')[0];
@@ -659,7 +659,6 @@ function deleteRow(button) {
 
 // Read image files
 function readImages() {
-  imageDataArray = [];
   const files = document.querySelectorAll('input[type="file"]');
   const promises = [];
 
@@ -678,7 +677,7 @@ function readImages() {
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
             const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-            imageDataArray.push({
+            imageDataArray5.push({
               index: `sp${index}`,
               data: dataUrl,
               width: img.width / 10,
