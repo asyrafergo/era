@@ -498,7 +498,7 @@
         { part: "Leg/ Knees", factor: "Work in a kneeling position", duration: "More than 2 hours per day" }
     ];
     const formBody = document.getElementById('formBody');
-    awkwardQuestions.forEach((q, index) => {
+    questions.forEach((q, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${q.part}</td>
