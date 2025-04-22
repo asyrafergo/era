@@ -354,7 +354,7 @@
 
     <!-- PAGE 8 nice -->
     <div class="form-page" id="page7">
-        <h2 style="text-align:center;">Summary & Final Comments</h2>
+        <h2 style="text-align:center;">Summary  & Final Comments</h2>
         <form id="form8">
           <table>
             <thead>
@@ -876,7 +876,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
 
         // --- PAGE 1 --- click
         doc.setFontSize(14);
-        doc.text("INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
+        doc.text("PAGE 1 : INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
         const dateInput = document.getElementById("date").value;
         const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB').replace(/\//g, ' ') : '';
         const tableData1 = [
@@ -948,7 +948,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         // --- PAGE 2 --- click
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('ERGONOMICS RISK FACTORS: AWKWARD POSTURE', 105, 15, { align: "center" });
+        doc.text('PAGE 2 : ERGONOMICS RISK FACTORS: AWKWARD POSTURE', 105, 15, { align: "center" });
         const rows2 = [];
         for (let i = 0; i < awkwardQuestions.length; i++) {
             const yesInput = document.querySelector(`input[name='q${i}'][value='Yes']`);
@@ -994,7 +994,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         // --- PAGE 3: Repetitive ---
         doc.addPage();
         doc.setFontSize(14);
-  doc.text("ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
+  doc.text("PAGE 3: ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
 
   const rows3 = [];
   const imageDataArray3 = [];
@@ -1306,7 +1306,7 @@ if (maleRadio && maleRadio.checked) {
         // --- PAGE 4 ---  click
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
+        doc.text('PAGE 4 : Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
         doc.autoTable({
             startY: 25,
             head: [["If employee repeats operations", "Weight* should be reduced by"]],
@@ -1357,7 +1357,7 @@ if (maleRadio && maleRadio.checked) {
         doc.addPage();
    // 1. Add main titles
 doc.setFontSize(14);
-doc.text("Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
+doc.text("PAGE 5 : Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
 doc.text("(Handling in Seated Position)", 105, 22, { align: "center" });
 
 // 2. Load image and wait until it's ready
@@ -1463,7 +1463,7 @@ didDrawCell: function (data) {
         // --- PAGE 6 click ---
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
+        doc.text('Page 6 : Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
         const mhRows = [];
         for (let i = 0; i < manualData.length; i++) {
             const yesRadio = document.querySelector(`input[name="mh${i}"][value="Yes"]`);
@@ -1507,6 +1507,7 @@ didDrawCell: function (data) {
 
         // --- PAGE 7: Vibration click ---
         doc.addPage();
+        doc.text('Page 7', 105, 15, { align: "center" });
         const pageCenter = doc.internal.pageSize.getWidth() / 2;
 
   const imageDataArray7 = [];
@@ -1744,6 +1745,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
 
         // --- PAGE 8: Final Comments click ---
         doc.addPage();
+        doc.text('Page 8', 105, 15, { align: "center" });
          const rows1 = [];
       const imageDataArray = [];
       let totalYes = 0;
