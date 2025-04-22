@@ -508,12 +508,27 @@
             <td><input type="radio" name="q${index}" value="No"></td>
             <td>
                 <input type="text" placeholder="Remarks" id="remark${index}">
-                <input type="file" accept="image/*" id="file${index}" onchange="previewImage(event, 'preview${index}')">
+                <input type="file" accept="image/*" id="file${index}" onchange="previewImagePage2(event, 'preview${index}')">
                 <div id="preview${index}b" style="margin-top:5px;"></div>
             </td>
         `;
         formBody.appendChild(row);
     });
+
+    function previewImagePage2(event, id) {
+  const file = event.target.files[0];
+  const previewDiv = document.getElementById(`${id}b`);
+  if (file && file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      previewDiv.innerHTML = `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px;">`;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    previewDiv.innerHTML = `<p style="color:red;">Invalid image</p>`;
+  }
+}
+
 
     // PAGE 3 
     const staticData3 = [
