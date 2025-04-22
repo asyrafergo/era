@@ -935,6 +935,23 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         let totalYes2 = 0;
         const imageDataArray2 = [];
 
+        for (let i = 0; i < questions.length; i++) {
+    const yesInput = document.querySelector(`input[name='q${i}'][value='Yes']`);
+    const noInput = document.querySelector(`input[name='q${i}'][value='No']`);
+
+    const yesChecked = yesInput?.checked;
+    const noChecked = noInput?.checked;
+
+    let finalYes = yesChecked || false;
+    let finalNo = noChecked || (!yesChecked && !noChecked); // assume No if both are unchecked
+
+    if (finalYes) totalYes2++;
+
+    const remark = finalYes ? (document.getElementById(`remark${i}`).value || '') : '';
+    const fileInput = document.getElementById(`file${i}`);
+    let maxImgWidth = 40;
+    let maxImgHeight = 40;
+
         // Only process image if "Yes" is selected
     if (finalYes && fileInput.files[0]) {
         try {
@@ -1016,6 +1033,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
             remark
         ]);
     }
+  }
 
     doc.autoTable({
         head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
