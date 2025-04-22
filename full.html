@@ -645,19 +645,6 @@ function deleteRow(button) {
   row.remove();
 }
 
-  // Function to preview the image when uploaded
-  function previewImage5(input) {
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var img = input.nextElementSibling; // assumes <img> follows <input>
-      img.src = e.target.result;
-      img.style.width = '120px'; // adjust as needed
-      img.style.height = 'auto'; // keeps aspect ratio
-    }
-    reader.readAsDataURL(input.files[0]);
-  }
-}
     // PAGE 6: Manual Handling Table  nice 
     const manualData = [
         { activity: "Lifting and lowering; or", rweight: "Figure 3.1 & Table 3.3"},
@@ -1167,6 +1154,25 @@ doc.text("PAGE 5 : Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align
 doc.text("(Handling in Seated Position)", 105, 22, { align: "center" });
 
 const imageDataArray5 = [];
+
+ // Function to preview the image when uploaded
+ function previewImage5(input) {
+    const file = input.files[0]; // Get the uploaded file
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.src = e.target.result; // Set the image source to the file data
+
+      // Find the preview image element
+      const preview = input.nextElementSibling; // Get the <img> element next to the input field
+
+      img.onload = function() {
+        preview.src = img.src; // Set the image src to the loaded file
+        preview.style.display = 'block'; // Show the preview image
+      }
+    };
+    reader.readAsDataURL(file); // Read the file as a Data URL
+  }
 
 // Read image files
 function readImages() {
