@@ -932,46 +932,159 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         doc.setFontSize(14);
         doc.text('PAGE 2 : ERGONOMICS RISK FACTORS: AWKWARD POSTURE', 105, 15, { align: "center" });
         const rows2 = [];
-        for (let i = 0; i < awkwardQuestions.length; i++) {
-            const yesInput = document.querySelector(`input[name='q${i}'][value='Yes']`);
-            const noInput = document.querySelector(`input[name='q${i}'][value='No']`);
-            const yesChecked = yesInput?.checked;
-            const noChecked = noInput?.checked;
-            const remark = document.getElementById(`remark${i}`).value || '';
-            const fileInput = document.getElementById(`file${i}`);
-            let imgData = null;
-            if (yesChecked && fileInput?.files[0]) imgData = await toBase64(fileInput.files[0]);
+        let totalYes2 = 0;
+        const imageDataArray2 = [];
+
+        // Only process image if "Yes" is selected
+    if (finalYes && fileInput.files[0]) {
+        try {
+            const file = fileInput.files[0];
+
+            if (file.size > 1024 * 1024) {
+                console.warn(`Image ${file.name} too large. Skipped.`);
+                rows2.push([
+                    questions[i].part,
+                    questions[i].factor,
+                    questions[i].duration,
+                    finalYes ? '/' : '',
+                    finalNo ? '/' : '',
+                    'Image too large to include.'
+                ]);
+            }
+
+            const readerResult = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (err) => reject(err);
+                reader.readAsDataURL(file);
+            });
+
+            const img = new Image();
+            img.src = readerResult;
+
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+
+            let imgWidth = img.width;
+            let imgHeight = img.height;
+            const aspectRatio = imgWidth / imgHeight;
+
+            if (imgWidth > maxImgWidth) {
+                imgWidth = maxImgWidth;
+                imgHeight = imgWidth / aspectRatio;
+            }
+            if (imgHeight > maxImgHeight) {
+                imgHeight = maxImgHeight;
+                imgWidth = imgHeight * aspectRatio;
+            }
+
+            imageDataArray2.push({
+                index: i,
+                data: readerResult,
+                width: imgWidth,
+                height: imgHeight
+            });
+
             rows2.push([
-                awkwardQuestions[i].part,
-                awkwardQuestions[i].factor,
-                awkwardQuestions[i].duration,
-                yesChecked ? '/' : '',
-                noChecked ? '/' : '',
-                imgData ? '' : remark
+                questions[i].part,
+                questions[i].factor,
+                questions[i].duration,
+                finalYes ? '/' : '',
+                finalNo ? '/' : '',
+                '' // Placeholder for image
+            ]);
+        } catch (error) {
+            console.error(`Error processing image for row ${i}:`, error);
+            rows2.push([
+                questions[i].part,
+                questions[i].factor,
+                questions[i].duration,
+                finalYes ? '/' : '',
+                finalNo ? '/' : '',
+                'Error loading image.'
             ]);
         }
-        doc.autoTable({
-            startY: 25,
-            head: [['Body Part', 'Risk Factor', 'Exposure Duration', 'Yes', 'No', 'Remarks/Photo']],
-            body: rows2,
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 50 }, 2: { cellWidth: 30 }, 3: { cellWidth: 10 }, 4: { cellWidth: 10 }, 5: { cellWidth: 60 } },
-            didDrawCell: function (data) {
-                if (data.column.index === 5) {
-                    const rowIndex = data.row.index;
-                    const fileInput = document.getElementById(`file${rowIndex}`);
-                    if (fileInput && fileInput.files[0]) {
-                        toBase64(fileInput.files[0]).then(img => {
-                            if (img) {
-                                const imgWidth = 30, imgHeight = 20;
-                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, imgWidth, imgHeight);
-                            }
-                        });
-                    }
+    } else {
+        rows2.push([
+            questions[i].part,
+            questions[i].factor,
+            questions[i].duration,
+            finalYes ? '/' : '',
+            finalNo ? '/' : '',
+            remark
+        ]);
+    }
+
+    doc.autoTable({
+        head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
+        body: rows2,
+        startY: 20,
+        rowPageBreak: 'avoid', // 👈 This prevents row splitting
+        theme: 'grid',
+        styles: {
+            fontSize: 10,
+            cellPadding: 3,
+            valign: 'middle',
+            align: 'center',
+            overflow: 'linebreak'
+        },
+        headStyles: {
+            fillColor: [120, 120, 120],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        columnStyles: {
+            0: { cellWidth: 28 },
+            1: { cellWidth: 38 },
+            2: { cellWidth: 28 },
+            3: { cellWidth: 14 },
+            4: { cellWidth: 14 },
+            5: { cellWidth: 'auto' }
+        },
+        didParseCell: function (data) {
+            if (data.section === 'body' && data.column.index === 5) {
+                const image = imageDataArray2.find(img => img.index === data.row.index);
+                if (image) {
+                    // Inject blank lines to increase height
+                    const lines = Math.ceil((image.height * 1.2) / 3); // tweak for size
+                    data.cell.text = Array(lines).fill('\n'); // add blank lines
                 }
             }
-        });
+        },
+        didDrawCell: function (data) {
+            if (data.section === 'body' && data.column.index === 5) {
+                const rowIndex = data.row.index;
+                const image = imageDataArray2.find(img => img.index === rowIndex);
+
+                if (image) {
+                    const imgWidthMM = image.width * 1.2;
+                    const imgHeightMM = image.height * 1.2;
+
+                    const cellX = data.cell.x;
+                    const cellY = data.cell.y;
+                    const cellWidth = data.cell.width;
+                    const cellHeight = data.cell.height;
+
+                    const imgX = cellX + (cellWidth - imgWidthMM) / 2;
+                    const imgY = cellY + (cellHeight - imgHeightMM) / 2;
+
+                    const format = image.data.includes('image/png') ? 'PNG' : 'JPEG';
+                    doc.addImage(image.data, format, imgX, imgY, imgWidthMM, imgHeightMM);
+                }
+            }
+        }
+    });
+
+    doc.autoTable({
+        body: [[`Sub Total (Number of tick(s)): ${totalYes2}`]],
+        startY: doc.previousAutoTable.finalY + 10,
+        styles: {
+            fontSize: 12,
+            fontStyle: 'bold'
+        }
+    });
 
         // --- PAGE 3: Repetitive ---
         await generatePage3(doc);
