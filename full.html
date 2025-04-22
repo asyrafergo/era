@@ -1166,6 +1166,8 @@ doc.setFontSize(14);
 doc.text("PAGE 5 : Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
 doc.text("(Handling in Seated Position)", 105, 22, { align: "center" });
 
+const imageDataArray5 = [];
+
 // 2. Load image and wait until it's ready
 const figureImage = new Image();
 figureImage.src = 'Figure_2.png';
@@ -1185,16 +1187,15 @@ doc.addImage(figureImage, 'PNG', centerX, figY, scaledWidth, scaledHeight);
 // 5. Add "Summary of Carrying Activity" heading BELOW image
 const summaryY = figY + scaledHeight + 8;
 doc.setFontSize(13);
-doc.text("Summary of Carrying Activity", 105, summaryY, { align: "center" });
+doc.text("Summary of Carrying Activity", pageCenter, summaryY, { align: "center" });
 
 // 6. Set table start Y BELOW the heading
 const tableStartY = summaryY + 6;
-const imageDataArray5 = [];
 
   const table = document.getElementById('carryingTable');
-  const rows6 = table.querySelectorAll('tbody tr');
+  const rows5 = table.querySelectorAll('tbody tr');
 
-  const tableData = Array.from(rows6).map((row, rowIndex) => {
+  const tableData = Array.from(rows5).map((row, rowIndex) => {
   const cells = row.querySelectorAll('td');
 
   const factor = cells[0] ? cells[0].innerText.trim() : "";
@@ -1224,7 +1225,7 @@ const imageDataArray5 = [];
     },
     didParseCell: function (data) {
   if (data.section === 'body' && data.column.index === 3) {
-    const image = imageDataArray5.find(img => img.index === `sp${data.row.index}`);
+    const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
     if (image) {
       const scale = 1.4;
       const imgHeightMM = image.height * scale;
@@ -1240,7 +1241,7 @@ const imageDataArray5 = [];
 
 didDrawCell: function (data) {
   if (data.section === 'body' && data.column.index === 3) {
-    const image = imageDataArray5.find(img => img.index === `sp${data.row.index}`);
+    const image = imageDataArray.find(img => img.index === `sp${data.row.index}`);
     if (image) {
       const maxWidthMM = data.cell.width * 0.9;
       const maxHeightMM = data.cell.height * 0.9;
@@ -1265,45 +1266,6 @@ didDrawCell: function (data) {
   }
 }
   });
-
-  // Read image files
-function readImages() {
-  const files = document.querySelectorAll('input[type="file"]');
-  const promises = [];
-
-  files.forEach((fileInput, index) => {
-    const file = fileInput.files[0];
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (file) {
-      const reader = new FileReader();
-      const promise = new Promise((resolve) => {
-        reader.onload = function (e) {
-          const img = new Image();
-          img.onload = function () {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-            imageDataArray5.push({
-              index: `sp${index}`,
-              data: dataUrl,
-              width: img.width / 10,
-              height: img.height / 10
-            });
-            resolve();
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-      promises.push(promise);
-    }
-  });
-
-  return Promise.all(promises);
-}
 
         // --- PAGE 6 click ---
         doc.addPage();
