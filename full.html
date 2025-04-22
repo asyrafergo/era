@@ -1178,6 +1178,7 @@ const imageDataArray5 = [];
 const table = document.getElementById('carryingTable');
 const rows5 = table.querySelectorAll('tbody tr');
 imageDataArray5.length = 0;
+const promises = [];
 
 rows5.forEach((row, rowIndex) => {
   const fileInput = row.querySelector('input[type="file"]');
