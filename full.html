@@ -1168,6 +1168,45 @@ doc.text("(Handling in Seated Position)", 105, 22, { align: "center" });
 
 const imageDataArray5 = [];
 
+// Read image files
+function readImages() {
+  const files = document.querySelectorAll('input[type="file"]');
+  const promises = [];
+
+  files.forEach((fileInput, index) => {
+    const file = fileInput.files[0];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (file) {
+      const reader = new FileReader();
+      const promise = new Promise((resolve) => {
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            imageDataArray5.push({
+              index: `sp${index}`,
+              data: dataUrl,
+              width: img.width / 10,
+              height: img.height / 10
+            });
+            resolve();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      promises.push(promise);
+    }
+  });
+
+  return Promise.all(promises);
+}
+
 // 2. Load image and wait until it's ready
 const figureImage = new Image();
 figureImage.src = 'Figure_2.png';
