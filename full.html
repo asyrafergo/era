@@ -508,33 +508,27 @@
             <td><input type="radio" name="q${index}" value="No"></td>
             <td>
                 <input type="text" placeholder="Remarks" id="remark${index}">
-                <input type="file" accept="image/*" onchange="previewImagePage2(event, 'previewX', ${index})">
+                <input type="file" accept="image/*" id="file${index}" onchange="previewImagePage2(event, 'preview${index}')">
                 <div id="preview${index}b" style="margin-top:5px;"></div>
             </td>
         `;
         formBody.appendChild(row);
     });
 
-    const imageDataPage2 = [];
-
-function previewImagePage2(event, id, index) {
+    function previewImagePage2(event, id) {
   const file = event.target.files[0];
   const previewDiv = document.getElementById(`${id}b`);
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      previewDiv.innerHTML = `<img src="${e.target.result}" style="max-width: 100px;">`;
-      imageDataPage2[index] = {
-        id,
-        base64: e.target.result,
-        name: file.name
-      };
+      previewDiv.innerHTML = `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px;">`;
     };
     reader.readAsDataURL(file);
   } else {
     previewDiv.innerHTML = `<p style="color:red;">Invalid image</p>`;
   }
 }
+
 
     // PAGE 3 
     const staticData3 = [
@@ -897,74 +891,110 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
 
         // --- PAGE 1 --- click
         doc.setFontSize(14);
-        doc.text("PAGE 1 : INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
-        const dateInput = document.getElementById("date").value;
-        const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB').replace(/\//g, ' ') : '';
-        const tableData1 = [
-            [
-                { content: "Assessor", styles: { fontStyle: 'bold', fillColor: [200, 200, 200] } },
-                { content: document.getElementById("assessor").value, colSpan: 2 },
-                { content: "Date", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
-                { content: formattedDate }
-            ],
-            [
-                { content: "Department", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
-                { content: document.getElementById("department").value, colSpan: 4 }
-            ],
-            [
-                { content: "Task Description", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
-                { content: document.getElementById("taskDescription").value, colSpan: 4 }
-            ]
-        ];
-        const groups = document.querySelectorAll('.photo-group');
-        const imagesData = [];
-        for (let i = 0; i < groups.length; i++) {
-            const desc = document.getElementById(`photoDescription${i}`)?.value || '';
-            const fileInput = document.getElementById(`photo${i}`);
-            const file = fileInput?.files[0];
-            let imgData = null;
-            if (file) imgData = await toBase64(file);
-            imagesData.push({ desc, imgData, label: i === 0 ? "Photos and Descriptions" : "" });
-        }
-        imagesData.forEach((item) => {
-            tableData1.push([
-                { content: item.label, styles: { fontStyle: 'bold', fillColor: [200, 200, 200] } },
-                { content: '', colSpan: 2, styles: { minCellHeight: 40 } },
-                { content: item.desc, colSpan: 2 }
-            ]);
-        });
-        doc.autoTable({
-            startY: 25,
-            body: tableData1,
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 50 }, 2: { cellWidth: 10 }, 3: { cellWidth: 40 }, 4: { cellWidth: 40 } },
-            didParseCell: function (data) {
-                const imageIndex = data.row.index - 3;
-                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
-                    const img = imagesData[imageIndex].imgData;
-                    const baseWidth = 60;
-                    const maxHeight = 70;
-                    let imgHeight = 40;
-                    const approxLineHeight = 4.5;
-                    const lines = Math.ceil((imgHeight + 4) / approxLineHeight);
-                    data.cell.text = Array(lines).fill('\n');
-                }
-            },
-            didDrawCell: function (data) {
-                const imageIndex = data.row.index - 3;
-                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
-                    const img = imagesData[imageIndex].imgData;
-                    const maxWidth = data.cell.width - 4;
-                    const maxHeight = data.cell.height - 4;
-                    let imgWidth = 60, imgHeight = 40;
-                    const x = data.cell.x + (data.cell.width - imgWidth) / 2;
-                    const y = data.cell.y + (data.cell.height - imgHeight) / 2;
-                    const format = img.includes('image/png') ? 'PNG' : 'JPEG';
-                    doc.addImage(img, format, x, y, imgWidth, imgHeight);
-                }
+doc.text("INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
+
+// Format date
+const dateInput = document.getElementById("date").value;
+const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB').replace(/\//g, ' ') : '';
+
+const tableData1 = [
+    [
+        { content: "Assessor", styles: { fontStyle: 'bold', fillColor: [200, 200, 200] } },
+        { content: document.getElementById("assessor").value, colSpan: 2 },
+        { content: "Date", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
+        { content: formattedDate }
+    ],
+    [
+        { content: "Department", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
+        { content: document.getElementById("department").value, colSpan: 4 }
+    ],
+    [
+        { content: "Task Description", styles: { fontStyle: 'bold', fillColor: [200, 200, 200]} },
+        { content: document.getElementById("taskDescription").value, colSpan: 4 }
+    ]
+];
+
+// Load all images first
+const groups = document.querySelectorAll('.photo-group');
+const imagesData = [];
+
+let imagesLoaded = 0;
+groups.forEach((group, index) => {
+    const desc = group.querySelector('textarea')?.value || "";
+    const fileInput = group.querySelector('input[type="file"]');
+    const file = fileInput?.files[0];
+    const label = index === 0 ? "Photos and Descriptions" : "";
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagesData[index] = {
+                label: label,
+                desc: desc,
+                imgData: e.target.result
+            };
+            imagesLoaded++;
+            if (imagesLoaded === groups.length) finalizePDF();
+        };
+        reader.readAsDataURL(file);
+    } else {
+        imagesData[index] = { label, desc, imgData: null };
+        imagesLoaded++;
+        if (imagesLoaded === groups.length) finalizePDF();
+    }
+});
+
+function finalizePDF() {
+    imagesData.forEach((item) => {
+        tableData1.push([
+            { content: item.label, styles: { fontStyle: 'bold', fillColor: [200, 200, 200] } },
+            { content: '', colSpan: 2, styles: { minCellHeight: 50 } },
+            { content: item.desc, colSpan: 2 }
+        ]);
+    });
+
+    doc.autoTable({
+        startY: 25,
+        body: tableData1,
+        theme: 'grid',
+        styles: { fontSize: 10 },
+        columnStyles: {
+            0: { cellWidth: 30 },
+            1: { cellWidth: 50 },
+            2: { cellWidth: 10 },
+            3: { cellWidth: 40 },
+            4: { cellWidth: 40 }
+        },
+        didParseCell: function (data) {
+            const index = data.row.index - 3;
+            if (data.column.index === 1 && imagesData[index]?.imgData) {
+                const imgProps = doc.getImageProperties(imagesData[index].imgData);
+                const baseWidth = 50;
+                let imgHeight = (imgProps.height * baseWidth) / imgProps.width;
+                const lines = Math.ceil((imgHeight + 4) / 4.5);
+                data.cell.text = Array(lines).fill('\n');
             }
-        });
+        },
+        didDrawCell: function (data) {
+            const index = data.row.index - 3;
+            if (data.column.index === 1 && imagesData[index]?.imgData) {
+                const imgProps = doc.getImageProperties(imagesData[index].imgData);
+                const maxW = data.cell.width * 0.9;
+                const maxH = data.cell.height * 0.9;
+                let width = 50;
+                let height = (imgProps.height * width) / imgProps.width;
+
+                const scale = Math.min(maxW / width, maxH / height);
+                width *= scale;
+                height *= scale;
+
+                const x = data.cell.x + (data.cell.width - width) / 2;
+                const y = data.cell.y + (data.cell.height - height) / 2;
+                const format = imagesData[index].imgData.includes("image/png") ? "PNG" : "JPEG";
+                doc.addImage(imagesData[index].imgData, format, x, y, width, height);
+            }
+        }
+    });}
 
         // --- PAGE 2 --- click
         doc.addPage();
@@ -1100,7 +1130,7 @@ const imageDataArray5 = [];
   const table = document.getElementById('carryingTable');
   const rows6 = table.querySelectorAll('tbody tr');
 
-  const tableData = Array.from(rows6).map((row, rowIndex) => {
+  const tableData5 = Array.from(rows6).map((row, rowIndex) => {
   const cells = row.querySelectorAll('td');
 
   const factor = cells[0] ? cells[0].innerText.trim() : "";
@@ -1118,7 +1148,7 @@ const imageDataArray5 = [];
 
   doc.autoTable({
     head: [["Factor", "Condition", "Outcome", "Remarks/Photo"]],
-    body: tableData,
+    body: tableData5,
     pageBreak: 'auto',
     startY: tableStartY,
     styles: { valign: 'middle', font: 'helvetica', fontSize: 10, halign: 'center'},
@@ -1990,11 +2020,6 @@ if (maleRadio && maleRadio.checked) {
             reader.readAsDataURL(file);
         });
     }
-
-    if (imageDataPage2[i]?.base64) {
-  doc.addImage(imageDataPage2[i].base64, 'JPEG', x, y, width, height);
-}
-
 </script>
 </body>
 </html>
