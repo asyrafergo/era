@@ -1176,7 +1176,7 @@ const imageDataArray5 = [];
 
 // Read image files
 function readImages() {
-  const files = document.querySelectorAll('input[type="file"]');
+  const files = document.querySelectorAll('#form5 input[type="file"]');
   const promises = [];
   imageDataArray5.length = 0;
 
@@ -1668,12 +1668,12 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
 
               // STATIC POSTURE TABLE
   for (let i = 0; i < staticData.length; i++) {
-    const yesRadio = document.querySelector(`input[name="sp${i}"][value="Yes"]`);
-    const noRadio = document.querySelector(`input[name="sp${i}"][value="No"]`);
+    const yesRadio = document.querySelector(`#form8 input[name="sp${i}"][value="Yes"]`);
+    const noRadio = document.querySelector(`#form8 input[name="sp${i}"][value="No"]`);
     const finalYes = yesRadio?.checked;
     const finalNo = noRadio?.checked;
-    const remark = document.getElementById(`spr${i}`).value;
-    const file = document.getElementById(`spf${i}`).files[0];
+    const remark = document.querySelector(`#form8 #spr${i}`)?.value || '';
+    const file = document.querySelector(`#form8 #spf${i}`)?.files[0];
 
     const isYes = finalYes ? '/' : '';
     const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
