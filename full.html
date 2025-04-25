@@ -884,38 +884,63 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
             ]);
         });
         doc.autoTable({
-            startY: 25,
-            rowPageBreak: 'avoid', // 👈 This prevents row splitting
-            body: tableData1,
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 50 }, 2: { cellWidth: 10 }, 3: { cellWidth: 40 }, 4: { cellWidth: 40 } },
-            didParseCell: function (data) {
-                const imageIndex = data.row.index - 3;
-                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
-                    const img = imagesData[imageIndex].imgData;
-                    const baseWidth = 60;
-                    const maxHeight = 70;
-                    let imgHeight = 40;
-                    const approxLineHeight = 4.5;
-                    const lines = Math.ceil((imgHeight + 4) / approxLineHeight);
-                    data.cell.text = Array(lines).fill('\n');
-                }
-            },
-            didDrawCell: function (data) {
-                const imageIndex = data.row.index - 3;
-                if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
-                    const img = imagesData[imageIndex].imgData;
-                    const maxWidth = data.cell.width - 4;
-                    const maxHeight = data.cell.height - 4;
-                    let imgWidth = 60, imgHeight = 40;
-                    const x = data.cell.x + (data.cell.width - imgWidth) / 2;
-                    const y = data.cell.y + (data.cell.height - imgHeight) / 2;
-                    const format = img.includes('image/png') ? 'PNG' : 'JPEG';
-                    doc.addImage(img, format, x, y, imgWidth, imgHeight);
-                }
-            }
-        });
+  startY: 25,
+  rowPageBreak: 'avoid',
+  body: tableData1,
+  theme: 'grid',
+  styles: { fontSize: 10 },
+  columnStyles: {
+    0: { cellWidth: 30 },
+    1: { cellWidth: 50 }, // image column
+    2: { cellWidth: 10 },
+    3: { cellWidth: 40 },
+    4: { cellWidth: 40 }
+  },
+  didParseCell: function (data) {
+    const imageIndex = data.row.index - 3;
+    if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
+      const img = imagesData[imageIndex].imgData;
+      const imgProps = doc.getImageProperties(img);
+
+      const baseWidth = 60;
+      const maxHeight = 70;
+      let imgHeight = (imgProps.height * baseWidth) / imgProps.width;
+
+      if (imgHeight > maxHeight) imgHeight = maxHeight;
+
+      const approxLineHeight = 4.5;
+      const lines = Math.ceil((imgHeight + 4) / approxLineHeight);
+      data.cell.text = Array(lines).fill('\n');
+    }
+  },
+  didDrawCell: function (data) {
+    const imageIndex = data.row.index - 3;
+    if (data.column.index === 1 && imagesData[imageIndex]?.imgData) {
+      const img = imagesData[imageIndex].imgData;
+      const imgProps = doc.getImageProperties(img);
+
+      const maxWidth = data.cell.width - 4;
+      const maxHeight = data.cell.height - 4;
+
+      const baseWidth = 60;
+      let scale = 1.4;
+      let imgWidth = baseWidth * scale;
+      let imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+      while ((imgWidth > maxWidth || imgHeight > maxHeight) && scale > 0.5) {
+        scale -= 0.1;
+        imgWidth = baseWidth * scale;
+        imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      }
+
+      const x = data.cell.x + (data.cell.width - imgWidth) / 2;
+      const y = data.cell.y + (data.cell.height - imgHeight) / 2;
+
+      const format = img.includes('image/png') ? 'PNG' : 'JPEG';
+      doc.addImage(img, format, x, y, imgWidth, imgHeight);
+    }
+  }
+});
 
         // --- PAGE 2 --- click
         doc.addPage();
