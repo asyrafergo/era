@@ -1446,7 +1446,7 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
     const finalYes = yesRadio?.checked;
     const finalNo = noRadio?.checked;
     const remark = document.getElementById(`remarkPhoto${i}`).value;
-    const file = document.getElementById(`#form7 remarkPhoto${i}File`).files[0];
+    const file = document.getElementById(`#form7 #remarkPhoto${i}`).files[0];
 
     const isYes = finalYes ? '/' : '';
     const isNo = finalNo || (!finalYes && !finalNo) ? '/' : '';
