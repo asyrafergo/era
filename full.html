@@ -885,6 +885,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         });
         doc.autoTable({
             startY: 25,
+            rowPageBreak: 'avoid', // 👈 This prevents row splitting
             body: tableData1,
             theme: 'grid',
             styles: { fontSize: 10 },
@@ -1087,6 +1088,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
     doc.autoTable({
         body: [[`Sub Total (Number of tick(s)): ${totalYes2}`]],
         startY: doc.previousAutoTable.finalY + 10,
+        rowPageBreak: 'avoid', // 👈 This prevents row splitting
         styles: {
             fontSize: 12,
             fontStyle: 'bold'
@@ -1102,6 +1104,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         doc.text('PAGE 4 : Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
         doc.autoTable({
             startY: 25,
+            rowPageBreak: 'avoid', // 👈 This prevents row splitting
             head: [["If employee repeats operations", "Weight* should be reduced by"]],
             body: [
                 ["Once or twice per minute", "30%"],
@@ -1114,6 +1117,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         doc.text('(Manual handling – Lifting and lowering with twisted body posture)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 15,
+            rowPageBreak: 'avoid', // 👈 This prevents row splitting
             head: [["If employee twists body from forward facing to the side", "Weight* should be reduced by"]],
             body: [
                 ["45 degrees", "10%"],
@@ -1125,6 +1129,7 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         doc.text('Ergonomics Risk Factors: Forceful Exertion (Pushing and/or Pulling)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 15,
+            rowPageBreak: 'avoid', // 👈 This prevents row splitting
             head: [
                 ["Activity", { content: "Recommended weight", colSpan: 2 }]
             ],
@@ -1262,6 +1267,7 @@ const tableStartY = summaryY + 6;
     body: tableData,
     pageBreak: 'auto',
     startY: tableStartY,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: { valign: 'middle', font: 'helvetica', fontSize: 10, halign: 'center'},
     columnStyles: {
       0: { cellWidth: 38 },   // Factor
@@ -1368,6 +1374,7 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
     head: [['Activity', 'Recommended Weight', 'Exceed Limit?', 'Remarks or Photos']],
     body: mhRows,
     startY: 35,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -1414,6 +1421,7 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${mhYesCount}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
@@ -1485,6 +1493,7 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
     head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
     body: motionRows,
     startY: startY,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -1533,6 +1542,7 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${totalYesRepetitive}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
@@ -1603,6 +1613,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
     head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
     body: vibrationRows,
     startY: vibrationHeaderY + 6,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -1651,6 +1662,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${totalYesVibration}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
@@ -1727,6 +1739,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
     head: [['Body Part', 'Yes', 'No', 'Remarks or Photos']],
     body: rows1,
     startY: 25,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -1773,6 +1786,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${totalYes}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
@@ -1844,6 +1858,7 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
       // Build table
       doc.autoTable({
         startY: nextY + 10,
+        rowPageBreak: 'avoid', // 👈 This prevents row splitting
         head: [[
           'Risk Factor', 'Total score', 'Minimum Requirements for Advance ERA',
           'Result of Initial ERA', 'Any pain or discomfort (Yes/No)', 'Need advanced ERA (Yes/No)'
@@ -1959,6 +1974,7 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
     head: [['Body Part', 'Physical Risk Factor', 'Max. Exposure Duration', 'Yes', 'No', 'Remarks or Photos']],
     body: rows3,
     startY: 20,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -2007,6 +2023,7 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${totalYes3}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
@@ -2141,6 +2158,7 @@ if (maleRadio && maleRadio.checked) {
     head: [['Working Height', 'Recommended Weight', 'Current Weight', 'Exceed Limit?', 'Remarks or Photos']],
     body: mhRows3,
     startY: tableStartY3,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     theme: 'grid',
     styles: {
       fontSize: 10,
@@ -2188,6 +2206,7 @@ if (maleRadio && maleRadio.checked) {
   doc.autoTable({
     body: [[`Sub Total (Number of tick(s)): ${mhYesCount3}`]],
     startY: doc.previousAutoTable.finalY + 10,
+    rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
       fontStyle: 'bold'
