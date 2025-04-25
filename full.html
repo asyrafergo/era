@@ -1327,7 +1327,7 @@ didDrawCell: function (data) {
     const finalYes = yesRadio?.checked;
     const finalNo = noRadio?.checked;
     const remark = document.getElementById(`mhr${i}`).value;
-    const file = document.getElementById(`mhf${i}`).files[0];
+    const file = document.querySelector(`#form6 #mhf${i}`)?.files?.[0]; // for Page 6
 
     const isYes = finalYes ? '/' : '';
     const isNo = finalNo || (!finalYes && !finalNo) ? 'X' : '';
