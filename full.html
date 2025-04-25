@@ -2163,7 +2163,7 @@ if (maleRadio && maleRadio.checked) {
     },
     didParseCell: function (data) {
       if (data.section === 'body' && data.column.index === 4) {
-        const image = mhImageDataArray3.find(img => img.index === `page3_mhf${i}${data.row.index}`);
+        const image = mhImageDataArray3.find(img => img.index === `page3_mhf${data.row.index}`);
         if (image) {
           const lines = Math.ceil((image.height * 1.2) / 3);
           data.cell.text = Array(lines).fill('\n');
@@ -2172,7 +2172,7 @@ if (maleRadio && maleRadio.checked) {
     },
     didDrawCell: function (data) {
       if (data.section === 'body' && data.column.index === 4) {
-        const image = mhImageDataArray3.find(img => img.index === `page3_mhf${i}${data.row.index}`);
+        const image = mhImageDataArray3.find(img => img.index === `page3_mhf${data.row.index}`);
         if (image) {
           const imgWidthMM = image.width * 1.4;
           const imgHeightMM = image.height * 1.4;
