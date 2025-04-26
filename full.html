@@ -568,7 +568,7 @@
         <td><input type="radio" name="sp${i}" value="No"></td>
         <td>
           <input type="text" placeholder="Remarks" id="spr${i}">
-          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, 'preview_spf${i}')">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage3(event, 'preview_spf${i}')">
 <div id="preview_spf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
@@ -593,14 +593,14 @@
         </td>
         <td>
           <input type="text" placeholder="Remarks" id="mhr${i}">
-          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'mhf${i}')"><br>
+          <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage3(event, 'mhf${i}')"><br>
           <div id="preview_mhf${i}" style="margin-top:5px;"></div>
         </td>
       </tr>
     `;
   });
 
-  function previewImage(event, id) {
+  function previewImage3(event, id) {
     const file = event.target.files[0];
     const previewId = `preview_${id}`;
     const previewDiv = document.getElementById(previewId);
