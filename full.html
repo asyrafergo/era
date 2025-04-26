@@ -644,22 +644,22 @@ const imageDataArray5 = [];
 
  // Function to preview the image when uploaded
  function previewImage5(input) {
-    const file = input.files[0]; // Get the uploaded file
+    const file = input.files[0];
+    if (!file) return; // No file selected
+
     const reader = new FileReader();
     reader.onload = function(e) {
-      const img = new Image();
-      img.src = e.target.result; // Set the image source to the file data
-
-      // Find the preview image element
-      const preview = input.nextElementSibling; // Get the <img> element next to the input field
-
-      img.onload = function() {
-        preview.src = img.src; // Set the image src to the loaded file
-        preview.style.display = 'block'; // Show the preview image
-      }
+        const preview = input.nextElementSibling; // the <img> after the input
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        preview.style.maxWidth = '120px';  // 🎯 set the max width
+        preview.style.maxHeight = '100px'; // 🎯 set the max height
+        preview.style.marginTop = '5px';
+        preview.style.border = '1px solid #ccc'; // optional: a small border to look nicer
+        preview.style.objectFit = 'cover'; // 🖼️ nicely fit inside the box
     };
-    reader.readAsDataURL(file); // Read the file as a Data URL
-  }
+    reader.readAsDataURL(file);
+}
 
 // Read image files
 function readImages() {
