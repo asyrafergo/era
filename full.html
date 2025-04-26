@@ -640,6 +640,67 @@
   table.appendChild(newRow);
 }
 
+const imageDataArray5 = [];
+
+ // Function to preview the image when uploaded
+ function previewImage5(input) {
+    const file = input.files[0]; // Get the uploaded file
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.src = e.target.result; // Set the image source to the file data
+
+      // Find the preview image element
+      const preview = input.nextElementSibling; // Get the <img> element next to the input field
+
+      img.onload = function() {
+        preview.src = img.src; // Set the image src to the loaded file
+        preview.style.display = 'block'; // Show the preview image
+      }
+    };
+    reader.readAsDataURL(file); // Read the file as a Data URL
+  }
+
+// Read image files
+function readImages() {
+  const files = document.querySelectorAll('#form5 input[type="file"]');
+  const promises = [];
+  imageDataArray5.length = 0;
+
+  files.forEach((fileInput, index) => {
+    const file = fileInput.files[0];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (file) {
+      const reader = new FileReader();
+      const promise = new Promise((resolve) => {
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            imageDataArray5.push({
+              index: `page5_${index}`,
+              data: dataUrl,
+              width: img.width / 10,
+              height: img.height / 10
+            });
+            resolve();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      promises.push(promise);
+    }
+  });
+
+  return Promise.all(promises);
+}
+
 function deleteRow(button) {
   const row = button.closest('tr');
   row.remove();
@@ -799,6 +860,22 @@ function previewImage(fileInput, previewId) {
     }
   ];
 
+  function previewImagePage8(input, index) {
+    const file = input.files[0];
+    const preview = document.getElementById(`imagePreview${index}`);
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.src = "";
+        preview.style.display = "none";
+    }
+}
+
   const staticTable = document.getElementById("staticPostureTable");
   staticData.forEach((row, i) => {
     staticTable.innerHTML += `
@@ -808,7 +885,7 @@ function previewImage(fileInput, previewId) {
         <td><input type="radio" name="sp${i}" value="No"></td>
         <td>
           <input type="text" placeholder="Remarks" id="spr${i}">
-          <input type="file" accept="image/*" id="spf${i}" onchange="previewImage(event, ${i})">
+          <input type="file" accept="image/*" id="spf${i}" onchange="previewImagePage8(this, ${i})">
           <br>
           <img id="imagePreview${i}" style="max-width: 100px; max-height: 100px; display: none;" />
         </td>
@@ -1182,67 +1259,6 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
 doc.setFontSize(14);
 doc.text("PAGE 5 : Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
 doc.text("(Handling in Seated Position)", 105, 22, { align: "center" });
-
-const imageDataArray5 = [];
-
- // Function to preview the image when uploaded
- function previewImage5(input) {
-    const file = input.files[0]; // Get the uploaded file
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.src = e.target.result; // Set the image source to the file data
-
-      // Find the preview image element
-      const preview = input.nextElementSibling; // Get the <img> element next to the input field
-
-      img.onload = function() {
-        preview.src = img.src; // Set the image src to the loaded file
-        preview.style.display = 'block'; // Show the preview image
-      }
-    };
-    reader.readAsDataURL(file); // Read the file as a Data URL
-  }
-
-// Read image files
-function readImages() {
-  const files = document.querySelectorAll('#form5 input[type="file"]');
-  const promises = [];
-  imageDataArray5.length = 0;
-
-  files.forEach((fileInput, index) => {
-    const file = fileInput.files[0];
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (file) {
-      const reader = new FileReader();
-      const promise = new Promise((resolve) => {
-        reader.onload = function (e) {
-          const img = new Image();
-          img.onload = function () {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-            imageDataArray5.push({
-              index: `page5_${index}`,
-              data: dataUrl,
-              width: img.width / 10,
-              height: img.height / 10
-            });
-            resolve();
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-      promises.push(promise);
-    }
-  });
-
-  return Promise.all(promises);
-}
 
 // 2. Load image and wait until it's ready
 const figureImage = new Image();
