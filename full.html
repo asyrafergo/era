@@ -1500,7 +1500,6 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
 
         // --- PAGE 7: Vibration click ---
         doc.addPage();
-        doc.text('Page 7', 105, 15, { align: "center" });
         const pageCenter = doc.internal.pageSize.getWidth() / 2;
 
   const imageDataArray7 = [];
@@ -1664,15 +1663,21 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
   }
 
 const pageHeight = doc.internal.pageSize.height;
-const remainingSpace = pageHeight - doc.previousAutoTable.finalY;
+const afterPreviousTableY = doc.previousAutoTable.finalY;
+const safeMargin = 20;
+const headerHeight = 10;
+const tableEstimateHeight = VibrationData.length * 10;
 
-// If not enough space, add a new page
-if (remainingSpace < 40) {
+const remainingSpace = pageHeight - afterPreviousTableY - safeMargin;
+
+let vibrationHeaderY;
+if (remainingSpace < (headerHeight + tableEstimateHeight)) {
   doc.addPage();
+  vibrationHeaderY = 20;
+} else {
+  vibrationHeaderY = afterPreviousTableY + 10;
 }
 
-// Set Y-position: 20 if new page, otherwise just after last table
-const vibrationHeaderY = (remainingSpace < 40) ? 20 : doc.previousAutoTable.finalY + 10;
 doc.setFontSize(14);
 doc.setFont("helvetica", "bold");
 doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, vibrationHeaderY, { align: "center" });
