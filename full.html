@@ -820,9 +820,9 @@ MotionData.forEach((row, i) => {
       <td><input type="radio" name="motion${i}" value="No"></td>
       <td>
       <input type="text" placeholder="Remarks" id="remarkPhoto${i}">
-      <input type="file" accept="image/*" id="remarkPhoto${i}File" onchange="previewImage(this, 'preview${i}')">
+      <input type="file" accept="image/*" id="remarkPhoto${i}File" onchange="previewImage7(this, 'preview${i}')">
       <br>
-      <img id="preview${i}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px;" />
+      <img id="preview${i}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px; display:none;" />
     </td>
     </tr>
   `;
@@ -840,15 +840,15 @@ VibrationData.forEach((row, i) => {
       <td><input type="radio" name="vibration${i}" value="No"></td>
       <td>
       <input type="text" placeholder="Remarks" id="remarkPhoto${index}">
-      <input type="file" accept="image/*" id="remarkPhoto${index}File" onchange="previewImage(this, 'preview${index}')">
+      <input type="file" accept="image/*" id="remarkPhoto${index}File" onchange="previewImage7(this, 'preview${index}')">
       <br>
-      <img id="preview${index}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px;" />
+      <img id="preview${index}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px; display:none;" />
     </td>
     </tr>
   `;
 });
 
-function previewImage(fileInput, previewId) {
+function previewImage7(fileInput, previewId) {
   const file = fileInput.files[0];
   const preview = document.getElementById(previewId);
 
@@ -856,10 +856,16 @@ function previewImage(fileInput, previewId) {
     const reader = new FileReader();
     reader.onload = function(e) {
       preview.src = e.target.result;
+      preview.style.display = 'block'; // 👈 add this line!
+      preview.style.maxWidth = '80px';
+      preview.style.maxHeight = '80px';
+      preview.style.border = '1px solid #ccc'; // optional: looks better
+      preview.style.objectFit = 'cover'; // optional: makes it centered
     };
     reader.readAsDataURL(file);
   } else {
     preview.src = "";
+    preview.style.display = 'none'; // Hide again if not valid
   }
 }
 
