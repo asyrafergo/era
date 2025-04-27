@@ -729,12 +729,34 @@ function deleteRow(button) {
                 </td>
                 <td>
                     <input type="text" placeholder="Remarks" id="mhr${i}"><br>
-                    <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage(event, 'preview-mhf${i}')"><br>
+                    <input type="file" accept="image/*" id="mhf${i}" onchange="previewImage6(event, 'preview-mhf${i}')"><br>
                     <img id="preview-mhf${i}" src="" style="max-width: 80px; max-height: 80px; margin-top: 5px;">
                 </td>
             </tr>
         `;
     });
+
+    function previewImage6(event, id) {
+    const file = event.target.files[0];
+    const preview = document.getElementById(id); // use the id like "preview-mhf0"
+
+    if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            preview.style.maxWidth = '80px';   // You already set this in HTML too
+            preview.style.maxHeight = '80px';
+            preview.style.marginTop = '5px';
+            preview.style.border = '1px solid #ccc'; // Optional: add a nice thin border
+            preview.style.objectFit = 'cover'; // Ensures image fits nicely inside the preview box
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+}
 
     // PAGE 7: Vibration click
     const MotionData = [
