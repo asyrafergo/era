@@ -2159,8 +2159,22 @@ if (scaledHeight3 > remainingSpace3) {
 // Add the image to the PDF centered and scaled
 doc.addImage(figureImage3, 'PNG', centerX3, figY3, scaledWidth3, scaledHeight3);
 
-// Adjust the Y position of the table below the image
-const tableStartY3 = figY3 + scaledHeight3 + 10;
+// 👉 Now check if there is enough space for Manual Handling Table
+const pageHeight33 = doc.internal.pageSize.getHeight();
+const afterFigureY3 = figY3 + scaledHeight3;
+const safeMargin3 = 20; // leave some bottom margin
+const tableEstimatedHeight3 = manualData3.length * 10; // 10mm per row estimate
+
+const remainingSpaceAfterFigure = pageHeight33 - afterFigureY3 - safeMargin3;
+
+// 🔥 If not enough space for manual table, add a new page
+if (remainingSpaceAfterFigure < tableEstimatedHeight3) {
+    doc.addPage();
+    var tableStartY3 = 20; // fresh top after new page
+} else {
+    var tableStartY3 = afterFigureY3 + 10; // just below figure
+}
+
 
 //-----------------------------------------------------------------------------
   const mhRows3 = [];
