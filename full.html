@@ -19,12 +19,28 @@
         input[type="file"] { margin-top: 5px; }
         .remove-btn { background-color: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; margin-top: 5px; }
         .remove-btn:hover { background-color: #c82333; }
-        .logo img {display: block; margin: 10px auto; width: 400px; /* Increase this value as needed */ height: auto;
-}
+        .logo img {display: block; margin: 10px auto; width: 400px; /* Increase this value as needed */ height: auto;}
     </style>
 </head>
 <body>
 <div id="formContainer">
+
+  <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+    <div>
+      <label for="pageJump" style="display: block; text-align: center; margin-bottom: 5px;">Searching Page:</label>
+      <select id="pageJump" onchange="jumpToPage()" style="padding: 5px 10px;">
+        <option value="0">Page 1 - Initial ERA</option>
+        <option value="1">Page 2 - Awkward Posture</option>
+        <option value="2">Page 3 - Static Posture</option>
+        <option value="3">Page 4 - Repetitive Handling</option>
+        <option value="4">Page 5 - Contact Stress</option>
+        <option value="5">Page 6 - Summary of Forceful Exertion</option>
+        <option value="6">Page 7 - Repetitive Motion & Vibration</option>
+        <option value="7">Page 8 - Final Summary</option>
+      </select>
+    </div>
+  </div>  
+  
     <!-- PAGE 1 nice -->
     <div class="form-page active" id="page0">
         <h2 style="text-align:center;">INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST</h2>
@@ -51,7 +67,10 @@
           <div id="photoContainer"></div>
           <button type="button" class="nav-btn" onclick="addPhotoSection()">Add Photo & Description</button>      
         </form>
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+        <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
         <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+      </div>
     </div>
 
     <!-- PAGE 2 nice -->
@@ -73,6 +92,7 @@
             </table>
         </form>
         <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+        <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
         <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
     </div>
 
@@ -119,6 +139,7 @@
             </table>          
           </form>
           <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+          <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
           <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
       </div>
 
@@ -180,6 +201,7 @@
           </tr>
       </table>
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+      <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
   </div>
 
@@ -292,6 +314,7 @@
 
       </form>
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+      <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
   </div>
 
@@ -312,6 +335,7 @@
           </table>
       </form>
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+      <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
   </div>
 
@@ -349,6 +373,7 @@
           </table>
         </form>
         <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
+        <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
         <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
     </div>
 
@@ -436,6 +461,12 @@
     // Navigation logic
     let currentPage = 0;
     const totalPages = 8;
+
+    function jumpToPage() {
+  const pageIndex = parseInt(document.getElementById('pageJump').value);
+  showPage(pageIndex);
+}
+
     function showPage(index) {
         document.querySelectorAll('.form-page').forEach((div, i) => {
             div.classList.toggle('active', i === index);
@@ -1068,91 +1099,80 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
     if (finalYes) totalYes2++;
 
     const remark = finalYes ? (document.getElementById(`remark${i}`).value || '') : '';
-    const fileInput = document.getElementById(`file${i}`);
-    let maxImgWidth = 40;
-    let maxImgHeight = 40;
+const fileInput = document.getElementById(`file${i}`);
+let maxImgWidth = 40;
+let maxImgHeight = 40;
 
-        // Only process image if "Yes" is selected
-    if (finalYes && fileInput.files[0]) {
-        try {
-            const file = fileInput.files[0];
+if (finalYes && fileInput && fileInput.files[0]) {
+    try {
+        const file = fileInput.files[0];
 
-            if (file.size > 1024 * 1024) {
-                console.warn(`Image ${file.name} too large. Skipped.`);
-                rows2.push([
-                    questions[i].part,
-                    questions[i].factor,
-                    questions[i].duration,
-                    finalYes ? '/' : '',
-                    finalNo ? '/' : '',
-                    'Image too large to include.'
-                ]);
-            }
+        const readerResult = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (err) => reject(err);
+            reader.readAsDataURL(file);
+        });
 
-            const readerResult = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = (err) => reject(err);
-                reader.readAsDataURL(file);
-            });
+        const img = new Image();
+        img.src = readerResult;
 
-            const img = new Image();
-            img.src = readerResult;
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+        });
 
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-            });
+        let imgWidth = img.width;
+        let imgHeight = img.height;
+        const aspectRatio = imgWidth / imgHeight;
 
-            let imgWidth = img.width;
-            let imgHeight = img.height;
-            const aspectRatio = imgWidth / imgHeight;
-
-            if (imgWidth > maxImgWidth) {
-                imgWidth = maxImgWidth;
-                imgHeight = imgWidth / aspectRatio;
-            }
-            if (imgHeight > maxImgHeight) {
-                imgHeight = maxImgHeight;
-                imgWidth = imgHeight * aspectRatio;
-            }
-
-            imageDataArray2.push({
-                index: i,
-                data: readerResult,
-                width: imgWidth,
-                height: imgHeight
-            });
-
-            rows2.push([
-                questions[i].part,
-                questions[i].factor,
-                questions[i].duration,
-                finalYes ? '/' : '',
-                finalNo ? '/' : '',
-                '' // Placeholder for image
-            ]);
-        } catch (error) {
-            console.error(`Error processing image for row ${i}:`, error);
-            rows2.push([
-                questions[i].part,
-                questions[i].factor,
-                questions[i].duration,
-                finalYes ? '/' : '',
-                finalNo ? '/' : '',
-                'Error loading image.'
-            ]);
+        // 👉 Resize the image properly to fit inside the table cell
+        if (imgWidth > maxImgWidth) {
+            imgWidth = maxImgWidth;
+            imgHeight = imgWidth / aspectRatio;
         }
-    } else {
+        if (imgHeight > maxImgHeight) {
+            imgHeight = maxImgHeight;
+            imgWidth = imgHeight * aspectRatio;
+        }
+
+        // Save the resized image info
+        imageDataArray2.push({
+            index: i,
+            data: readerResult,
+            width: imgWidth,
+            height: imgHeight
+        });
+
         rows2.push([
             questions[i].part,
             questions[i].factor,
             questions[i].duration,
             finalYes ? '/' : '',
             finalNo ? '/' : '',
-            remark
+            '' // Placeholder for image
+        ]);
+    } catch (error) {
+        console.error(`Error processing image for row ${i}:`, error);
+        rows2.push([
+            questions[i].part,
+            questions[i].factor,
+            questions[i].duration,
+            finalYes ? '/' : '',
+            finalNo ? '/' : '',
+            'Error loading image.'
         ]);
     }
+} else {
+    rows2.push([
+        questions[i].part,
+        questions[i].factor,
+        questions[i].duration,
+        finalYes ? '/' : '',
+        finalNo ? '/' : '',
+        remark
+    ]);
+}
   }
 
     doc.autoTable({
