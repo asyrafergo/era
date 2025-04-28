@@ -29,14 +29,14 @@
     <div>
       <label for="pageJump" style="display: block; text-align: center; margin-bottom: 5px;">Searching Page:</label>
       <select id="pageJump" onchange="jumpToPage()" style="padding: 5px 10px;">
-        <option value="0">Page 1 - Initial ERA</option>
+        <option value="0">Page 1 - Initial Checklist</option>
         <option value="1">Page 2 - Awkward Posture</option>
-        <option value="2">Page 3 - Static Posture</option>
+        <option value="2">Page 3 - Static and Sustained Work Posture</option>
         <option value="3">Page 4 - Repetitive Handling</option>
-        <option value="4">Page 5 - Contact Stress</option>
+        <option value="4">Page 5 - Forceful Exertion and Summary of Carrying Activity</option>
         <option value="5">Page 6 - Summary of Forceful Exertion</option>
         <option value="6">Page 7 - Repetitive Motion & Vibration</option>
-        <option value="7">Page 8 - Final Summary</option>
+        <option value="7">Page 8 - Environmental Factors and Initial ERA Form</option> 
       </select>
     </div>
   </div>  
@@ -391,7 +391,7 @@
 
     <!-- PAGE 8 nice -->
     <div class="form-page" id="page7">
-        <h2 style="text-align:center;">Summary  & Final Comments</h2>
+        <h2 style="text-align:center;">ERGONOMICS RISK FACTORS: ENVIRONMENTAL FACTORS</h2>
         <form id="form8">
           <table>
             <thead>
@@ -996,8 +996,9 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         })};
 
         // --- PAGE 1 --- click
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
-        doc.text("PAGE 1 : INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
+        doc.text("INITIAL ERGONOMICS RISK ASSESSMENT CHECKLIST", 105, 15, { align: "center" });
         const dateInput = document.getElementById("date").value;
         const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB').replace(/\//g, ' ') : '';
         const tableData1 = [
@@ -1099,7 +1100,8 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
         // --- PAGE 2 --- click
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('PAGE 2 : ERGONOMICS RISK FACTORS: AWKWARD POSTURE', 105, 15, { align: "center" });
+        doc.setFont("helvetica", "bold");
+        doc.text('ERGONOMICS RISK FACTORS: AWKWARD POSTURE', 105, 15, { align: "center" });
         const rows2 = [];
         let totalYes2 = 0;
         const imageDataArray2 = [];
@@ -1262,6 +1264,7 @@ if (finalYes && fileInput && fileInput.files[0]) {
         styles: {
             lineColor: [0, 0, 0],   // black border for body too
             lineWidth: 0.2,          // consistent thickness
+            halign: 'center',
             fontSize: 12,
             fontStyle: 'bold'
         }
@@ -1273,7 +1276,8 @@ if (finalYes && fileInput && fileInput.files[0]) {
         // --- PAGE 4 ---  click
         doc.addPage();
         doc.setFontSize(14);
-        doc.text('PAGE 4 : Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
+        doc.setFont("helvetica", "bold");
+        doc.text('Ergonomics Risk Factors: Forceful Exertion', 105, 15, { align: "center" });
         doc.autoTable({
             startY: 25,
             rowPageBreak: 'avoid', // 👈 This prevents row splitting
@@ -1335,8 +1339,9 @@ if (finalYes && fileInput && fileInput.files[0]) {
         // --- PAGE 5 not click meh  ---
         doc.addPage();
    // 1. Add main titles
+   doc.setFont("helvetica", "bold");
 doc.setFontSize(14);
-doc.text("PAGE 5 : Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
+doc.text("Ergonomics Risk Factors: Forceful Exertion", 105, 15, { align: "center" });
 doc.text("(Handling in Seated Position)", 105, 22, { align: "center" });
 
 // 2. Load image and wait until it's ready
@@ -1443,8 +1448,9 @@ didDrawCell: function (data) {
 
         // --- PAGE 6 click ---
         doc.addPage();
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
-        doc.text('Page 6 : Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
+        doc.text('Summary of Forceful Exertion (Manual Handling)', 105, 15, { align: "center" });
         const mhRows = [];
         const mhImageDataArray = [];
         let mhYesCount = 0;
@@ -1812,7 +1818,8 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
 
         // --- PAGE 8: Final Comments click ---
         doc.addPage();
-        doc.text('Page 8', 105, 15, { align: "center" });
+        doc.setFont("helvetica", "bold");
+        doc.text('ERGONOMICS RISK FACTORS: ENVIRONMENTAL FACTORS', 105, 15, { align: "center" });
          const rows1 = [];
       const imageDataArray = [];
       let totalYes = 0;
@@ -1931,6 +1938,7 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
+      halign: 'center',
       lineColor: [0, 0, 0],   // black border for body too
     lineWidth: 0.2          // consistent thickness
     }
@@ -2044,8 +2052,9 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
         })};
 
     doc.addPage();
+    doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
-  doc.text("PAGE 3: ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
+  doc.text("ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
 
   const rows3 = [];
   const imageDataArray3 = [];
@@ -2174,6 +2183,7 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
+      halign: 'center',
       lineColor: [0, 0, 0],   // black border for body too
     lineWidth: 0.2          // consistent thickness
     }
@@ -2375,6 +2385,7 @@ if (maleRadio && maleRadio.checked) {
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
+      halign: 'center',
       lineColor: [0, 0, 0],   // black border for body too
     lineWidth: 0.2          // consistent thickness
     }
