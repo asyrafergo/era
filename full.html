@@ -65,7 +65,9 @@
           </table>
       
           <div id="photoContainer"></div>
-          <button type="button" class="nav-btn" onclick="addPhotoSection()">Add Photo & Description</button>      
+          <div style="display: flex; justify-content: center; margin-top: 15px;">
+            <button type="button" class="nav-btn" onclick="addPhotoSection()">Add Photo & Description</button>
+          </div>
         </form>
         <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
         <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
@@ -91,16 +93,18 @@
                 <tbody id="formBody"></tbody>
             </table>
         </form>
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
         <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
         <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
         <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+      </div>
     </div>
 
         <!-- PAGE 3 -->
         <div class="form-page" id="page2">
-          <h2 style="text-align:center;">Ergonomics Risk Assessment</h2>
+          <h2 style="text-align:center; font-weight: bold;">Ergonomics Risk Assessment</h2>
           <form id="form3">
-            <div class="section-title">ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE</div>
+            <h3 style="text-align:center; font-weight: bold;">ERGONOMICS RISK FACTORS: STATIC AND SUSTAINED WORK POSTURE</h3>
             <table>
               <thead>
                 <tr>
@@ -115,13 +119,9 @@
               <tbody id="staticPostureTable3"></tbody>
             </table>
           
-            <div class="section-title">ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)</div>
-            <div style="font-size: 16px; margin-top: 8px; text-align: center;">
-              <strong>Ergonomics Risk Factors: Forceful Exertion</strong>
-            </div>
-            <div style="font-size: 16px; margin-bottom: 12px; text-align: center;">
-              <strong>(Manual handling – Lifting and/or lowering)</strong>
-            </div> 
+            <h3 style="text-align:center; font-weight: bold;">ERGONOMICS RISK FACTORS: FORCEFUL EXERTION (MANUAL HANDLING)</h3>
+            <div style="text-align: center; font-weight: bold;">Ergonomics Risk Factors: Forceful Exertion</div>
+            <div style="text-align: center; font-weight: bold;">(Manual handling – Lifting and/or lowering)</div> 
             <div class="logo">
                       <img src="Figure_1.png" alt="Figure">
             </div>
@@ -138,9 +138,11 @@
               <tbody id="manualHandlingTable3"></tbody>
             </table>          
           </form>
+          <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
           <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
           <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
           <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+        </div>
       </div>
 
     <!-- PAGE 4  nice--> 
@@ -179,7 +181,7 @@
               <td>20%</td>
           </tr>
       </table>
-      <h3 style="text-align:center;">Ergonomics Risk Factors: Forceful Exertion (Pushing and/or <u>Pulling</u>)</h3>
+      <h3 style="text-align:center;">Ergonomics Risk Factors: Forceful Exertion (Pushing and/or Pulling)</h3>
       <table>
           <tr>
               <th rowspan="2">Activity</th>
@@ -200,20 +202,22 @@
               <td>approximately 70 kg load (equivalent to 70N pushing or pulling force) on uneven level surface using well maintained handling aid</td>
           </tr>
       </table>
+      <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
       <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+    </div>
   </div>
 
     <!-- PAGE new 5 not nice -->
     <div class="form-page" id="page4">
       <h2 style="text-align:center;">Ergonomics Risk Factors: Contact Stress</h2>
       <form id="form5">
-        <h3>(Handling in Seated Position)</h3>
+        <h3 style="text-align:center;">(Handling in Seated Position)</h3>
         <div class="logo">
                   <img src="Figure_2.png" alt="Figure">
         </div>
-        <h3>Summary of Carrying Activity</h3>
+        <h3 style="text-align:center;">Summary of Carrying Activity</h3>
 
         <table id="carryingTable">
           <thead>
@@ -310,12 +314,16 @@
           </tbody>
         </table>
         
-          <button type="button" onclick="addOtherRow5()">Add 'Others' Row</button>
+          <div style="display: flex; justify-content: center; margin-top: 15px;">
+            <button type="button" onclick="addOtherRow5()">Add 'Others' Row</button>
+          </div>
 
       </form>
+      <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
       <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+    </div>
   </div>
 
     <!-- PAGE 6 nice -->
@@ -334,9 +342,11 @@
               <tbody id="manualHandlingTable"></tbody>
           </table>
       </form>
+      <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
       <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
       <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
       <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+    </div>
   </div>
 
     <!-- PAGE 7 nice -->
@@ -372,9 +382,11 @@
             <tbody id="VibrationTable"></tbody>
           </table>
         </form>
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
         <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
         <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate PDF</button>
         <button type="button" class="nav-btn" onclick="nextPage()">Next</button>
+      </div>
     </div>
 
     <!-- PAGE 8 nice -->
@@ -393,7 +405,7 @@
             <tbody id="staticPostureTable"></tbody>
           </table>
 
-          <h2>Initial ERA Form</h2>
+          <h2 style="text-align:center;">Initial ERA Form</h2>
 <table id="eraTable">
   <thead>
     <tr>
@@ -452,8 +464,10 @@
   </tbody>
 </table>
         </form>
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
         <button type="button" class="nav-btn" onclick="prevPage()">Back</button>
         <button type="button" class="nav-btn" onclick="generateAllPDF()">Generate All PDF</button>
+      </div>
     </div>
 </div>
 
@@ -1024,7 +1038,11 @@ document.querySelectorAll('.yes, .no').forEach(function(checkbox) {
   rowPageBreak: 'avoid',
   body: tableData1,
   theme: 'grid',
-  styles: { fontSize: 10 },
+  styles: {
+    fontSize: 10,
+    lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+  },
   columnStyles: {
     0: { cellWidth: 30 },
     1: { cellWidth: 50 }, // image column
@@ -1184,6 +1202,8 @@ if (finalYes && fileInput && fileInput.files[0]) {
         styles: {
             fontSize: 10,
             cellPadding: 3,
+            lineColor: [0, 0, 0],   // black border for body too
+            lineWidth: 0.2,         // consistent thickness
             valign: 'middle',
             align: 'center',
             overflow: 'linebreak'
@@ -1240,6 +1260,8 @@ if (finalYes && fileInput && fileInput.files[0]) {
         startY: doc.previousAutoTable.finalY + 10,
         rowPageBreak: 'avoid', // 👈 This prevents row splitting
         styles: {
+            lineColor: [0, 0, 0],   // black border for body too
+            lineWidth: 0.2,          // consistent thickness
             fontSize: 12,
             fontStyle: 'bold'
         }
@@ -1262,7 +1284,10 @@ if (finalYes && fileInput && fileInput.files[0]) {
                 ["More than 12 times per minute", "80%"]
             ],
             theme: 'grid',
-            styles: { fontSize: 10 }
+            styles: { fontSize: 10 ,
+              lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+            }
         });
         doc.text('(Manual handling – Lifting and lowering with twisted body posture)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
         doc.autoTable({
@@ -1274,7 +1299,10 @@ if (finalYes && fileInput && fileInput.files[0]) {
                 ["90 degrees", "20%"]
             ],
             theme: 'grid',
-            styles: { fontSize: 10 }
+            styles: { fontSize: 10,
+              lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+             }
         });
         doc.text('Ergonomics Risk Factors: Forceful Exertion (Pushing and/or Pulling)', 105, doc.lastAutoTable.finalY + 10, { align: "center" });
         doc.autoTable({
@@ -1297,7 +1325,10 @@ if (finalYes && fileInput && fileInput.files[0]) {
                 ]
             ],
             theme: 'grid',
-            styles: { fontSize: 8 }
+            styles: { fontSize: 8,
+              lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+     }
         });
 
 
@@ -1357,7 +1388,9 @@ const tableStartY = summaryY + 6;
     pageBreak: 'auto',
     startY: tableStartY,
     rowPageBreak: 'avoid', // 👈 This prevents row splitting
-    styles: { valign: 'middle', font: 'helvetica', fontSize: 10, halign: 'center'},
+    styles: { valign: 'middle', font: 'helvetica', fontSize: 10, halign: 'center', lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
+    },
     columnStyles: {
       0: { cellWidth: 38 },   // Factor
       1: { cellWidth: 35 },   // Condition
@@ -1470,7 +1503,9 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
       cellPadding: 3,
       valign: 'middle',
       halign: 'center',
-      overflow: 'linebreak'
+      overflow: 'linebreak',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     },
     headStyles: {
       fillColor: [120, 120, 120],
@@ -1514,7 +1549,9 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     }
   });
 
@@ -1588,7 +1625,9 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
       cellPadding: 3,
       valign: 'middle',
       halign: 'center',
-      overflow: 'linebreak'
+      overflow: 'linebreak',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     },
     headStyles: {
       fillColor: [100, 100, 100],
@@ -1634,7 +1673,9 @@ const displayText = finalYes || finalNo ? finalRemark : 'No picture or remarks';
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     }
   });
 
@@ -1714,7 +1755,9 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
       cellPadding: 3,
       valign: 'middle',
       halign: 'center',
-      overflow: 'linebreak'
+      overflow: 'linebreak',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     },
     headStyles: {
       fillColor: [100, 100, 100],
@@ -1760,7 +1803,9 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
     styles: {
       fontSize: 12,
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     }
   });
 
@@ -1840,7 +1885,9 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
       cellPadding: 3,
       valign: 'middle',
       halign: 'center',
-      overflow: 'linebreak'
+      overflow: 'linebreak',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     },
     headStyles: {
       fillColor: [120, 120, 120],
@@ -1883,7 +1930,9 @@ doc.text("ERGONOMICS RISK FACTORS: VIBRATION", doc.internal.pageSize.width / 2, 
     rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     }
   });
 
@@ -1961,7 +2010,9 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
         styles: {
           halign: 'center',
           valign: 'middle',
-          fontSize: 8
+          fontSize: 8,
+          lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
         },
         columnStyles: {
           3: { cellWidth: 40, fillColor: [219, 231, 245] },
@@ -2075,7 +2126,9 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
       cellPadding: 3,
       valign: 'middle',
       halign: 'center',
-      overflow: 'linebreak'
+      overflow: 'linebreak',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     },
     headStyles: {
       fillColor: [120, 120, 120],
@@ -2120,7 +2173,9 @@ bodyText += allBodyParts.map(part => checkedBodyParts.includes(part) ? `/   ${pa
     rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     }
   });
 
@@ -2273,7 +2328,9 @@ if (maleRadio && maleRadio.checked) {
       cellPadding: 3,
       valign: 'middle',
       halign: 'center',
-      overflow: 'linebreak'
+      overflow: 'linebreak',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     },
     headStyles: {
       fillColor: [120, 120, 120],
@@ -2317,7 +2374,9 @@ if (maleRadio && maleRadio.checked) {
     rowPageBreak: 'avoid', // 👈 This prevents row splitting
     styles: {
       fontSize: 12,
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      lineColor: [0, 0, 0],   // black border for body too
+    lineWidth: 0.2          // consistent thickness
     }
   });
     }
