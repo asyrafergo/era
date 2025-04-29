@@ -11,7 +11,7 @@
 
 <style>
 body {
-  background: #f5f7fa;
+  background: #c2bfc1;
   font-family: 'Poppins', sans-serif;
   margin: 0;
   padding: 0;
@@ -29,6 +29,24 @@ body {
   font-size: 36px;
   font-weight: 700;
 }
+
+.intro-box {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .intro-box h3 {
+      color: #cc0000;
+      font-weight: 700;
+    }
+
+    .intro-box p {
+      color: #555;
+      font-size: 16px;
+    }
 
 .navbar {
   background: #fff;
@@ -89,6 +107,24 @@ body {
   margin-top: 40px;
   font-size: 14px;
 }
+
+.contact-info {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+
+    .contact-info h4 {
+      font-weight: bold;
+      color: #b30000;
+    }
+
+    .contact-info p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
 </style>
 
 <!-- jQuery + Bootstrap -->
@@ -110,11 +146,33 @@ function register(courseId) {
 </div>
 
 <div class="navbar text-center">
-  <a href="#">Home</a>
+  <a href="https://asyrafergo.github.io/era/register.html">Register</a>
   <a href="#courses">Courses</a>
   <a href="#payment">Payment Info</a>
   <a href="#contact">Contact</a>
 </div>
+
+<div class="intro-box" style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 40px;">
+  <h2 style="color: #cc0000; font-weight: 700; margin-bottom: 20px;">About This Course</h2>
+  <p style="font-size: 16px; color: #555; line-height: 1.8;">
+    At <strong>North Ergonomic Sdn Bhd</strong>, we are passionate about creating healthier and safer work environments. Our ergonomics services are tailored to industries of all sizes, focusing on boosting productivity, minimizing workplace injuries, and improving overall employee well-being.
+  </p>
+  <ul style="font-size: 16px; color: #555; line-height: 1.8; padding-left: 20px; margin-top: 20px;">
+    <li>
+      <strong>Training Programs:</strong> Comprehensive ergonomics training designed to equip employees with essential knowledge and practical techniques — from basic awareness to advanced ergonomics strategies.
+    </li>
+    <li>
+      <strong>Ergonomics Risk Assessment (Initial & Advanced):</strong> We conduct detailed evaluations to identify potential risks, offering both initial baseline assessments and advanced solutions for long-term workplace improvements.
+    </li>
+    <li>
+      <strong>Consultation Services:</strong> Personalized consultations to help organizations solve specific ergonomics challenges, enhance workspace designs, and implement best practices for employee safety.
+    </li>
+    <li>
+      <strong>Advisory Services:</strong> Continuous support and expert advice to guide businesses in maintaining high ergonomic standards and achieving sustainable, healthy workplaces.
+    </li>
+  </ul>
+</div>
+
 
 <div class="container">
 
@@ -183,6 +241,18 @@ function register(courseId) {
 
   </div>
 
+</div>
+
+<!-- Contact Section -->
+<div id="contact" class="container">
+  <div class="contact-info">
+    <h4>Contact Information</h4>
+    <p><strong>NORTH ERGONOMIC SDN BHD</strong></p>
+    <p>For payment, kindly deposit into our Maybank account:</p>
+    <p><strong>ACC NUMBER: 5574 0150 7647</strong></p>
+    <p>Email: <a href="mailto:register@northergonomic.com.my">register@northergonomic.com.my</a></p>
+    <p>Phone / Fax No: 019 - 609 4098</p>
+  </div>
 </div>
 
 <div class="footer">
