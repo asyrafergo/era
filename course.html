@@ -262,7 +262,7 @@ function register(courseId) {
 window.register = register;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
@@ -321,8 +321,11 @@ function createCourseCard(program, id) {
 
 function loadPrograms() {
   const refPath = ref(db, "users/user1/Program");
-  get(refPath).then(snapshot => {
+
+  onValue(refPath, snapshot => {
+    courseSection.innerHTML = ""; // Clear previous list
     if (!snapshot.exists()) return;
+
     const programs = snapshot.val();
     Object.entries(programs).forEach(([key, program]) => {
       createCourseCard(program, key);
