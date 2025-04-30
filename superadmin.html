@@ -6,46 +6,94 @@
   <title>Super Admin Dashboard</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Roboto', sans-serif;
       margin: 0;
-      background-color: #f4f4f4;
+      background-color: #f0f4f8;
+      color: #333;
     }
+
     header {
-      background-color: #001b3d;
+      background-color: #004085;
       color: white;
       padding: 20px;
       text-align: center;
     }
+
     .container {
+      max-width: 1200px;
+      margin: 0 auto;
       padding: 20px;
     }
-    h2, h3 {
-      color: #001b3d;
+
+    .section {
+      background-color: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
+
+    h2, h3 {
+      color: #004085;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
+      margin-top: 10px;
     }
+
     th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
+      padding: 12px 15px;
       text-align: left;
     }
+
     th {
-      background-color: skyblue;
+      background-color: #e1ecf4;
+      color: #004085;
     }
-    input {
-      margin: 5px 0;
-      padding: 7px;
+
+    td {
+      background-color: #ffffff;
+      border-bottom: 1px solid #ddd;
+    }
+
+    input, select {
       width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
     }
+
     button {
-      margin: 5px 5px 15px 0;
-      padding: 10px 15px;
+      background-color: #282829;
+      color: white;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-    .section {
-      margin-bottom: 40px;
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      input, select, button {
+        font-size: 14px;
+      }
+
+      table {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -55,6 +103,73 @@
     <p>Welcome, Mr Asyraf</p>
   </header>
   <div class="container">
+
+    <div class="section">
+        <h2>Program Management</h2>
+        <label for="progTitle">Program Title</label>
+<select id="progTitle" required>
+  <option value="">-- Select Program --</option>
+  <option value="Ergonomic Trained Person - Initial ERA">Ergonomic Trained Person - Initial ERA</option>
+  <option value="Ergonomic Trained Person - Advanced ERA">Ergonomic Trained Person - Advanced ERA</option>
+</select>
+
+        <!-- State Dropdown -->
+  <select id="progState">
+    <option value="">-- Select State --</option>
+    <option value="Johor">Johor</option>
+    <option value="Kedah">Kedah</option>
+    <option value="Kelantan">Kelantan</option>
+    <option value="Melaka">Melaka</option>
+    <option value="Negeri Sembilan">Negeri Sembilan</option>
+    <option value="Pahang">Pahang</option>
+    <option value="Penang">Penang</option>
+    <option value="Perak">Perak</option>
+    <option value="Perlis">Perlis</option>
+    <option value="Sabah">Sabah</option>
+    <option value="Sarawak">Sarawak</option>
+    <option value="Selangor">Selangor</option>
+    <option value="Terengganu">Terengganu</option>
+    <option value="Kuala Lumpur">Kuala Lumpur</option>
+    <option value="Labuan">Labuan</option>
+    <option value="Putrajaya">Putrajaya</option>
+  </select>
+
+  <input id="progVenue" placeholder="Venue">
+        <!-- Calendar Dates -->
+  <label>Start Date:</label>
+  <input type="date" id="startDate">
+  <label>End Date:</label>
+  <input type="date" id="endDate">
+
+  <input type="number" id="progSlots" placeholder="Maximum Slots (e.g. 50)" min="1">
+
+  <!-- Session Dropdown -->
+  <select id="progSession">
+    <option value="">-- Select Session --</option>
+    <option value="Physical">Physical</option>
+    <option value="Online">Online</option>
+  </select>
+        <button onclick="saveProgramToFirebase()">Save Program</button>
+      </div>    
+      
+      <div class="section">
+        <h2>Program List</h2>
+        <table id="programListTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>State</th>
+              <th>Venue</th>
+              <th>Date(s)</th>
+              <th>Slots</th>
+              <th>Participants</th>
+              <div id="participantManager" style="display: none; padding: 20px; border: 1px solid #ccc; background: #fff;"></div>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>      
 
     <div class="section">
         <h2>Admin Users</h2>
@@ -122,16 +237,15 @@
     </div>
 
     <button onclick="logout()">Logout</button>
+
   </div>
 
   <script type="module">
+    window.saveProgramToFirebase = saveProgramToFirebase;
+
 const username = sessionStorage.getItem("username");
   const password = sessionStorage.getItem("password");
 
-  if (!(username === "asyraf" && password === "asyraf")) {
-    alert("Unauthorized Access. Redirecting...");
-    window.location.href = "https://asyrafergo.github.io/era/index.html";
-  }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
@@ -154,6 +268,77 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     let companies = JSON.parse(localStorage.getItem('companies')) || {};
     let selectedCompany = "";
     let selectedDepartment = "";
+    let currentEditKey = null;
+
+    function saveProgram() {
+  const program = {
+    title: document.getElementById('progTitle').value.trim(),
+    state: document.getElementById('progState').value.trim(),
+    venue: document.getElementById('progVenue').value.trim(),
+    dates: document.getElementById('progDates').value.trim(),
+    slots: document.getElementById('progSlots').value.trim(),
+    session: document.getElementById('progSession').value.trim()
+  };
+
+  localStorage.setItem('programInfo', JSON.stringify(program));
+  alert("Program information saved!");
+}
+
+function saveProgramToFirebase() {
+  const userId = "user1";
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+
+  const program = {
+    title: document.getElementById('progTitle').value.trim(),
+    state: document.getElementById('progState').value,
+    venue: document.getElementById('progVenue').value.trim(),
+    dates: `${start} to ${end}`,
+    slots: parseInt(document.getElementById('progSlots').value, 10),
+    session: document.getElementById('progSession').value
+  };
+
+  const programsRef = ref(database, `users/${userId}/Program`);
+
+  if (currentEditKey) {
+    const editRef = ref(database, `users/${userId}/Program/${currentEditKey}`);
+    set(editRef, program)
+      .then(() => {
+        alert(`Program ${currentEditKey} updated!`);
+        currentEditKey = null; // Clear after save
+        loadProgramList(); // Refresh list
+      })
+      .catch(err => console.error("Error updating program:", err));
+  } else {
+    // Add new program
+    get(programsRef).then(snapshot => {
+      let count = 0;
+      if (snapshot.exists()) {
+        const programs = snapshot.val();
+        count = Object.keys(programs).length;
+      }
+
+      const newKey = `program${count + 1}`;
+      const newRef = ref(database, `users/${userId}/Program/${newKey}`);
+
+      set(newRef, program)
+        .then(() => {
+          alert(`Program saved as ${newKey}`);
+          loadProgramList(); // Refresh list
+        })
+        .catch(err => console.error("Error saving program:", err));
+    }).catch(err => {
+      // First time creation
+      const newRef = ref(database, `users/${userId}/Program/program1`);
+      set(newRef, program)
+        .then(() => {
+          alert(`Program path created and program1 saved!`);
+          loadProgramList(); // Refresh list
+        })
+        .catch(err => console.error("Error initializing program path:", err));
+    });
+  }
+}
 
     function loadUsersFromFirebase() {
   const adminTbody = document.querySelector("#adminTable tbody");
@@ -207,6 +392,153 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     });
   });
 }
+
+function loadProgramList() {
+  const userId = "user1";
+  const programsRef = ref(database, `users/${userId}/Program`);
+  const tableBody = document.querySelector("#programListTable tbody");
+  tableBody.innerHTML = "";
+
+  const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
+  get(programsRef).then(snapshot => {
+    if (snapshot.exists()) {
+      const programs = snapshot.val();
+      Object.entries(programs).forEach(([key, data]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${data.title || '-'}</td>
+          <td>${data.state || '-'}</td>
+          <td>${data.venue || '-'}</td>
+          <td>${formatDate(data.dates?.split(" to ")[0])} to ${formatDate(data.dates?.split(" to ")[1])}</td>
+          <td>${Object.keys(data.participants || {}).length} / ${data.slots || '-'}</td>
+          <td><button onclick="manageParticipants('${key}')">Participants</button></td>
+          <td><button onclick="editProgram('${key}')">Edit</button>
+          <button onclick="deleteProgram('${key}')">Delete</button></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+  });
+}
+
+window.editProgram = function (key) {
+  const userId = "user1";
+  const progRef = ref(database, `users/${userId}/Program/${key}`);
+  get(progRef).then(snapshot => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      currentEditKey = key; // 👈 Set this key
+
+      document.getElementById('progTitle').value = data.title || "";
+      document.getElementById('progState').value = data.state || "";
+      document.getElementById('progVenue').value = data.venue || "";
+      const [start, end] = (data.dates || "").split(" to ");
+      document.getElementById('startDate').value = start || "";
+      document.getElementById('endDate').value = end || "";
+      document.getElementById('progSlots').value = data.slots || "";
+      document.getElementById('progSession').value = data.session || "";
+
+      alert(`Loaded ${key} into form for editing`);
+    }
+  });
+};
+
+window.manageParticipants = function (programKey) {
+  const userId = "user1";
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
+
+  get(progRef).then(snapshot => {
+    if (!snapshot.exists()) return alert("Program not found.");
+
+    const data = snapshot.val();
+    const participants = data.participants || {};
+    const maxSlots = data.slots || 0;
+    const participantKeys = Object.keys(participants);
+    const remaining = maxSlots - participantKeys.length;
+
+    const container = document.getElementById("participantManager");
+    container.style.display = "block";
+
+    let html = `<h3>Participants for: ${data.title}</h3><ul id="participantList">`;
+
+    participantKeys.forEach(pid => {
+      html += `<li>${participants[pid]} 
+        <button type="button" onclick="removeParticipant('${programKey}', '${pid}')">Remove</button></li>`;
+    });
+
+    html += `</ul>`;
+
+    if (remaining > 0) {
+      html += `
+        <input type="text" id="newParticipantName" placeholder="New participant name">
+        <button type="button" onclick="addParticipant('${programKey}')">Add</button>
+      `;
+    } else {
+      html += `<p style="color:red;">All ${maxSlots} slots filled.</p>`;
+    }
+
+    container.innerHTML = html;
+  });
+};
+
+// Add participant
+window.addParticipant = function (programKey) {
+  const userId = "user1";
+  const input = document.getElementById('newParticipantName');
+  if (!input) return alert("Input not found.");
+
+  const name = input.value.trim();
+  if (!name) return alert("Please enter a participant name.");
+
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
+  get(progRef).then(snapshot => {
+    const data = snapshot.val();
+    const participants = data.participants || {};
+    const count = Object.keys(participants).length;
+    const max = data.slots || 0;
+
+    if (count >= max) {
+      alert("Maximum slots reached.");
+      return;
+    }
+
+    const newKey = `p${Date.now()}`;
+    participants[newKey] = name;
+
+    set(progRef, { ...data, participants }).then(() => {
+      alert("Participant added!");
+      manageParticipants(programKey); // Refresh list
+      location.reload();
+    });
+  });
+};
+
+// Remove participant
+window.removeParticipant = function (programKey, pid) {
+  const userId = "user1";
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
+
+  get(progRef).then(snapshot => {
+    const data = snapshot.val();
+    if (!data.participants || !data.participants[pid]) return;
+
+    delete data.participants[pid];
+
+    set(progRef, data).then(() => {
+      alert("Participant removed.");
+      manageParticipants(programKey); // 👈 Refresh the participant list
+      location.reload();
+    });
+  });
+};
 
 function updateUserStatus(userId, newStatus) {
   set(ref(database, `users/${userId}/status`), newStatus)
@@ -382,6 +714,20 @@ function deleteDepartment(index) {
   }
 }
 
+window.deleteProgram = function (key) {
+  const userId = "user1";
+  if (!confirm(`Are you sure you want to delete ${key}?`)) return;
+
+  const progRef = ref(database, `users/${userId}/Program/${key}`);
+  set(progRef, null)
+    .then(() => {
+      alert(`${key} deleted.`);
+      loadProgramList();
+      if (currentEditKey === key) currentEditKey = null; // Reset if editing
+    })
+    .catch(err => console.error("Error deleting program:", err));
+};
+
 function deleteTask(index) {
   companies[selectedCompany].tasks[selectedDepartment].splice(index, 1);
   localStorage.setItem('companies', JSON.stringify(companies));
@@ -417,6 +763,9 @@ window.selectDepartment = selectDepartment;
 window.deleteCompany = deleteCompany;
 window.addDepartment = addDepartment;
 window.addTask = addTask;
+window.saveProgramToFirebase = saveProgramToFirebase;
+
+loadProgramList();
   </script>
 </body>
 </html>
