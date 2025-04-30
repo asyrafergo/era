@@ -160,7 +160,7 @@ function register(courseId) {
 </div>
 
 <div class="intro-box" style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 40px;">
-  <h2 style="color: #cc0000; font-weight: 700; margin-bottom: 20px;">Description</h2>
+  <h2 style="color: #cc0000; font-weight: 700; margin-bottom: 20px;">About This Course</h2>
   <p style="font-size: 16px; color: #555; line-height: 1.8;">
     At <strong>North Ergonomic Sdn Bhd</strong>, we are passionate about creating healthier and safer work environments. Our ergonomics services are tailored to industries of all sizes, focusing on boosting productivity, minimizing workplace injuries, and improving overall employee well-being.
   </p>
@@ -185,67 +185,6 @@ function register(courseId) {
 
   <!-- Course List -->
   <div id="courses" class="page-section">
-
-    <div class="course-card">
-      <h3>INITIAL ERA NES JITRA KEDAH</h3>
-      <p><strong>State:</strong> KEDAH</p>
-      <p><strong>Venue:</strong> Northern Ergonomics Solutions PLT, Jitra</p>
-      <p><strong>Dates:</strong> 10-05-2025 to 11-05-2025</p>
-      <p><strong>Slots:</strong> 6 / 25</p>
-      <p><strong>Session:</strong> Full Time</p>
-      <button class="btn btn-register" onclick="register(797)">Register</button>
-    </div>
-
-    <div class="course-card">
-      <h3>ADVANCED ERA NES JITRA KEDAH</h3>
-      <p><strong>State:</strong> KEDAH</p>
-      <p><strong>Venue:</strong> Northern Ergonomics Solutions PLT, Jitra</p>
-      <p><strong>Dates:</strong> 13-05-2025 to 15-05-2025</p>
-      <p><strong>Slots:</strong> 0 / 30</p>
-      <p><strong>Session:</strong> Full Time</p>
-      <button class="btn btn-register" onclick="register(803)">Register</button>
-    </div>
-
-    <div class="course-card">
-      <h3>INITIAL ERA UMS, KK, SABAH</h3>
-      <p><strong>State:</strong> SABAH</p>
-      <p><strong>Venue:</strong> Universiti Malaysia Sabah, Kota Kinabalu</p>
-      <p><strong>Dates:</strong> 19-05-2025 to 30-05-2025</p>
-      <p><strong>Slots:</strong> 56 / 75</p>
-      <p><strong>Session:</strong> Full Time</p>
-      <button class="btn btn-register" onclick="register(792)">Register</button>
-    </div>
-
-    <div class="course-card">
-      <h3>ADVANCED ERA UMS, KK, SABAH</h3>
-      <p><strong>State:</strong> SABAH</p>
-      <p><strong>Venue:</strong> Universiti Malaysia Sabah, Kota Kinabalu</p>
-      <p><strong>Dates:</strong> 21-05-2025 to 22-05-2025</p>
-      <p><strong>Slots:</strong> 5 / 25</p>
-      <p><strong>Session:</strong> Full Time</p>
-      <button class="btn btn-register" onclick="register(784)">Register</button>
-    </div>
-
-    <div class="course-card">
-      <h3>INITIAL ERA UTeM MELAKA</h3>
-      <p><strong>State:</strong> MELAKA</p>
-      <p><strong>Venue:</strong> Fakulti Teknologi dan Kejuruteraan Industri, UTeM</p>
-      <p><strong>Dates:</strong> 24-05-2025 to 25-05-2025</p>
-      <p><strong>Slots:</strong> 13 / 30</p>
-      <p><strong>Session:</strong> Full Time</p>
-      <button class="btn btn-register" onclick="register(782)">Register</button>
-    </div>
-
-    <div class="course-card">
-      <h3>ADVANCED ERA UTeM MELAKA</h3>
-      <p><strong>State:</strong> MELAKA</p>
-      <p><strong>Venue:</strong> Fakulti Teknologi dan Kejuruteraan Industri, UTeM</p>
-      <p><strong>Dates:</strong> 24-05-2025 to 26-05-2025</p>
-      <p><strong>Slots:</strong> 0 / 30</p>
-      <p><strong>Session:</strong> Full Time</p>
-      <button class="btn btn-register" onclick="register(804)">Register</button>
-    </div>
-
   </div>
 
 </div>
@@ -307,9 +246,9 @@ function register(courseId) {
   <div class="contact-info">
     <h4>Contact Information</h4>
     <p><strong>NORTH ERGONOMIC SDN BHD</strong></p>
-    <p>For payment, kindly deposit into our RHB account:</p>
-    <p><strong>ACC NUMBER: 202126 0001 1806</strong></p>
-    <p>Email: <a href="mailto:NorthernErgonomicsSolutions@gmail.com">NorthernErgonomicsSolutions@gmail.com</a></p>
+    <p>For payment, kindly deposit into our Maybank account:</p>
+    <p><strong>ACC NUMBER: 5574 0150 7647</strong></p>
+    <p>Email: <a href="mailto:register@northergonomic.com.my">register@northergonomic.com.my</a></p>
     <p>Phone / Fax No: 019 - 609 4098</p>
   </div>
 </div>
@@ -318,7 +257,80 @@ function register(courseId) {
   &copy; 2025 North Ergonomic Sdn Bhd. All Rights Reserved.
 </div>
 
-<script>
+<script type="module">
+  window.showPage = showPage;
+window.register = register;
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
+  authDomain: "ergo-1140d.firebaseapp.com",
+  databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ergo-1140d",
+  storageBucket: "ergo-1140d.appspot.com",
+  messagingSenderId: "139659476541",
+  appId: "1:139659476541:web:78fd5c1593fae30f747454",
+  measurementId: "G-NNGVRF3E5D"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const courseSection = document.getElementById("courses");
+
+function toShortTitle(fullTitle) {
+  return fullTitle.includes("Initial") ? "INITIAL ERA" : "ADVANCED ERA";
+}
+
+function getLocationCode(venue) {
+  if (!venue) return "";
+  return venue.toUpperCase();
+}
+
+  function formatDateRange(dates) {
+  const [start, end] = dates.split(" to ");
+  const format = dateStr => {
+    const [y, m, d] = dateStr.split("-");
+    return `${d}/${m}/${y}`;
+  };
+  return `${format(start)} to ${format(end)}`;
+}
+
+function createCourseCard(program, id) {
+  const title = toShortTitle(program.title);
+  const location = getLocationCode(program.venue);
+  const state = program.state.toUpperCase();
+  const header = `${title} ${location} ${state}`;
+
+  const filled = program.participants ? Object.keys(program.participants).length : 0;
+  const html = `
+    <div class="course-card">
+      <h3>${header}</h3>
+      <p><strong>State:</strong> ${state}</p>
+      <p><strong>Venue:</strong> ${program.venue}</p>
+      <p><strong>Dates:</strong> ${formatDateRange(program.dates)}</p>
+      <p><strong>Slots:</strong> ${filled} / ${program.slots}</p>
+      <p><strong>Session:</strong> ${program.session}</p>
+      <button class="btn btn-register" onclick="register('${id}')">Register</button>
+    </div>
+  `;
+  courseSection.insertAdjacentHTML("beforeend", html);
+}
+
+function loadPrograms() {
+  const refPath = ref(db, "users/user1/Program");
+  get(refPath).then(snapshot => {
+    if (!snapshot.exists()) return;
+    const programs = snapshot.val();
+    Object.entries(programs).forEach(([key, program]) => {
+      createCourseCard(program, key);
+    });
+  });
+}
+
+loadPrograms();
 
 
 // Show Home by default
