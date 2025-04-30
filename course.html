@@ -129,6 +129,24 @@ body {
     .page-section {
   display: none;
 }
+.cep-badge {
+  background-color: #ffd700;
+  color: #000;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cep-badge .star {
+  color: #cc0000;
+  font-size: 16px;
+}
+
 
 </style>
 
@@ -138,9 +156,9 @@ body {
 
 <script>
 function register(courseId) {
-  alert('You selected course ID: ' + courseId);
-  // Here you can link to another page or submit a form if needed
+  window.location.href = "https://asyrafergo.github.io/era/form.html";
 }
+
 </script>
 
 </head>
@@ -239,8 +257,6 @@ function register(courseId) {
   </div>
 </div>
 
-
-
 <!-- Contact Section -->
 <div class="container">
   <div class="contact-info">
@@ -281,7 +297,7 @@ const db = getDatabase(app);
 const courseSection = document.getElementById("courses");
 
 function toShortTitle(fullTitle) {
-  return fullTitle.includes("Initial") ? "INITIAL ERA" : "ADVANCED ERA";
+  return fullTitle.toUpperCase();
 }
 
 function getLocationCode(venue) {
@@ -303,11 +319,17 @@ function createCourseCard(program, id) {
   const location = getLocationCode(program.venue);
   const state = program.state.toUpperCase();
   const header = `${title} ${location} ${state}`;
+  const cepRaw = program.cepPoints || "";
+const cep = (cepRaw !== "CEP 0" && cepRaw !== "") 
+  ? `<span class="cep-badge"><span class="star">★</span> ${cepRaw}</span>` 
+  : "";
+
 
   const filled = program.participants ? Object.keys(program.participants).length : 0;
   const html = `
     <div class="course-card">
       <h3>${header}</h3>
+      ${cep}
       <p><strong>State:</strong> ${state}</p>
       <p><strong>Venue:</strong> ${program.venue}</p>
       <p><strong>Dates:</strong> ${formatDateRange(program.dates)}</p>
