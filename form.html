@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registration - Initial ERA</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px 20px;
+      color: #333;
+    }
+
+    .form-container {
+      background-color: #fff;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-top: 10px solid #c00000;
+      text-align: center;
+    }
+
+    h1 {
+      color: #c00000;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .details, .payment, .contact {
+      background-color: #f2f2f2;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: left;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    input[type="file"] {
+      padding: 6px;
+    }
+
+    button {
+      margin-top: 30px;
+      background-color: #c00000;
+      color: white;
+      border: none;
+      padding: 14px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #a00000;
+    }
+
+    a {
+      color: #c00000;
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .form-container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h1>Registration</h1>
+    <h1>Ergonomic Trained Person - Initial ERA</h1>
+    <div class="subtitle">
+      26–27 April 2025, Northern Ergonomics Solutions PLT, Jitra
+    </div>
+
+    <div class="details">
+      <p><strong>Description:</strong> This is a competency course for those who are not yet competent and a refresher course for those already competent.</p>
+      <p><strong>CEP Points:</strong> 10 (based on CEP guidelines)</p>
+    </div>
+
+    <form>
+      <label for="name">Your Full Name</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="ic">Your IC No (XXXXXX-XX-XXXX)</label>
+      <input type="text" id="ic" name="ic" required />
+
+      <label for="email">Your Email</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="phone">Your Telephone No</label>
+      <input type="tel" id="phone" name="phone" required />
+
+      <label for="company">Your Company Name and Address</label>
+      <textarea id="company" name="company" rows="3" required></textarea>
+
+      <label for="fee">Select Your Fee Option</label>
+      <select id="fee" name="fee" required>
+        <option value="">-- Please Select --</option>
+        <option value="rm900">RM900 - Self Sponsored (Paid by 20 April 2025)</option>
+        <option value="rm1100">RM1100 - Company Sponsored / Paid After 20 April 2025</option>
+        <option value="rm500">RM500 - Refresher (Paid by 25 March 2025)</option>
+        <option value="rm700">RM700 - Refresher (Paid After 25 March 2025 or SBL Khas)</option>
+      </select>
+
+      <label for="receipt">Upload Your Payment Receipt (Max 5 files, 10MB each)</label>
+      <input type="file" id="receipt" name="receipt" multiple accept=".pdf,.jpg,.jpeg,.png" />
+
+      <div class="payment">
+        <p><strong>Payment Details:</strong></p>
+        <p>Bank: RHB Bank</p>
+        <p>Account No: 202126 0001 1806</p>
+        <p>Account Name: Northern Ergonomics Solutions PLT</p>
+        <p>Registration No: LLP0020213LGN</p>
+      </div>
+
+      <div class="contact">
+        <p><strong>Contact:</strong></p>
+        <p>📞 010-7757753 – Call / WhatsApp</p>
+        <p>📞 010-7757752 – Call / WhatsApp</p>
+        <p>📧 <a href="mailto:NorthernErgonomicsSolutions@gmail.com">NorthernErgonomicsSolutions@gmail.com</a></p>
+      </div>
+
+      <button type="submit">Submit Registration</button>
+    </form>
+  </div>
+
+</body>
+</html>
