@@ -106,11 +106,14 @@
 
     <div class="section">
         <h2>Program Management</h2>
-        <label for="progTitle">Program Title</label>
-<select id="progTitle" required>
-  <option value="">-- Select Program --</option>
-  <option value="Ergonomic Trained Person - Initial ERA">Ergonomic Trained Person - Initial ERA</option>
-  <option value="Ergonomic Trained Person - Advanced ERA">Ergonomic Trained Person - Advanced ERA</option>
+        <input type="text" id="progTitle" placeholder="Enter program title" required>
+
+        <label for="cepPoints">CEP Points</label>
+<select id="cepPoints" required>
+  <option value="">-- Select CEP Points --</option>
+  <option value="CEP 10">CEP 10</option>
+  <option value="CEP 5">CEP 5</option>
+  <option value="CEP 0">CEP 0</option>
 </select>
 
         <!-- State Dropdown -->
@@ -157,14 +160,16 @@
         <table id="programListTable">
           <thead>
             <tr>
-              <th>Title</th>
-              <th>State</th>
-              <th>Venue</th>
-              <th>Date(s)</th>
-              <th>Slots</th>
-              <th>Participants</th>
+              <th style="width: 15%;">Title</th>
+              <th style="width: 5%;">CEP Points</th>
+    <th style="width: 8%;">State</th>
+    <th style="width: 15%;">Venue</th>
+    <th style="width: 14%;">Date(s)</th>
+    <th style="width: 7%;">Slots</th>
+    <th style="width: 10%;">Participants</th>
+    <th style="width: 20%;">Fee Setup</th>
               <div id="participantManager" style="display: none; padding: 20px; border: 1px solid #ccc; background: #fff;"></div>
-              <th>Actions</th>
+              <th style="width: 12%;">Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -277,7 +282,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     venue: document.getElementById('progVenue').value.trim(),
     dates: document.getElementById('progDates').value.trim(),
     slots: document.getElementById('progSlots').value.trim(),
-    session: document.getElementById('progSession').value.trim()
+    session: document.getElementById('progSession').value.trim(),
+    cepPoints: document.getElementById('cepPoints').value.trim()
   };
 
   localStorage.setItem('programInfo', JSON.stringify(program));
@@ -295,7 +301,8 @@ function saveProgramToFirebase() {
     venue: document.getElementById('progVenue').value.trim(),
     dates: `${start} to ${end}`,
     slots: parseInt(document.getElementById('progSlots').value, 10),
-    session: document.getElementById('progSession').value
+    session: document.getElementById('progSession').value,
+    cepPoints: document.getElementById('cepPoints').value
   };
 
   const programsRef = ref(database, `users/${userId}/Program`);
@@ -415,11 +422,43 @@ function loadProgramList() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${data.title || '-'}</td>
+          <td>${data.cepPoints || '-'}</td>
           <td>${data.state || '-'}</td>
           <td>${data.venue || '-'}</td>
           <td>${formatDate(data.dates?.split(" to ")[0])} to ${formatDate(data.dates?.split(" to ")[1])}</td>
           <td>${Object.keys(data.participants || {}).length} / ${data.slots || '-'}</td>
           <td><button onclick="manageParticipants('${key}')">Participants</button></td>
+          <td>
+    <button onclick="toggleFeeForm('${key}')">Fee</button>
+    <div id="feeForm-${key}" style="display:none; margin-top:10px; border: 1px solid #ccc; padding: 8px; background: #f9f9f9; border-radius: 6px;">
+      <select id="feeCategory-${key}" style="margin-bottom:5px; width: 80%;">
+        <option value="">Fee Category</option>
+        <option value="Competency">Competency</option>
+        <option value="Non Competency">Non Competency</option>
+        <option value="Refresher">Refresher</option>
+      </select>
+      <input type="number" id="feeAmount-${key}" placeholder="Amount (RM)" style="margin-bottom:5px; width: 70%;">
+      <select id="feeLabel-${key}" style="margin-bottom:5px; width: 80%;">
+        <option value="">Label</option>
+        <option value="Early Bird">Early Bird</option>
+        <option value="Standard">Standard</option>
+        <option value="Company Sponsored">Company Sponsored</option>
+      </select>
+      <select id="feeDeadlineType-${key}" style="margin-bottom:5px; width: 80%;">
+        <option value="">Deadline</option>
+        <option value="Paid On / Before">Paid On / Before</option>
+        <option value="Paid After">Paid After</option>
+      </select>
+      <input type="date" id="feeDeadlineDate-${key}" style="margin-bottom:5px; width: 70%;">
+      <select id="feeMethod-${key}" style="margin-bottom:5px; width: 80%;">
+        <option value="">Method</option>
+        <option value="Cash">Cash</option>
+        <option value="HRD Corp">HRD Corp</option>
+        <option value="Company Sponsored">Company Sponsored</option>
+      </select>
+      <button onclick="saveFeeToProgram('${key}')">Save Fee</button>
+    </div>
+  </td>
           <td><button onclick="editProgram('${key}')">Edit</button>
           <button onclick="deleteProgram('${key}')">Delete</button></td>
         `;
@@ -428,6 +467,29 @@ function loadProgramList() {
     }
   });
 }
+
+window.saveFeeToProgram = function (programKey) {
+  const userId = "user1";
+
+  const fee = {
+    category: document.getElementById(`feeCategory-${programKey}`).value,
+    amount: parseFloat(document.getElementById(`feeAmount-${programKey}`).value),
+    label: document.getElementById(`feeLabel-${programKey}`).value,
+    deadlineType: document.getElementById(`feeDeadlineType-${programKey}`).value,
+    deadlineDate: document.getElementById(`feeDeadlineDate-${programKey}`).value,
+    method: document.getElementById(`feeMethod-${programKey}`).value,
+  };
+
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
+  get(progRef).then(snapshot => {
+    if (!snapshot.exists()) return alert("Program not found.");
+    const program = snapshot.val();
+    set(progRef, { ...program, fee }).then(() => {
+      alert("Fee structure saved.");
+      location.reload(); 
+    });
+  });
+};
 
 window.editProgram = function (key) {
   const userId = "user1";
@@ -438,6 +500,7 @@ window.editProgram = function (key) {
       currentEditKey = key; // 👈 Set this key
 
       document.getElementById('progTitle').value = data.title || "";
+      document.getElementById('cepPoints').value = data.cep || "";
       document.getElementById('progState').value = data.state || "";
       document.getElementById('progVenue').value = data.venue || "";
       const [start, end] = (data.dates || "").split(" to ");
@@ -451,7 +514,23 @@ window.editProgram = function (key) {
   });
 };
 
+window.toggleFeeForm = function (key) {
+  const form = document.getElementById(`feeForm-${key}`);
+  if (form.style.display === "none") {
+    form.style.display = "block";
+  } else {
+    form.style.display = "none";
+  }
+};
+
 window.manageParticipants = function (programKey) {
+  const container = document.getElementById("participantManager");
+
+  if (container.style.display === "block") {
+    container.style.display = "none"; // ✅ hide on second click
+    return;
+  }
+
   const userId = "user1";
   const progRef = ref(database, `users/${userId}/Program/${programKey}`);
 
@@ -464,7 +543,6 @@ window.manageParticipants = function (programKey) {
     const participantKeys = Object.keys(participants);
     const remaining = maxSlots - participantKeys.length;
 
-    const container = document.getElementById("participantManager");
     container.style.display = "block";
 
     let html = `<h3>Participants for: ${data.title}</h3><ul id="participantList">`;
