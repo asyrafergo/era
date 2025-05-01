@@ -193,19 +193,26 @@ function loadProgramToPage(program) {
     `${formatDateRange(program.dates)}, ${program.venue}`;
 
   // Populate fee options
-  const feeSelect = document.getElementById("fee");
-  feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
+const feeSelect = document.getElementById("fee");
+feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
 
-  for (const key in program) {
-    if (key.startsWith("fee") && typeof program[key] === "object") {
-      const fee = program[key];
-      const text = `RM${fee.amount} - ${fee.category} / ${fee.label} / ${fee.deadlineType} ${formatDeadline(fee.deadlineDate)} / ${fee.method}`;
-      const option = document.createElement("option");
-      option.value = `rm${fee.amount}`;
-      option.textContent = text;
-      feeSelect.appendChild(option);
-    }
+Object.entries(program).forEach(([key, fee]) => {
+  if (key.startsWith("fee") && typeof fee === "object") {
+    const amount = fee.amount ?? "-";
+    const category = fee.category ?? "-";
+    const label = fee.label ? ` / ${fee.label}` : "";
+    const deadlineType = fee.deadlineType ?? "";
+    const deadlineDate = fee.deadlineDate ? formatDeadline(fee.deadlineDate) : "";
+    const method = fee.method ? ` / ${fee.method}` : "";
+
+    const displayText = `RM${amount} - ${category}${label} / ${deadlineType} ${deadlineDate}${method}`;
+
+    const option = document.createElement("option");
+    option.value = `rm${amount}`;
+    option.textContent = displayText;
+    feeSelect.appendChild(option);
   }
+});
 }
 
 function watchForProgramUpdates() {
