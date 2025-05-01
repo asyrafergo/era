@@ -155,50 +155,66 @@
     </form>
   </div>
 
-  <script>
-  function formatReadableDate(dates) {
-    if (!dates.includes(" to ")) return dates;
-    const [startStr, endStr] = dates.split(" to ");
-    const start = new Date(startStr);
-    const end = new Date(endStr);
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    const day1 = start.getDate();
-    const day2 = end.getDate();
-    const month = end.toLocaleString('en-US', { month: 'long' });
-    const year = end.getFullYear();
+const firebaseConfig = {
+  apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
+  authDomain: "ergo-1140d.firebaseapp.com",
+  databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ergo-1140d",
+  storageBucket: "ergo-1140d.appspot.com",
+  messagingSenderId: "139659476541",
+  appId: "1:139659476541:web:78fd5c1593fae30f747454",
+  measurementId: "G-NNGVRF3E5D"
+};
 
-    return `${day1}–${day2} ${month} ${year}`;
-  }
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  function loadProgramFromParams() {
-    const params = new URLSearchParams(window.location.search);
-    const title = params.get("title") || "Program Title";
-    const dates = params.get("dates") || "";
-    const venue = params.get("venue") || "";
-    const feeJSON = params.get("fee");
+function formatDateRange(dates) {
+  const [startStr, endStr] = dates.split(" to ");
+  const start = new Date(startStr);
+  const end = new Date(endStr);
 
-    document.getElementById("programTitle").textContent = title;
-    document.getElementById("programDetails").textContent = `${formatReadableDate(dates)}, ${venue}`;
+  const day1 = start.getDate();
+  const day2 = end.getDate();
+  const month = end.toLocaleString('en-US', { month: 'long' });
+  const year = end.getFullYear();
 
-    // Populate fee dropdown
-    const feeSelect = document.getElementById("fee");
-    feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
+  return `${day1}–${day2} ${month} ${year}`;
+}
 
-    if (feeJSON) {
-      try {
-        const fee = JSON.parse(feeJSON);
-        const option = document.createElement("option");
-        const deadlineDate = new Date(fee.deadlineDate).toLocaleDateString("en-GB");
-        option.value = `rm${fee.amount}`;
-        option.textContent = `RM${fee.amount} - ${fee.label} (${fee.deadlineType} ${deadlineDate})`;
-        feeSelect.appendChild(option);
-      } catch (e) {
-        console.error("Invalid fee data:", e);
-      }
-    }
-  }
+function formatDeadline(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
-  document.addEventListener("DOMContentLoaded", loadProgramFromParams);
+async function loadLatestProgram() {
+  const programRef = ref(db, 'users/user1/Program');
+  const snapshot = await get(programRef);
+
+  if (!snapshot.exists()) return;
+
+  const programs = snapshot.val();
+  const keys = Object.keys(programs).sort(); // Sort to get latest (e.g. program1 < program3)
+
+  const latestKey = keys[keys.length - 1];
+  const program = programs[latestKey];
+
+  // Set title and subtitle
+  document.getElementById("programTitle").textContent = program.title || "Program Title";
+  <h1 id="programTitle">Program Title</h1>
+<div class="subtitle" id="programDetails">Loading details...</div>
+
+  // Populate fee options
+  <select id="fee" name="fee" required>
+  <option value="">-- Please Select --</option>
+</select>
+
+
+document.addEventListener("DOMContentLoaded", loadLatestProgram);
 </script>
 
 </body>
