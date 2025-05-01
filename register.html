@@ -280,40 +280,48 @@ const departmentDropdown = document.getElementById('department');
 const taskDropdown = document.getElementById('task');
 
 function loadCompanies() {
-  const companies = JSON.parse(localStorage.getItem('companies')) || {};
+  const userId = "user1"; // or sessionStorage.getItem("username")
+  const companiesRef = ref(database, `users/${userId}/ListCompany`);
   companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
 
-  Object.keys(companies).forEach(companyName => {
-    const option = document.createElement('option');
-    option.value = companyName;
-    option.textContent = companyName;
-    companyDropdown.appendChild(option);
+  get(companiesRef).then(snapshot => {
+    if (snapshot.exists()) {
+      const companies = snapshot.val();
+      Object.entries(companies).forEach(([key, company]) => {
+        const option = document.createElement('option');
+        option.value = key; // e.g. "ListCompany1"
+        option.textContent = company.name;
+        companyDropdown.appendChild(option);
+      });
+    }
   });
 }
 
+
 // Load Departments and Tasks
 window.loadDepartmentsAndTasks = function () {
-  const selectedCompany = companyDropdown.value;
-  const companies = JSON.parse(localStorage.getItem('companies')) || {};
-  const companyData = companies[selectedCompany];
+  const userId = "user1";
+  const companyKey = companyDropdown.value;
 
-  console.log("Data successfully loaded from localStorage:");
-  console.log(JSON.stringify(companies, null, 2));
+  if (!companyKey) return;
 
-  // Load Departments
-  departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
-  if (companyData && companyData.departments) {
-    companyData.departments.forEach(dept => {
+  const companyRef = ref(database, `users/${userId}/ListCompany/${companyKey}`);
+  get(companyRef).then(snapshot => {
+    const companyData = snapshot.val();
+
+    // Populate departments
+    departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
+    (companyData.departments || []).forEach(dept => {
       const option = document.createElement('option');
       option.value = dept;
       option.textContent = dept;
       departmentDropdown.appendChild(option);
     });
-  }
 
-  // Clear Tasks when company changes
-  taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
-};
+    // Clear tasks on company change
+    taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+  });
+}
 
     // Reload this page if localStorage is changed from another tab/window
 window.addEventListener('storage', (event) => {
@@ -322,28 +330,24 @@ window.addEventListener('storage', (event) => {
   }
 });
 
-
 departmentDropdown.onchange = function () {
-  const selectedCompany = companyDropdown.value;
+  const userId = "user1";
+  const companyKey = companyDropdown.value;
   const selectedDept = departmentDropdown.value;
-  const companies = JSON.parse(localStorage.getItem('companies')) || {};
-  const companyData = companies[selectedCompany];
 
-  // Clear and reset task dropdown
-  taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
+  const companyRef = ref(database, `users/${userId}/ListCompany/${companyKey}`);
+  get(companyRef).then(snapshot => {
+    const companyData = snapshot.val();
+    const tasks = companyData.tasks?.[selectedDept] || [];
 
-  // Load tasks for selected department
-  if (companyData && companyData.tasks && companyData.tasks[selectedDept]) {
-    const tasks = companyData.tasks[selectedDept]; // Array of task names for the selected department
+    taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
     tasks.forEach(task => {
       const option = document.createElement('option');
       option.value = task;
-      option.textContent = task; // Display task name
+      option.textContent = task;
       taskDropdown.appendChild(option);
     });
-  } else {
-    console.warn(`No tasks found for department: ${selectedDept}`);
-  }
+  });
 };
 
 // Trigger the loadDepartmentsAndTasks function when the page loads or a company is selected
