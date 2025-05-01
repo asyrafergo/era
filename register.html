@@ -144,7 +144,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, get, set, child, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
 
     const firebaseConfig = {
@@ -280,16 +280,16 @@ const departmentDropdown = document.getElementById('department');
 const taskDropdown = document.getElementById('task');
 
 function loadCompanies() {
-  const userId = "user1"; // or sessionStorage.getItem("username")
+  const userId = "user1"; // Or: sessionStorage.getItem("username")
   const companiesRef = ref(database, `users/${userId}/ListCompany`);
-  companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
 
-  get(companiesRef).then(snapshot => {
+  onValue(companiesRef, (snapshot) => {
+    companyDropdown.innerHTML = '<option value="">-- Select Company --</option>';
     if (snapshot.exists()) {
       const companies = snapshot.val();
       Object.entries(companies).forEach(([key, company]) => {
         const option = document.createElement('option');
-        option.value = key; // e.g. "ListCompany1"
+        option.value = key;
         option.textContent = company.name;
         companyDropdown.appendChild(option);
       });
@@ -298,27 +298,23 @@ function loadCompanies() {
 }
 
 
+
 // Load Departments and Tasks
 window.loadDepartmentsAndTasks = function () {
   const userId = "user1";
   const companyKey = companyDropdown.value;
-
-  if (!companyKey) return;
-
   const companyRef = ref(database, `users/${userId}/ListCompany/${companyKey}`);
-  get(companyRef).then(snapshot => {
-    const companyData = snapshot.val();
 
-    // Populate departments
+  onValue(companyRef, (snapshot) => {
+    const companyData = snapshot.val();
     departmentDropdown.innerHTML = '<option value="">-- Select Department --</option>';
-    (companyData.departments || []).forEach(dept => {
+    (companyData?.departments || []).forEach(dept => {
       const option = document.createElement('option');
       option.value = dept;
       option.textContent = dept;
       departmentDropdown.appendChild(option);
     });
 
-    // Clear tasks on company change
     taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
   });
 }
@@ -334,9 +330,9 @@ departmentDropdown.onchange = function () {
   const userId = "user1";
   const companyKey = companyDropdown.value;
   const selectedDept = departmentDropdown.value;
-
   const companyRef = ref(database, `users/${userId}/ListCompany/${companyKey}`);
-  get(companyRef).then(snapshot => {
+
+  onValue(companyRef, (snapshot) => {
     const companyData = snapshot.val();
     const tasks = companyData.tasks?.[selectedDept] || [];
 
