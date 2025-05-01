@@ -104,10 +104,8 @@
 
   <div class="form-container">
     <h1>Registration</h1>
-    <h1>Ergonomic Trained Person - Initial ERA</h1>
-    <div class="subtitle">
-      26–27 April 2025, Northern Ergonomics Solutions PLT, Jitra
-    </div>
+    <h1 id="programTitle">Program Title</h1>
+<div class="subtitle" id="programDetails">Loading details...</div>
 
     <div class="details">
       <p><strong>Description:</strong> This is a competency course for those who are not yet competent and a refresher course for those already competent.</p>
@@ -132,12 +130,8 @@
 
       <label for="fee">Select Your Fee Option</label>
       <select id="fee" name="fee" required>
-        <option value="">-- Please Select --</option>
-        <option value="rm900">RM900 - Self Sponsored (Paid by 20 April 2025)</option>
-        <option value="rm1100">RM1100 - Company Sponsored / Paid After 20 April 2025</option>
-        <option value="rm500">RM500 - Refresher (Paid by 25 March 2025)</option>
-        <option value="rm700">RM700 - Refresher (Paid After 25 March 2025 or SBL Khas)</option>
-      </select>
+  <option value="">-- Please Select --</option>
+</select>
 
       <label for="receipt">Upload Your Payment Receipt (Max 5 files, 10MB each)</label>
       <input type="file" id="receipt" name="receipt" multiple accept=".pdf,.jpg,.jpeg,.png" />
@@ -160,6 +154,52 @@
       <button type="submit">Submit Registration</button>
     </form>
   </div>
+
+  <script>
+  function formatReadableDate(dates) {
+    if (!dates.includes(" to ")) return dates;
+    const [startStr, endStr] = dates.split(" to ");
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+
+    const day1 = start.getDate();
+    const day2 = end.getDate();
+    const month = end.toLocaleString('en-US', { month: 'long' });
+    const year = end.getFullYear();
+
+    return `${day1}–${day2} ${month} ${year}`;
+  }
+
+  function loadProgramFromParams() {
+    const params = new URLSearchParams(window.location.search);
+    const title = params.get("title") || "Program Title";
+    const dates = params.get("dates") || "";
+    const venue = params.get("venue") || "";
+    const feeJSON = params.get("fee");
+
+    document.getElementById("programTitle").textContent = title;
+    document.getElementById("programDetails").textContent = `${formatReadableDate(dates)}, ${venue}`;
+
+    // Populate fee dropdown
+    const feeSelect = document.getElementById("fee");
+    feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
+
+    if (feeJSON) {
+      try {
+        const fee = JSON.parse(feeJSON);
+        const option = document.createElement("option");
+        const deadlineDate = new Date(fee.deadlineDate).toLocaleDateString("en-GB");
+        option.value = `rm${fee.amount}`;
+        option.textContent = `RM${fee.amount} - ${fee.label} (${fee.deadlineType} ${deadlineDate})`;
+        feeSelect.appendChild(option);
+      } catch (e) {
+        console.error("Invalid fee data:", e);
+      }
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadProgramFromParams);
+</script>
 
 </body>
 </html>
