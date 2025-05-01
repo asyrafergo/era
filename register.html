@@ -315,6 +315,13 @@ window.loadDepartmentsAndTasks = function () {
   taskDropdown.innerHTML = '<option value="">-- Select Task --</option>';
 };
 
+    // Reload this page if localStorage is changed from another tab/window
+window.addEventListener('storage', (event) => {
+  if (event.key === 'companies') {
+    location.reload();
+  }
+});
+
 
 departmentDropdown.onchange = function () {
   const selectedCompany = companyDropdown.value;
