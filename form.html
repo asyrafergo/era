@@ -192,16 +192,20 @@ function loadProgramToPage(program) {
   document.getElementById("programDetails").textContent =
     `${formatDateRange(program.dates)}, ${program.venue}`;
 
-  // Populate fee options in order: fee1, fee2, fee3, ...
+  // Populate fee options in strict order: fee1, fee2, fee3, ...
   const feeSelect = document.getElementById("fee");
   feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
 
   let index = 1;
   while (true) {
     const feeKey = `fee${index}`;
-    const fee = program[feeKey];
+    if (!(feeKey in program)) break;
 
-    if (!fee) break; // Stop when no more feeN
+    const fee = program[feeKey];
+    if (typeof fee !== "object") {
+      index++;
+      continue;
+    }
 
     const amount = fee.amount ?? "-";
     const category = fee.category ?? "-";
