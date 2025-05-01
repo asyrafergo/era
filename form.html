@@ -225,35 +225,31 @@ function loadProgramToPage(program) {
   }
 }
 
-function watchForProgramUpdates() {
-  const programRef = ref(db, 'users/user1/Program');
-  onValue(programRef, (snapshot) => {
-    if (!snapshot.exists()) return;
-
-    const programs = snapshot.val();
-    const keys = Object.keys(programs).sort();
-    const latestKey = keys[keys.length - 1];
-    const program = programs[latestKey];
-
-    const newTitle = program.title || "Program Title";
-    const newDetails = `${formatDateRange(program.dates)}, ${program.venue}`;
-    const currentTitle = document.getElementById("programTitle").textContent;
-    const currentDetails = document.getElementById("programDetails").textContent;
-
-    if (!hasLoaded) {
-      hasLoaded = true;
-      loadProgramToPage(program);
-    } else {
-      const hasChanged = newTitle !== currentTitle || newDetails !== currentDetails;
-      if (hasChanged) {
-        location.reload();
-      }
-    }
-  });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  watchForProgramUpdates();
+  const urlParams = new URLSearchParams(window.location.search);
+  const programKey = urlParams.get("programKey");
+
+  if (!programKey) {
+    document.getElementById("programTitle").textContent = "Program Not Found";
+    document.getElementById("programDetails").textContent = "No program key provided.";
+    return;
+  }
+
+  const dbRef = ref(db, `users/user1/Program/${programKey}`);
+  get(dbRef).then(snapshot => {
+    if (!snapshot.exists()) {
+      document.getElementById("programTitle").textContent = "Program Not Found";
+      document.getElementById("programDetails").textContent = "Program data could not be loaded.";
+      return;
+    }
+
+    const program = snapshot.val();
+    loadProgramToPage(program);
+  }).catch(err => {
+    console.error(err);
+    document.getElementById("programTitle").textContent = "Error Loading Program";
+    document.getElementById("programDetails").textContent = "An error occurred.";
+  });
 });
 
 </script>
