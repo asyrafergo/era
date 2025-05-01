@@ -194,35 +194,37 @@ function loadProgramToPage(program) {
 
   // Populate fee options in strict order: fee1, fee2, fee3, ...
   const feeSelect = document.getElementById("fee");
-  feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
+feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
 
-  let index = 1;
-  while (true) {
-    const feeKey = `fee${index}`;
-    if (!(feeKey in program)) break;
+const fees = program.Fee || {};
+let index = 1;
 
-    const fee = program[feeKey];
-    if (typeof fee !== "object") {
-      index++;
-      continue;
-    }
+while (true) {
+  const feeKey = `fee${index}`;
+  if (!(feeKey in fees)) break;
 
-    const amount = fee.amount ?? "-";
-    const category = fee.category ?? "-";
-    const label = fee.label ? ` / ${fee.label}` : "";
-    const deadlineType = fee.deadlineType ?? "";
-    const deadlineDate = fee.deadlineDate ? formatDeadline(fee.deadlineDate) : "";
-    const method = fee.method ? ` / ${fee.method}` : "";
-
-    const text = `RM${amount} - ${category}${label} / ${deadlineType} ${deadlineDate}${method}`;
-
-    const option = document.createElement("option");
-    option.value = `rm${amount}`;
-    option.textContent = text;
-    feeSelect.appendChild(option);
-
+  const fee = fees[feeKey];
+  if (typeof fee !== "object") {
     index++;
+    continue;
   }
+
+  const amount = fee.amount ?? "-";
+  const category = fee.category ?? "-";
+  const label = fee.label ? ` / ${fee.label}` : "";
+  const deadlineType = fee.deadlineType ?? "";
+  const deadlineDate = fee.deadlineDate ? formatDeadline(fee.deadlineDate) : "";
+  const method = fee.method ? ` / ${fee.method}` : "";
+
+  const text = `RM${amount} - ${category}${label} / ${deadlineType} ${deadlineDate}${method}`;
+
+  const option = document.createElement("option");
+  option.value = `rm${amount}`;
+  option.textContent = text;
+  feeSelect.appendChild(option);
+
+  index++;
+}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
