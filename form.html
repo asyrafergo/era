@@ -105,12 +105,7 @@
   <div class="form-container">
     <h1>Registration</h1>
     <h1 id="programTitle">Program Title</h1>
-<div class="subtitle" id="programDetails">Loading details...</div>
-
-    <div class="details">
-      <p><strong>Description:</strong> This is a competency course for those who are not yet competent and a refresher course for those already competent.</p>
-      <p><strong>CEP Points:</strong> 10 (based on CEP guidelines)</p>
-    </div>
+<div class="subtitle" id="programDetails">Loading details...</div
 
     <form>
       <label for="name">Your Full Name</label>
@@ -193,7 +188,27 @@ function formatDeadline(dateStr) {
 
 async function loadLatestProgram() {
   const programRef = ref(db, 'users/user1/Program');
-  const snapshot = await get(programRef);
+  import { onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+onValue(programRef, (snapshot) => {
+  if (!snapshot.exists()) return;
+
+  const programs = snapshot.val();
+  const keys = Object.keys(programs).sort(); // Get latest
+  const latestKey = keys[keys.length - 1];
+  const program = programs[latestKey];
+
+  // Reload page only if changes are different from current display
+  const newTitle = program.title || "Program Title";
+  const newDetails = `${formatDateRange(program.dates)}, ${program.venue}`;
+  const currentTitle = document.getElementById("programTitle").textContent;
+  const currentDetails = document.getElementById("programDetails").textContent;
+
+  const hasChanged = newTitle !== currentTitle || newDetails !== currentDetails;
+  if (hasChanged) {
+    location.reload(); // 🔁 Reload page
+  }
+});
 
   if (!snapshot.exists()) return;
 
@@ -223,7 +238,33 @@ async function loadLatestProgram() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadLatestProgram);
+    function watchForProgramUpdates() {
+  const programRef = ref(db, 'users/user1/Program');
+  onValue(programRef, (snapshot) => {
+    if (!snapshot.exists()) return;
+
+    const programs = snapshot.val();
+    const keys = Object.keys(programs).sort();
+    const latestKey = keys[keys.length - 1];
+    const program = programs[latestKey];
+
+    const newTitle = program.title || "Program Title";
+    const newDetails = `${formatDateRange(program.dates)}, ${program.venue}`;
+    const currentTitle = document.getElementById("programTitle").textContent;
+    const currentDetails = document.getElementById("programDetails").textContent;
+
+    const hasChanged = newTitle !== currentTitle || newDetails !== currentDetails;
+    if (hasChanged) {
+      location.reload(); // 🔁 Force refresh
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadLatestProgram();
+  watchForProgramUpdates(); // 👈 Add this
+});
+
 </script>
 
 </body>
