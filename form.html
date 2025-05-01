@@ -198,21 +198,30 @@ async function loadLatestProgram() {
   if (!snapshot.exists()) return;
 
   const programs = snapshot.val();
-  const keys = Object.keys(programs).sort(); // Sort to get latest (e.g. program1 < program3)
-
+  const keys = Object.keys(programs).sort(); // Sort to get latest
   const latestKey = keys[keys.length - 1];
   const program = programs[latestKey];
 
-  // Set title and subtitle
+  // Set program title and details
   document.getElementById("programTitle").textContent = program.title || "Program Title";
-  <h1 id="programTitle">Program Title</h1>
-<div class="subtitle" id="programDetails">Loading details...</div>
+  document.getElementById("programDetails").textContent =
+    `${formatDateRange(program.dates)}, ${program.venue}`;
 
   // Populate fee options
-  <select id="fee" name="fee" required>
-  <option value="">-- Please Select --</option>
-</select>
+  const feeSelect = document.getElementById("fee");
+  feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
 
+  for (const key in program) {
+    if (key.startsWith("fee") && typeof program[key] === "object") {
+      const fee = program[key];
+      const text = `RM${fee.amount} - ${fee.category} / ${fee.label} / ${fee.deadlineType} ${formatDeadline(fee.deadlineDate)} / ${fee.method}`;
+      const option = document.createElement("option");
+      option.value = `rm${fee.amount}`;
+      option.textContent = text;
+      feeSelect.appendChild(option);
+    }
+  }
+}
 
 document.addEventListener("DOMContentLoaded", loadLatestProgram);
 </script>
