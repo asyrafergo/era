@@ -335,20 +335,7 @@ const cep = (cepRaw !== "CEP 0" && cepRaw !== "")
 }
 
 function register(programKey) {
-  const dbRef = ref(db, `users/user1/Program/${programKey}`);
-  get(dbRef).then(snapshot => {
-    if (!snapshot.exists()) return alert("Program not found.");
-    const data = snapshot.val();
-
-    const params = new URLSearchParams({
-      title: data.title || "",
-      dates: data.dates || "",
-      venue: data.venue || "",
-      fee: JSON.stringify(data.fee || {})
-    });
-
-    window.location.href = `https://asyrafergo.github.io/era/form.html?${params.toString()}`;
-  });
+  window.location.href = `https://asyrafergo.github.io/era/form.html?programKey=${programKey}`;
 }
 
 function loadPrograms() {
