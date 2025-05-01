@@ -562,13 +562,69 @@ function loadProgramList() {
           <button onclick="deleteProgram('${key}')">Delete</button></td>
         `;
         tableBody.appendChild(tr);
+
+        if (data.Fee) {
+          const feeWrapper = document.createElement("div");
+feeWrapper.id = `feeList-${key}`;
+feeWrapper.style.display = "none"; // hidden by default
+
+const feeTable = document.createElement("table");
+feeTable.style.marginTop = "10px";
+feeTable.style.borderCollapse = "collapse";
+feeTable.style.width = "90%";
+feeTable.style.margin = "10px auto";
+feeTable.style.backgroundColor = "#f0f4f8";
+feeTable.style.borderRadius = "8px";
+feeTable.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.1)";
+feeTable.innerHTML = `
+  <thead style="background-color: #1976d2; color: white;">
+    <tr>
+      <th>Category</th>
+      <th>Amount (RM)</th>
+      <th>Label</th>
+      <th>Deadline Type</th>
+      <th>Deadline Date</th>
+      <th>Method</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${Object.entries(data.Fee).map(([feeId, fee]) => `
+      <tr style="background-color: white; border-top: 1px solid #ddd;">
+        <td>${fee.category || '-'}</td>
+        <td>${fee.amount || '-'}</td>
+        <td>${fee.label || '-'}</td>
+        <td>${fee.deadlineType || '-'}</td>
+        <td>${fee.deadlineDate || '-'}</td>
+        <td>${fee.method || '-'}</td>
+        <td>
+          <button onclick="editFee('${key}', '${feeId}')" style="margin-right:5px; background:#4caf50; color:white; border:none; padding:4px 8px; border-radius:4px;">Edit</button>
+          <button onclick="deleteFee('${key}', '${feeId}')" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px;">Remove</button>
+        </td>
+      </tr>
+    `).join("")}
+  </tbody>
+`;
+
+feeWrapper.appendChild(feeTable);
+
+const feeRow = document.createElement("tr");
+const feeCell = document.createElement("td");
+feeCell.colSpan = 10;
+feeCell.appendChild(feeWrapper);
+feeRow.appendChild(feeCell);
+tableBody.appendChild(feeRow);
+}
       });
     }
   });
 }
 
+let editingFeeId = null; // Global variable to track editing
+
 window.saveFeeToProgram = function (programKey) {
   const userId = "user1";
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
 
   const fee = {
     category: document.getElementById(`feeCategory-${programKey}`).value,
@@ -579,16 +635,24 @@ window.saveFeeToProgram = function (programKey) {
     method: document.getElementById(`feeMethod-${programKey}`).value,
   };
 
-  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
   get(progRef).then(snapshot => {
     if (!snapshot.exists()) return alert("Program not found.");
     const program = snapshot.val();
-    set(progRef, { ...program, fee }).then(() => {
-      alert("Fee structure saved.");
-      location.reload(); 
+    const Fee = program.Fee || {};
+
+    const feeId = editingFeeId || `fee${Date.now()}`;
+    Fee[feeId] = fee;
+
+    set(progRef, { ...program, Fee }).then(() => {
+      alert(editingFeeId ? "Fee updated." : "Fee added.");
+      editingFeeId = null;
+      clearFeeForm(programKey);
+      loadProgramList(); // Refresh fee display
+      location.reload();
     });
   });
 };
+
 
 window.editProgram = function (key) {
   const userId = "user1";
@@ -613,14 +677,66 @@ window.editProgram = function (key) {
   });
 };
 
-window.toggleFeeForm = function (key) {
-  const form = document.getElementById(`feeForm-${key}`);
-  if (form.style.display === "none") {
-    form.style.display = "block";
-  } else {
-    form.style.display = "none";
+window.toggleFeeForm = function(programKey) {
+  const formDiv = document.getElementById(`feeForm-${programKey}`);
+  const feeListDiv = document.getElementById(`feeList-${programKey}`);
+  const isVisible = formDiv.style.display === 'block';
+
+  formDiv.style.display = isVisible ? 'none' : 'block';
+  if (feeListDiv) {
+    feeListDiv.style.display = isVisible ? 'none' : 'block';
   }
 };
+
+
+window.deleteFee = function (programKey, feeId) {
+  const progRef = ref(database, `users/user1/Program/${programKey}`);
+  get(progRef).then(snapshot => {
+    const program = snapshot.val();
+    if (program.Fee && program.Fee[feeId]) {
+      delete program.Fee[feeId];
+      set(progRef, program).then(() => {
+        alert("Fee removed.");
+        loadProgramList(); // refresh
+      });
+    }
+  });
+};
+
+window.editFee = function (programKey, feeId) {
+  const userId = "user1";
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
+
+  get(progRef).then(snapshot => {
+    if (!snapshot.exists()) return;
+
+    const fee = snapshot.val().Fee?.[feeId];
+    if (!fee) return;
+
+    document.getElementById(`feeCategory-${programKey}`).value = fee.category || '';
+    document.getElementById(`feeAmount-${programKey}`).value = fee.amount || '';
+    document.getElementById(`feeLabel-${programKey}`).value = fee.label || '';
+    document.getElementById(`feeDeadlineType-${programKey}`).value = fee.deadlineType || '';
+    document.getElementById(`feeDeadlineDate-${programKey}`).value = fee.deadlineDate || '';
+    document.getElementById(`feeMethod-${programKey}`).value = fee.method || '';
+
+    editingFeeId = feeId;
+    document.getElementById(`feeForm-${programKey}`).style.display = 'block';
+    const feeList = document.getElementById(`feeList-${programKey}`);
+    if (feeList) feeList.style.display = 'block';
+
+    alert(`Now editing fee: ${fee.category} (${feeId})`);
+  });
+};
+
+function clearFeeForm(programKey) {
+  document.getElementById(`feeCategory-${programKey}`).value = '';
+  document.getElementById(`feeAmount-${programKey}`).value = '';
+  document.getElementById(`feeLabel-${programKey}`).value = '';
+  document.getElementById(`feeDeadlineType-${programKey}`).value = '';
+  document.getElementById(`feeDeadlineDate-${programKey}`).value = '';
+  document.getElementById(`feeMethod-${programKey}`).value = '';
+}
 
 window.manageParticipants = function (programKey) {
   const container = document.getElementById("participantManager");
@@ -919,7 +1035,7 @@ function deleteDepartment(index) {
       alert("Department deleted.");
       loadDepartments();
       renderCompanyList();
-      location.reload
+      location.reload();
     });
   });
 }
@@ -972,7 +1088,7 @@ function deleteTask(index) {
       alert("Task deleted.");
       loadTasks();
       renderCompanyList();
-      location.reload
+      location.reload();
     });
   });
 }
