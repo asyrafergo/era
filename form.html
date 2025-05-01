@@ -152,7 +152,7 @@
 
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, get, onValue  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
@@ -168,16 +168,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+let hasLoaded = false;
+
 function formatDateRange(dates) {
   const [startStr, endStr] = dates.split(" to ");
   const start = new Date(startStr);
   const end = new Date(endStr);
-
   const day1 = start.getDate();
   const day2 = end.getDate();
   const month = end.toLocaleString('en-US', { month: 'long' });
   const year = end.getFullYear();
-
   return `${day1}–${day2} ${month} ${year}`;
 }
 
@@ -186,37 +186,7 @@ function formatDeadline(dateStr) {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-async function loadLatestProgram() {
-  const programRef = ref(db, 'users/user1/Program');
-  import { onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-onValue(programRef, (snapshot) => {
-  if (!snapshot.exists()) return;
-
-  const programs = snapshot.val();
-  const keys = Object.keys(programs).sort(); // Get latest
-  const latestKey = keys[keys.length - 1];
-  const program = programs[latestKey];
-
-  // Reload page only if changes are different from current display
-  const newTitle = program.title || "Program Title";
-  const newDetails = `${formatDateRange(program.dates)}, ${program.venue}`;
-  const currentTitle = document.getElementById("programTitle").textContent;
-  const currentDetails = document.getElementById("programDetails").textContent;
-
-  const hasChanged = newTitle !== currentTitle || newDetails !== currentDetails;
-  if (hasChanged) {
-    location.reload(); // 🔁 Reload page
-  }
-});
-
-  if (!snapshot.exists()) return;
-
-  const programs = snapshot.val();
-  const keys = Object.keys(programs).sort(); // Sort to get latest
-  const latestKey = keys[keys.length - 1];
-  const program = programs[latestKey];
-
+function loadProgramToPage(program) {
   // Set program title and details
   document.getElementById("programTitle").textContent = program.title || "Program Title";
   document.getElementById("programDetails").textContent =
@@ -238,7 +208,7 @@ onValue(programRef, (snapshot) => {
   }
 }
 
-    function watchForProgramUpdates() {
+function watchForProgramUpdates() {
   const programRef = ref(db, 'users/user1/Program');
   onValue(programRef, (snapshot) => {
     if (!snapshot.exists()) return;
@@ -253,16 +223,20 @@ onValue(programRef, (snapshot) => {
     const currentTitle = document.getElementById("programTitle").textContent;
     const currentDetails = document.getElementById("programDetails").textContent;
 
-    const hasChanged = newTitle !== currentTitle || newDetails !== currentDetails;
-    if (hasChanged) {
-      location.reload(); // 🔁 Force refresh
+    if (!hasLoaded) {
+      hasLoaded = true;
+      loadProgramToPage(program);
+    } else {
+      const hasChanged = newTitle !== currentTitle || newDetails !== currentDetails;
+      if (hasChanged) {
+        location.reload();
+      }
     }
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadLatestProgram();
-  watchForProgramUpdates(); // 👈 Add this
+  watchForProgramUpdates();
 });
 
 </script>
