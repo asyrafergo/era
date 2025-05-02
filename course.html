@@ -346,14 +346,28 @@ function loadPrograms() {
     if (!snapshot.exists()) return;
 
     const programs = snapshot.val();
-    Object.entries(programs).forEach(([key, program]) => {
-      createCourseCard(program, key);
+
+    // Convert object to array with keys
+    const programArray = Object.entries(programs).map(([key, program]) => ({
+      key,
+      ...program
+    }));
+
+    // Sort by earliest start date
+    programArray.sort((a, b) => {
+      const aDate = new Date(a.dates.split(" to ")[0]);
+      const bDate = new Date(b.dates.split(" to ")[0]);
+      return aDate - bDate;
+    });
+
+    // Render sorted courses
+    programArray.forEach(program => {
+      createCourseCard(program, program.key);
     });
   });
 }
 
 loadPrograms();
-
 
 // Show Home by default
 function showPage(pageId) {
