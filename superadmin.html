@@ -124,6 +124,7 @@
           <tbody></tbody>
         </table>
         <!-- Below Program List Section -->
+        <button onclick="hideProgramForm()">Hide Program</button>
 <button id="toggleProgramBtn" onclick="toggleProgramForm()">Add Program</button>
       </div>     
 
@@ -131,8 +132,7 @@
         <h2>Program Management</h2>
         <input type="text" id="progTitle" placeholder="Enter program title" required>
 
-        <label for="cepPoints">CEP Points</label>
-<select id="cepPoints" required>
+<select id="cepPoints">
   <option value="">-- Select CEP Points --</option>
   <option value="CEP 10">CEP 10</option>
   <option value="CEP 5">CEP 5</option>
@@ -418,13 +418,17 @@ function saveProgramToFirebase() {
   } else {
     // Add new program
     get(programsRef).then(snapshot => {
-      let count = 0;
-      if (snapshot.exists()) {
-        const programs = snapshot.val();
-        count = Object.keys(programs).length;
-      }
-
-      const newKey = `program${count + 1}`;
+      let newKey = "";
+if (snapshot.exists()) {
+  const programs = snapshot.val();
+  let i = 1;
+  while (programs[`program${i}`]) {
+    i++;
+  }
+  newKey = `program${i}`;
+} else {
+  newKey = "program1";
+}
       const newRef = ref(database, `users/${userId}/Program/${newKey}`);
 
       set(newRef, program)
@@ -655,6 +659,12 @@ window.saveFeeToProgram = function (programKey) {
 
 
 window.editProgram = function (key) {
+  // Set the flag in localStorage when the Edit button is clicked
+  localStorage.setItem("editingProgram", "true");
+
+  // Show the Program Management section immediately when Edit is clicked
+  document.getElementById('programManagementSection').style.display = 'block';
+
   const userId = "user1";
   const progRef = ref(database, `users/${userId}/Program/${key}`);
   get(progRef).then(snapshot => {
@@ -663,7 +673,7 @@ window.editProgram = function (key) {
       currentEditKey = key; // 👈 Set this key
 
       document.getElementById('progTitle').value = data.title || "";
-      document.getElementById('cepPoints').value = data.cep || "";
+      document.getElementById('cepPoints').value = data.cepPoints || "";
       document.getElementById('progState').value = data.state || "";
       document.getElementById('progVenue').value = data.venue || "";
       const [start, end] = (data.dates || "").split(" to ");
@@ -1057,9 +1067,24 @@ window.deleteProgram = function (key) {
 // Toggle for Program Management
 let isProgramFormVisible = false;
 function toggleProgramForm() {
-  isProgramFormVisible = !isProgramFormVisible;
-  document.getElementById('programManagementSection').style.display = isProgramFormVisible ? 'block' : 'none';
-  document.getElementById('toggleProgramBtn').textContent = isProgramFormVisible ? 'Hide Add Program' : 'Add Program';
+    const section = document.getElementById('programManagementSection');
+    if (!section) return;
+
+    if (isProgramFormVisible) {
+        section.style.display = 'none';
+    } else {
+        section.style.display = 'block';
+    }
+
+    isProgramFormVisible = !isProgramFormVisible;
+}
+
+function hideProgramForm() {
+    const section = document.getElementById('programManagementSection');
+    if (!section) return;
+
+    section.style.display = 'none';
+    isProgramFormVisible = false;
 }
 
 // Toggle for Company Management Group
@@ -1075,7 +1100,34 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('programManagementSection').style.display = 'none';
   document.getElementById('companyGroupSection').style.display = 'none';
   renderCompanyList();
+
+  const programSection = document.getElementById('programManagementSection');
+  if (programSection) programSection.style.display = 'none';
+
+  const addBtn = document.getElementById('toggleProgramBtn');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      // 🔥 Only runs when Add button is clicked
+      currentEditKey = null;
+      localStorage.removeItem("editingProgram");
+
+      const clearFields = ["progTitle", "progState", "progVenue", "progSlots", "progSession", "cepPoints"];
+      clearFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+
+      document.getElementById('startDate').value = '';
+      document.getElementById('endDate').value = '';
+
+      programSection.style.display = 'block';
+      isProgramFormVisible = true;
+
+      alert("Switched to Add Mode: Ready to enter a new program.");
+    });
+  }
 });
+
 
 function deleteTask(index) {
   const userId = "user1";
@@ -1134,6 +1186,7 @@ window.toggleCompanyGroup = toggleCompanyGroup;
 window.editCompany = editCompany;
 window.toggleCompanyEdit = toggleCompanyEdit;
 window.deleteCompanyEntry = deleteCompanyEntry;
+window.hideProgramForm = hideProgramForm;
 
 loadProgramList();
   </script>
