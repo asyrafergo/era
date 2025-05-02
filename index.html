@@ -150,7 +150,7 @@
           sessionStorage.setItem('status', userData.status || 'user');
           sessionStorage.setItem('company', userData.Company || '');
 
-          if (username === 'asyraf' && password === 'asyraf') {
+          if (userData.status === 'superadmin') {
             window.location.href = `https://asyrafergo.github.io/era/superadmin.html?username=${username}&password=${password}`;
             return;
           }
