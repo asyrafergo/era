@@ -171,26 +171,20 @@
   init("N3SdkmAQJM_0-7whu");
 
   // ✅ Define email sending function
-  window.sendGmailAlert = function(formData) {
-  console.log("📤 Attempting to send email with the following data:", formData);
-
-  // Optional: log each field for clarity
-  console.log("Name:", formData.name);
-  console.log("Email:", formData.email);
-  console.log("Phone:", formData.phone);
-  console.log("Company Name:", formData.companyName);
-
-
+  window.sendGmailAlert = function(formData, readableData) {
   send("service_593zdyf", "template_ovjeavl", {
     name: formData.name,
     email: formData.email,
     phone: formData.phone,
-    companyName: formData.companyName
+    companyName: formData.companyName,
+    fee: readableData.feeText,              // human-readable fee
+    programTitle: readableData.programTitle,
+    programDetails: readableData.programDetails
   })
   .then(() => {
-    console.log("✅ Email sent!");
+    console.log("Email sent!");
   }, (error) => {
-    console.error("❌ Email error:", error);
+    console.error("Email error:", error);
   });
 };
 
@@ -334,8 +328,17 @@ set(ref(db, `users/user1/ListRegistration/${registrationId}`), formData)
   // Hide resubmit after done
   document.getElementById("resubmitButton").style.display = "none";
 
-  // ✅ Send email alert
-  window.sendGmailAlert(formData);
+  const feeSelect = document.getElementById("fee");
+const selectedFeeOption = feeSelect.options[feeSelect.selectedIndex];
+const feeText = selectedFeeOption ? selectedFeeOption.textContent : "";
+
+const readableData = {
+  feeText: feeText,
+  programTitle: document.getElementById("programTitle").textContent,
+  programDetails: document.getElementById("programDetails").textContent
+};
+
+window.sendGmailAlert(formData, readableData);
 
       })
       .catch((error) => {
