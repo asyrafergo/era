@@ -105,7 +105,8 @@
   <div class="form-container">
     <h1>Registration</h1>
     <h1 id="programTitle">Program Title</h1>
-<div class="subtitle" id="programDetails">Loading details...</div
+<div class="subtitle" id="programDetails">Loading details...</div>
+<div id="registrationForm">
 
     <form>
       <label for="name">Your Full Name</label>
@@ -120,8 +121,11 @@
       <label for="phone">Your Telephone No</label>
       <input type="tel" id="phone" name="phone" required />
 
-      <label for="company">Your Company Name and Address</label>
-      <textarea id="company" name="company" rows="3" required></textarea>
+      <label for="companyName">Your Company Name</label>
+<input type="text" id="companyName" name="companyName" required />
+
+<label for="companyAddress">Your Company Address</label>
+<textarea id="companyAddress" name="companyAddress" rows="3" required></textarea>
 
       <label for="fee">Select Your Fee Option</label>
       <select id="fee" name="fee" required>
@@ -146,13 +150,21 @@
         <p>📧 <a href="mailto:NorthernErgonomicsSolutions@gmail.com">NorthernErgonomicsSolutions@gmail.com</a></p>
       </div>
 
-      <button type="submit">Submit Registration</button>
+      <button type="submit" id="submitButton">Submit Registration</button>
+      <button type="button" id="resubmitButton" style="display: none;">Resubmit Registration</button>
     </form>
+  </div>
+
+    <div id="confirmationMessage" style="display: none;">
+      <h2>Thank you for your registration! 😊</h2>
+      <p>The owner will email you back soon. If you made a mistake, you can edit your registration below.</p>
+      <button onclick="editRegistration()">Edit Registration</button>
+    </div>
   </div>
 
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, get, onValue  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, get, onValue, set  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
@@ -169,6 +181,8 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let hasLoaded = false;
+let latestRegistrationId = ""; // Will store the ID if editing
+let isEditing = false; // Tracks edit mode
 
 function formatDateRange(dates) {
   const [startStr, endStr] = dates.split(" to ");
@@ -246,6 +260,90 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 });
 
+document.querySelector("button[type='submit']").addEventListener("click", function(event) {
+  event.preventDefault(); // Prevent the default form submission
+
+  // Ask for confirmation before submitting
+  const confirmSubmit = confirm("Are you sure you want to submit the registration?");
+  if (!confirmSubmit) return; // Exit if not confirmed
+
+  // Collect form data
+  const formData = {
+    name: document.getElementById("name").value,
+    ic: document.getElementById("ic").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    companyName: document.getElementById("companyName").value,
+    companyAddress: document.getElementById("companyAddress").value,
+    fee: document.getElementById("fee").value,
+    receipt: document.getElementById("receipt").files, // Get file inputs if any
+  };
+
+  const userRef = ref(db, 'users/user1/ListRegistration');
+  
+  get(userRef).then((snapshot) => {
+
+    let registrationCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    const isNew = !latestRegistrationId;
+const registrationId = isNew ? `Registration${registrationCount + 1}` : latestRegistrationId;
+latestRegistrationId = registrationId; // Save it globally
+
+set(ref(db, `users/user1/ListRegistration/${registrationId}`), formData)
+      .then(() => {
+        // Hide the form and show the confirmation message
+        document.getElementById("registrationForm").style.display = "none";
+  document.getElementById("confirmationMessage").style.display = "block";
+
+  // Hide resubmit after done
+  document.getElementById("resubmitButton").style.display = "none";
+
+      })
+      .catch((error) => {
+        alert("Error submitting registration: " + error.message);
+      });
+  });
+});
+
+document.getElementById("resubmitButton").addEventListener("click", function () {
+  if (!latestRegistrationId) {
+    alert("No registration ID found to update.");
+    return;
+  }
+
+  const updatedData = {
+    name: document.getElementById("name").value,
+    ic: document.getElementById("ic").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    companyName: document.getElementById("companyName").value,
+    companyAddress: document.getElementById("companyAddress").value,
+    fee: document.getElementById("fee").value,
+    receipt: document.getElementById("receipt").files,
+  };
+
+  set(ref(db, `users/user1/ListRegistration/${latestRegistrationId}`), updatedData)
+    .then(() => {
+      alert("Registration updated!");
+      document.getElementById("registrationForm").style.display = "none";
+      document.getElementById("confirmationMessage").style.display = "block";
+    })
+    .catch((error) => {
+      alert("Update failed: " + error.message);
+    });
+});
+
+window.editRegistration = function () {
+  document.getElementById("registrationForm").style.display = "block";
+  document.getElementById("confirmationMessage").style.display = "none";
+
+  // Hide submit button, show resubmit during edit mode
+  document.getElementById("submitButton").style.display = "none";
+  document.getElementById("resubmitButton").style.display = "inline-block";
+
+  isEditing = true;
+};
+
+    window.editRegistration = editRegistration;
 </script>
 
 </body>
