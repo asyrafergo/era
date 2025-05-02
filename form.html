@@ -116,7 +116,7 @@
       <input type="text" id="ic" name="ic" required />
 
       <label for="email">Your Email</label>
-      <input type="email" id="email" name="email" required />
+      <input type="email" id="email" required>
 
       <label for="phone">Your Telephone No</label>
       <input type="tel" id="phone" name="phone" required />
@@ -163,8 +163,36 @@
   </div>
 
   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, get, onValue, set  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { init, send } from 'https://cdn.skypack.dev/@emailjs/browser';
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, get, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+  // ✅ Initialize EmailJS
+  init("N3SdkmAQJM_0-7whu");
+
+  // ✅ Define email sending function
+  window.sendGmailAlert = function(formData) {
+  console.log("📤 Attempting to send email with the following data:", formData);
+
+  // Optional: log each field for clarity
+  console.log("Name:", formData.name);
+  console.log("Email:", formData.email);
+  console.log("Phone:", formData.phone);
+  console.log("Company Name:", formData.companyName);
+
+
+  send("service_593zdyf", "template_ovjeavl", {
+    name: formData.name,
+    email: formData.email,
+    phone: formData.phone,
+    companyName: formData.companyName
+  })
+  .then(() => {
+    console.log("✅ Email sent!");
+  }, (error) => {
+    console.error("❌ Email error:", error);
+  });
+};
 
 const firebaseConfig = {
   apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
@@ -279,6 +307,15 @@ document.querySelector("button[type='submit']").addEventListener("click", functi
     receipt: document.getElementById("receipt").files, // Get file inputs if any
   };
 
+  function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+if (!isValidEmail(formData.email)) {
+  alert("Please enter a valid email address.");
+  return;
+}
+
   const userRef = ref(db, 'users/user1/ListRegistration');
   
   get(userRef).then((snapshot) => {
@@ -296,6 +333,9 @@ set(ref(db, `users/user1/ListRegistration/${registrationId}`), formData)
 
   // Hide resubmit after done
   document.getElementById("resubmitButton").style.display = "none";
+
+  // ✅ Send email alert
+  window.sendGmailAlert(formData);
 
       })
       .catch((error) => {
