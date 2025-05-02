@@ -159,6 +159,7 @@
       <h2>Thank you for your registration! 😊</h2>
       <p>The owner will email you back soon. If you made a mistake, you can edit your registration below.</p>
       <button onclick="editRegistration()">Edit Registration</button>
+      <button id="logoutButton">Logout</button>
     </div>
   </div>
 
@@ -221,6 +222,10 @@ function formatDeadline(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 }
+
+document.getElementById("logoutButton").addEventListener("click", function() {
+    window.location.href = "https://asyrafergo.github.io/era/course.html";
+  });
 
 function loadProgramToPage(program) {
   // Set program title and details
