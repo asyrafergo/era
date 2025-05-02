@@ -226,20 +226,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const dbRef = ref(db, `users/user1/Program/${programKey}`);
-  get(dbRef).then(snapshot => {
-    if (!snapshot.exists()) {
-      document.getElementById("programTitle").textContent = "Program Not Found";
-      document.getElementById("programDetails").textContent = "Program data could not be loaded.";
-      return;
-    }
+  onValue(dbRef, (snapshot) => {
+  if (!snapshot.exists()) {
+    document.getElementById("programTitle").textContent = "Program Not Found";
+    document.getElementById("programDetails").textContent = "Program data could not be loaded.";
+    return;
+  }
 
-    const program = snapshot.val();
-    loadProgramToPage(program);
-  }).catch(err => {
-    console.error(err);
-    document.getElementById("programTitle").textContent = "Error Loading Program";
-    document.getElementById("programDetails").textContent = "An error occurred.";
-  });
+  const program = snapshot.val();
+
+  // Only reload if data has changed (optional but safer)
+  if (hasLoaded) {
+    location.reload(); // This will reload the page on any detected update
+    return;
+  }
+
+  hasLoaded = true;
+  loadProgramToPage(program);
+});
 });
 
 </script>
