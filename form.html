@@ -190,41 +190,29 @@ function loadProgramToPage(program) {
   // Set program title and details
   document.getElementById("programTitle").textContent = program.title || "Program Title";
   document.getElementById("programDetails").textContent =
-    `${formatDateRange(program.dates)}, ${program.venue}`;
+    `${formatDateRange(program.dates)}, ${program.state}`;
 
-  // Populate fee options in strict order: fee1, fee2, fee3, ...
+  // Populate fee options
   const feeSelect = document.getElementById("fee");
-feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
+  feeSelect.innerHTML = '<option value="">-- Please Select --</option>';
 
-const fees = program.Fee || {};
-let index = 1;
+  const fees = program.Fee || {};
 
-while (true) {
-  const feeKey = `fee${index}`;
-  if (!(feeKey in fees)) break;
+  Object.entries(fees).forEach(([feeId, fee]) => {
+    const amount = fee.amount ?? "-";
+    const category = fee.category ?? "-";
+    const label = fee.label ? ` / ${fee.label}` : "";
+    const deadlineType = fee.deadlineType ?? "";
+    const deadlineDate = fee.deadlineDate ? formatDeadline(fee.deadlineDate) : "";
+    const method = fee.method ? ` / ${fee.method}` : "";
 
-  const fee = fees[feeKey];
-  if (typeof fee !== "object") {
-    index++;
-    continue;
-  }
+    const text = `RM${amount} - ${category}${label} / ${deadlineType} ${deadlineDate}${method}`;
 
-  const amount = fee.amount ?? "-";
-  const category = fee.category ?? "-";
-  const label = fee.label ? ` / ${fee.label}` : "";
-  const deadlineType = fee.deadlineType ?? "";
-  const deadlineDate = fee.deadlineDate ? formatDeadline(fee.deadlineDate) : "";
-  const method = fee.method ? ` / ${fee.method}` : "";
-
-  const text = `RM${amount} - ${category}${label} / ${deadlineType} ${deadlineDate}${method}`;
-
-  const option = document.createElement("option");
-  option.value = `rm${amount}`;
-  option.textContent = text;
-  feeSelect.appendChild(option);
-
-  index++;
-}
+    const option = document.createElement("option");
+    option.value = feeId; // Store fee ID, not just RM value
+    option.textContent = text;
+    feeSelect.appendChild(option);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
