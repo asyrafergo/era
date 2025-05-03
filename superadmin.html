@@ -183,12 +183,12 @@
         <table id="adminTable">
           <thead>
             <tr>
-              <th>Full Name</th>
-              <th>Company</th>
-              <th>Department</th>
-              <th>Task</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th style="width: 30%;">Full Name</th>
+              <th style="width: 15%;">Company</th>
+              <th style="width: 15%;">Department</th>
+              <th style="width: 15%;">Task</th>
+              <th style="width: 15%;">Status</th>
+              <th style="width: 40%;">Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -200,12 +200,12 @@
         <table id="respondentTable">
           <thead>
             <tr>
-              <th>Full Name</th>
-              <th>Company</th>
-              <th>Department</th>
-              <th>Task</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th style="width: 30%;">Full Name</th>
+              <th style="width: 15%;">Company</th>
+              <th style="width: 15%;">Department</th>
+              <th style="width: 15%;">Task</th>
+              <th style="width: 15%;">Status</th>
+              <th style="width: 40%;">Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -225,6 +225,7 @@
           </thead>
           <tbody></tbody>
         </table>
+        <button onclick="hideCompany()">Hide Company</button>
         <button id="toggleCompanyBtn" onclick="toggleCompanyGroup()">Add Company</button>
       </div>
       
@@ -1100,6 +1101,14 @@ function hideProgramForm() {
     isProgramFormVisible = false;
 }
 
+function hideCompany() {
+    const section = document.getElementById('companyGroupSection');
+    if (!section) return;
+
+    section.style.display = 'none';
+    isProgramFormVisible = false;
+}
+
 // Toggle for Company Management Group
 let isCompanyGroupVisible = false;
 function toggleCompanyGroup() {
@@ -1200,6 +1209,7 @@ window.editCompany = editCompany;
 window.toggleCompanyEdit = toggleCompanyEdit;
 window.deleteCompanyEntry = deleteCompanyEntry;
 window.hideProgramForm = hideProgramForm;
+window.hideCompany = hideCompany;
 
 loadProgramList();
   </script>
