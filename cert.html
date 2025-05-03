@@ -2,26 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Styled PDF Generator</title>
+  <title>Participant Certificate Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      background-color: #111;
-      color: white;
-      font-family: "Times New Roman", serif;
-      text-align: center;
-      padding: 30px;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
 </head>
-<body>
-  <h2>Styled PDF Generator</h2>
-  <button onclick="generatePDF()">Generate PDF</button>
+<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex items-center justify-center p-6">
+
+  <div class="bg-white shadow-xl rounded-lg max-w-3xl w-full p-8">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-3xl font-bold text-blue-700">Participant Portal</h1>
+      <button onclick="logout()" class="text-sm text-red-600 hover:underline">Log Out</button>
+    </div>
+    
+    <!-- Participant Info -->
+    <div class="bg-blue-50 p-4 rounded-lg mb-6">
+      <p class="text-lg"><strong>Name:</strong> <span id="name">Fatin Nabila Binti Shafee</span></p>
+      <p class="text-lg"><strong>NRIC:</strong> <span id="nric">950726-09-5088</span></p>
+      <p class="text-lg"><strong>Status:</strong> <span id="status" class="text-green-600 font-semibold">Approved</span></p>
+      <p class="text-lg"><strong>Form:</strong> <span id="form" class="text-green-600 font-semibold">Settle</span></p>
+    </div>
+
+    <!-- Registration Status -->
+<div id="registration-status" class="border border-blue-400 bg-blue-50 text-blue-900 rounded-lg p-4 mb-6">
+  <h2 class="text-xl font-semibold text-center mb-2">Status Registration</h2>
+  <p id="reg-status-text" class="text-center text-lg font-medium">Checking registration status...</p>
+</div>
+
+    <!-- Certificate Preview -->
+    <div class="border border-gray-300 rounded-lg p-4 mb-6 bg-gray-50">
+      <h2 class="text-xl font-semibold text-center mb-2">Certificate of Attendance</h2>
+      <p class="text-center text-gray-600 mb-4">You have successfully attended the workshop:</p>
+      <p class="text-center font-medium">"WORKSHOP ON ERGONOMIC TRAINED PERSON: INITIAL ERGONOMICS RISK ASSESSMENT"</p>
+      <p class="text-center text-sm text-gray-500 mt-2">April 26–27, 2025 | Jitra, Kedah</p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex flex-wrap justify-center gap-4">
+      <button onclick="generatePDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow-md transition">
+        Print Certificate
+      </button>
+      <button onclick="alert('Redirecting to form...')" class="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded shadow-md transition">
+        Fill Form
+      </button>
+    </div>
+  </div>
 
   <script>
     async function generatePDF() {
@@ -90,7 +117,7 @@ doc.addImage(
 
       y += 25;
       doc.setFont("Helvetica", "bold");
-      doc.setFontSize(14);
+      doc.setFontSize(18);
       doc.text("WORKSHOP ON ERGONOMIC TRAINED PERSON:", 105, y, { align: "center" });
 
       y += 8;
@@ -98,7 +125,7 @@ doc.addImage(
 
       y += 30;
       doc.setFont("Helvetica", "italic");
-      doc.setFontSize(14);
+      doc.setFontSize(12);
       doc.text("Northern Ergonomics Solutions PLT,", leftMargin, y);
       y += 6;
       doc.text("Jitra, Kedah", leftMargin, y);
@@ -108,7 +135,7 @@ doc.addImage(
       // Signature at bottom-left
       let bottomY = 260;
       doc.setFont("Helvetica", "normal");
-      doc.setFontSize(14);
+      doc.setFontSize(12);
       doc.text("Ts Mohd Asyraf Che Doi", leftMargin, bottomY);
       bottomY += 6;
       doc.text("Northern Ergonomics Solutions PLT", leftMargin, bottomY);
