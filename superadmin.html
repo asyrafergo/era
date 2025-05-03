@@ -32,6 +32,13 @@
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
+    .action-buttons {
+  display: flex;
+  flex-direction: row; /* Force horizontal layout */
+  gap: 10px;           /* Adjust spacing between buttons */
+  flex-wrap: wrap;     /* Optional: wraps to new line if too long */
+  justify-content: flex-start; /* Align to the left */
+}
 
     h2, h3 {
       color: #004085;
@@ -184,10 +191,10 @@
           <thead>
             <tr>
               <th style="width: 30%;">Full Name</th>
-              <th style="width: 15%;">Company</th>
-              <th style="width: 15%;">Department</th>
-              <th style="width: 15%;">Task</th>
-              <th style="width: 15%;">Status</th>
+              <th style="width: 10%;">Company</th>
+              <th style="width: 10%;">Department</th>
+              <th style="width: 10%;">Task</th>
+              <th style="width: 10%;">Status</th>
               <th style="width: 40%;">Actions</th>
             </tr>
           </thead>
@@ -201,10 +208,10 @@
           <thead>
             <tr>
               <th style="width: 30%;">Full Name</th>
-              <th style="width: 15%;">Company</th>
-              <th style="width: 15%;">Department</th>
-              <th style="width: 15%;">Task</th>
-              <th style="width: 15%;">Status</th>
+              <th style="width: 10%;">Company</th>
+              <th style="width: 10%;">Department</th>
+              <th style="width: 10%;">Task</th>
+              <th style="width: 10%;">Status</th>
               <th style="width: 40%;">Actions</th>
             </tr>
           </thead>
@@ -276,7 +283,7 @@ const username = sessionStorage.getItem("username");
   const password = sessionStorage.getItem("password");
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, get, set, child, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, get, set, child, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
 
     const firebaseConfig = {
@@ -469,10 +476,11 @@ function loadUsersFromFirebase() {
       const userId = childSnapshot.key;
       const user = childSnapshot.val();
 
-      // 🚫 Skip superadmin users
       if (user.status === 'superadmin') return;
 
       const tr = document.createElement('tr');
+
+      tr.setAttribute('data-user-id', userId);
 
       const fullnameTd = document.createElement('td');
       fullnameTd.textContent = user.fullname;
@@ -495,6 +503,8 @@ function loadUsersFromFirebase() {
       tr.appendChild(statusTd);
 
       const actionTd = document.createElement('td');
+const actionWrapper = document.createElement('div');
+actionWrapper.classList.add('action-buttons'); // Apply CSS flex style
 
       const makeAdminBtn = document.createElement('button');
       makeAdminBtn.textContent = 'Make Admin';
@@ -504,16 +514,154 @@ function loadUsersFromFirebase() {
       revokeAdminBtn.textContent = 'Revoke Admin';
       revokeAdminBtn.onclick = () => updateUserStatus(userId, 'user');
 
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = 'Remove';
+      removeBtn.onclick = () => removeUser(userId);
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => editUser(userId, user);
+
       if (user.status === 'admin') {
-        actionTd.appendChild(revokeAdminBtn);
-        tr.appendChild(actionTd);
+        actionWrapper.appendChild(revokeAdminBtn);
+      } else {
+        actionWrapper.appendChild(makeAdminBtn);
+      }
+
+      actionWrapper.appendChild(editBtn);
+      actionWrapper.appendChild(removeBtn);
+      actionTd.appendChild(actionWrapper);
+      tr.appendChild(actionTd);
+
+      if (user.status === 'admin') {
         adminTbody.appendChild(tr);
       } else {
-        actionTd.appendChild(makeAdminBtn);
-        tr.appendChild(actionTd);
         respondentTbody.appendChild(tr);
       }
     });
+  });
+}
+
+function editUser(userId, user) {
+  const userRef = ref(database, 'users/' + userId);
+  const listCompanyRef = ref(database, 'users/user1/ListCompany');
+
+  get(listCompanyRef).then(snapshot => {
+    if (!snapshot.exists()) return alert("No company data found.");
+
+    const companiesData = snapshot.val();
+    const companyKeys = Object.keys(companiesData);
+
+    const originalRow = document.querySelector(`[data-user-id="${userId}"]`);
+    const tableBody = originalRow.parentElement;
+
+    const editRow = document.createElement('tr');
+    const nameInput = `<input type="text" id="editFullName" value="${user.fullname}" />`;
+
+    const companySelect = document.createElement('select');
+    companySelect.id = 'editCompany';
+    companySelect.innerHTML = '<option value="">-- Select Company --</option>';
+    companyKeys.forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = companiesData[key].name || key;
+      if (companiesData[key].name === user.Company) opt.selected = true;
+      companySelect.appendChild(opt);
+    });
+
+    const deptSelect = document.createElement('select');
+    deptSelect.id = 'editDepartment';
+    deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+
+    const taskSelect = document.createElement('select');
+    taskSelect.id = 'editTask';
+    taskSelect.innerHTML = '<option value="">-- Select Task --</option>';
+
+    const loadDepartments = () => {
+      const selectedCompany = companySelect.value;
+      deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+      taskSelect.innerHTML = '<option value="">-- Select Task --</option>';
+      if (!selectedCompany) return;
+
+      const depts = companiesData[selectedCompany]?.departments || [];
+      depts.forEach(dept => {
+        const opt = document.createElement('option');
+        opt.value = dept;
+        opt.textContent = dept;
+        if (dept === user.Department) opt.selected = true;
+        deptSelect.appendChild(opt);
+      });
+      loadTasks();
+    };
+
+    const loadTasks = () => {
+      const selectedCompany = companySelect.value;
+      const selectedDept = deptSelect.value;
+      taskSelect.innerHTML = '<option value="">-- Select Task --</option>';
+      if (!selectedCompany || !selectedDept) return;
+
+      const tasks = companiesData[selectedCompany]?.tasks?.[selectedDept] || [];
+      tasks.forEach(task => {
+        const opt = document.createElement('option');
+        opt.value = task;
+        opt.textContent = task;
+        if (task === user.Task) opt.selected = true;
+        taskSelect.appendChild(opt);
+      });
+    };
+
+    companySelect.onchange = loadDepartments;
+    deptSelect.onchange = loadTasks;
+
+    // Trigger initial load
+    loadDepartments();
+
+    // Build the editable row
+    editRow.innerHTML = `
+      <td><input type="text" id="editFullName" value="${user.fullname}"></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>${user.status}</td>
+      <td>
+        <button id="saveEditBtn">Save</button>
+        <button id="cancelEditBtn">Cancel</button>
+      </td>
+    `;
+    editRow.querySelector('td:nth-child(2)').appendChild(companySelect);
+    editRow.querySelector('td:nth-child(3)').appendChild(deptSelect);
+    editRow.querySelector('td:nth-child(4)').appendChild(taskSelect);
+
+    // Replace the original row with the edit row
+    tableBody.replaceChild(editRow, originalRow);
+
+    document.getElementById('saveEditBtn').onclick = () => {
+      const updatedName = document.getElementById('editFullName').value.trim();
+      const companyKey = companySelect.value;
+      const updatedDept = deptSelect.value;
+      const updatedTask = taskSelect.value;
+
+      if (!updatedName || !companyKey || !updatedDept || !updatedTask) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const updatedCompany = companiesData[companyKey].name || companyKey;
+
+      update(userRef, {
+        fullname: updatedName,
+        Company: updatedCompany,
+        Department: updatedDept,
+        Task: updatedTask
+      }).then(() => {
+        alert("User updated.");
+        loadUsersFromFirebase(); // Reload user list
+      });
+    };
+
+    document.getElementById('cancelEditBtn').onclick = () => {
+      loadUsersFromFirebase(); // Restore original view
+    };
   });
 }
 
@@ -576,8 +724,12 @@ function loadProgramList() {
       <button onclick="saveFeeToProgram('${key}')">Save Fee</button>
     </div>
   </td>
-          <td><button onclick="editProgram('${key}')">Edit</button>
-          <button onclick="deleteProgram('${key}')">Delete</button></td>
+          <td>
+  <div style="display: flex; gap: 5px;">
+    <button onclick="editProgram('${key}')">Edit</button>
+    <button onclick="deleteProgram('${key}')">Delete</button>
+  </div>
+</td>
         `;
         tableBody.appendChild(tr);
 
