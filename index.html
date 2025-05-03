@@ -4,113 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <title>Sistem Log in Ergonomic</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background: #001b3d;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: Arial, sans-serif;
-            color: white;
-        }
+    <title>Login | Ergonomic System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
 
-        .container-login {
-            display: flex;
-            flex-direction: column;
-            width: 450px;
-            padding: 20px;
-            border: 1px solid skyblue;
-            border-radius: 10px;
-            margin: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
-            z-index: 1;
-        }
-        .input-group {
-            display: flex;
-            justify-content: space-between;
-        }
-        input {
-            flex: 1;
-            margin: 10px 0;
-            height: 35px;
-            padding: 7px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .header h1 {
-            font-size: 28px; /* Increased font size */
-            margin-bottom: 5px;
-            font-family: 'Roboto', Arial, sans-serif; /* Modern font */
-            color: black; /* White font color */
-            text-align: center; /* Center alignment */
-            font-weight: bold; /* Bold font weight */
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Subtle text shadow */
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #001b3d, #004080);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        button {
-            height: 45px;
-            width: 100%;
-            background-color: skyblue;
-            border: none;
-            border-radius: 5px;
-            color: #333;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #333;
-            color: skyblue;
-        }
-        .logo {
-            margin-bottom: 5px;
-            text-align: center;
-        }
-        .logo img {
-            width: 150px;
-            height: auto;
-        }
-        a {
-            color: white;
-            text-decoration: underline;
-            margin-top: 15px;
-            display: inline-block;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        @media (max-width: 700px) {
-            .container-login {
-                width: 85%;
-                padding: 15px;
-            }
-        }
-    </style>
+    .container-login {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo img {
+      width: 120px;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .header h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #001b3d;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #001b3d;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+      font-size: 15px;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #0078d4;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+      transform: translateY(-2px);
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      color: #0078d4;
+      font-size: 14px;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .container-login {
+        padding: 30px 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container-login">
-        <div class="logo">
-            <img src="photo_2025-03-17_23-35-03.jpg" alt="UniMAP Logo">
-        </div>
-        <div class="header">
-            <h1>Login System</h1>
-        </div>
-        <form id="loginForm">
-            <div class="input-group">
-                <input type="text" id="loginUsername" placeholder="Username" required>
-                <input type="password" id="loginPassword" placeholder="Password" required>
-            </div>
-            <button type="submit">Log In</button>
-        </form>
+
+  <div class="container-login">
+    <div class="logo">
+      <img src="photo_2025-03-17_23-35-03.jpg" alt="Logo">
+      <!-- Replace with actual logo -->
     </div>
-    <a href="https://asyrafergo.github.io/era/password.html">Forget your password?</a>
-    <a href="https://asyrafergo.github.io/era/register.html">Register</a>
+
+    <div class="header">
+      <h1>Login</h1>
+    </div>
+
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" placeholder="Enter your username" required />
+      </div>
+      <div class="input-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password" required />
+      </div>
+      <button type="submit">Log In</button>
+    </form>
+
+    <a href="https://asyrafergo.github.io/era/password.html">Forgot your password?</a>
+    <a href="https://asyrafergo.github.io/era/register.html">Don't have an account? Register</a>
+  </div>
 
     <!-- Include Firebase SDK -->
     <script type="module">
@@ -159,7 +184,7 @@
             const company = encodeURIComponent(userData.Company || '');
             window.location.href = `https://asyrafergo.github.io/era/admin.html?username=${username}&password=${password}&company=${company}`;
           } else {
-            window.location.href = `https://asyrafergo.github.io/era/first.html?username=${username}&password=${password}`;
+            window.location.href = `https://asyrafergo.github.io/era/cert.html?username=${username}&password=${password}`;
           }
         }
       });
