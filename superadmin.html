@@ -102,37 +102,14 @@
     <h1>Super Admin Dashboard</h1>
     <p>Welcome, Mr Asyraf</p>
   </header>
-  <div class="container">   
-      
-      <div class="section">
-        <h2>Program List</h2>
-        <table id="programListTable">
-          <thead>
-            <tr>
-              <th style="width: 15%;">Title</th>
-              <th style="width: 8%;">CEP Points</th>
-    <th style="width: 8%;">State</th>
-    <th style="width: 15%;">Venue</th>
-    <th style="width: 14%;">Date(s)</th>
-    <th style="width: 7%;">Slots</th>
-    <th style="width: 10%;">Participants</th>
-    <th style="width: 20%;">Fee Setup</th>
-              <div id="participantManager" style="display: none; padding: 20px; border: 1px solid #ccc; background: #fff;"></div>
-              <th style="width: 12%;">Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <!-- Below Program List Section -->
-        <button onclick="hideProgramForm()">Hide Program</button>
-<button id="toggleProgramBtn" onclick="toggleProgramForm()">Add Program</button>
-      </div>     
+  <div class="container">
 
-      <div id="programManagementSection" class="section">
+    <div class="section">
         <h2>Program Management</h2>
         <input type="text" id="progTitle" placeholder="Enter program title" required>
 
-<select id="cepPoints">
+        <label for="cepPoints">CEP Points</label>
+<select id="cepPoints" required>
   <option value="">-- Select CEP Points --</option>
   <option value="CEP 10">CEP 10</option>
   <option value="CEP 5">CEP 5</option>
@@ -176,7 +153,28 @@
     <option value="Online">Online</option>
   </select>
         <button onclick="saveProgramToFirebase()">Save Program</button>
-      </div> 
+      </div>    
+      
+      <div class="section">
+        <h2>Program List</h2>
+        <table id="programListTable">
+          <thead>
+            <tr>
+              <th style="width: 15%;">Title</th>
+              <th style="width: 8%;">CEP Points</th>
+    <th style="width: 8%;">State</th>
+    <th style="width: 15%;">Venue</th>
+    <th style="width: 14%;">Date(s)</th>
+    <th style="width: 7%;">Slots</th>
+    <th style="width: 10%;">Participants</th>
+    <th style="width: 20%;">Fee Setup</th>
+              <div id="participantManager" style="display: none; padding: 20px; border: 1px solid #ccc; background: #fff;"></div>
+              <th style="width: 12%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>      
 
     <div class="section">
         <h2>Admin Users</h2>
@@ -185,6 +183,8 @@
             <tr>
               <th>Full Name</th>
               <th>Company</th>
+              <th>Department</th>
+              <th>Task</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -200,6 +200,8 @@
             <tr>
               <th>Full Name</th>
               <th>Company</th>
+              <th>Department</th>
+              <th>Task</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -207,25 +209,9 @@
           <tbody></tbody>
         </table>
       </div>
-
-      <div class="section">
-        <h2>Company List</h2>
-        <table id="companyListTable">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Departments</th>
-              <th>Tasks</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <button id="toggleCompanyBtn" onclick="toggleCompanyGroup()">Add Company</button>
-      </div>
       
+
     <!-- Company Management Section -->
-    <div id="companyGroupSection">
     <div class="section">
       <h2>Company Management</h2>
       <input type="text" id="companyInput" placeholder="Enter new company name">
@@ -258,7 +244,6 @@
       <button onclick="addTask()">Add Task</button>
       <ul id="taskList"></ul>
     </div>
-</div>
 
     <button onclick="logout()">Logout</button>
 
@@ -271,7 +256,7 @@ const username = sessionStorage.getItem("username");
   const password = sessionStorage.getItem("password");
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, get, set, child, onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
 
     const firebaseConfig = {
@@ -289,6 +274,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
     const database = getDatabase(app);
     const analytics = getAnalytics(app);
 
+    let companies = JSON.parse(localStorage.getItem('companies')) || {};
     let selectedCompany = "";
     let selectedDepartment = "";
     let currentEditKey = null;
@@ -306,87 +292,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
 
   localStorage.setItem('programInfo', JSON.stringify(program));
   alert("Program information saved!");
-}
-
-function renderCompanyList() {
-  const userId = "user1";
-  const tbody = document.querySelector('#companyListTable tbody');
-  tbody.innerHTML = '';
-
-  const companiesRef = ref(database, `users/${userId}/ListCompany`);
-  get(companiesRef).then(snapshot => {
-    if (snapshot.exists()) {
-      const companies = snapshot.val();
-      Object.entries(companies).forEach(([key, data]) => {
-        const tr = document.createElement('tr');
-
-        const tdCompany = document.createElement('td');
-        tdCompany.textContent = data.name || key;
-        tr.appendChild(tdCompany);
-
-        const tdDepts = document.createElement('td');
-        tdDepts.textContent = (data.departments || []).join(', ');
-        tr.appendChild(tdDepts);
-
-        const tdTasks = document.createElement('td');
-        let taskHTML = '';
-        if (data.tasks) {
-          Object.entries(data.tasks).forEach(([dept, tasks]) => {
-            taskHTML += `<strong>${dept}:</strong><ul>${tasks.map(t => `<li>${t}</li>`).join('')}</ul>`;
-          });
-        }
-        tdTasks.innerHTML = taskHTML || '-';
-        tr.appendChild(tdTasks);
-
-        const tdActions = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => toggleCompanyEdit(key);
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Delete';
-        delBtn.style.marginLeft = '10px';
-        delBtn.onclick = () => deleteCompanyEntry(key);
-
-        tdActions.appendChild(editBtn);
-        tdActions.appendChild(delBtn);
-        tr.appendChild(tdActions);
-
-        tbody.appendChild(tr);
-      });
-    }
-  });
-}
-
-let currentEditCompany = null;
-function toggleCompanyEdit(key) {
-  selectedCompany = key;
-  document.getElementById('companyGroupSection').style.display = 'block';
-  document.getElementById('companySelect').value = key;
-  loadDepartments();
-  document.getElementById('selectedDeptName').textContent = selectedDepartment || "[Select Department]";
-  loadTasks();
-}
-
-function editCompany(companyName) {
-  document.getElementById('companyInput').value = companyName;
-  document.getElementById('companySelect').value = companyName;
-  selectedCompany = companyName;
-  loadDepartments();
-  document.getElementById('selectedDeptName').textContent = selectedDepartment || "[Select Department]";
-  loadTasks();
-}
-
-function deleteCompanyEntry(key) {
-  const userId = "user1";
-  const companyRef = ref(database, `users/${userId}/ListCompany/${key}`);
-  if (confirm(`Are you sure you want to delete this company?`)) {
-    set(companyRef, null).then(() => {
-      alert("Company deleted.");
-      populateCompanySelect();
-      renderCompanyList();
-    });
-  }
 }
 
 function saveProgramToFirebase() {
@@ -418,17 +323,13 @@ function saveProgramToFirebase() {
   } else {
     // Add new program
     get(programsRef).then(snapshot => {
-      let newKey = "";
-if (snapshot.exists()) {
-  const programs = snapshot.val();
-  let i = 1;
-  while (programs[`program${i}`]) {
-    i++;
-  }
-  newKey = `program${i}`;
-} else {
-  newKey = "program1";
-}
+      let count = 0;
+      if (snapshot.exists()) {
+        const programs = snapshot.val();
+        count = Object.keys(programs).length;
+      }
+
+      const newKey = `program${count + 1}`;
       const newRef = ref(database, `users/${userId}/Program/${newKey}`);
 
       set(newRef, program)
@@ -450,7 +351,7 @@ if (snapshot.exists()) {
   }
 }
 
-    function loadUsersFromFirebase() {
+function loadUsersFromFirebase() {
   const adminTbody = document.querySelector("#adminTable tbody");
   const respondentTbody = document.querySelector("#respondentTable tbody");
 
@@ -458,46 +359,81 @@ if (snapshot.exists()) {
   respondentTbody.innerHTML = "";
 
   const dbRef = ref(database, 'users');
-  get(dbRef).then(snapshot => {
-    snapshot.forEach(childSnapshot => {
-      const userId = childSnapshot.key;
-      const user = childSnapshot.val();
 
-      const tr = document.createElement('tr');
+  // Listen for new users added to the database (child_added)
+  onChildAdded(dbRef, (snapshot) => {
+    const userId = snapshot.key;
+    const user = snapshot.val();
 
-      const fullnameTd = document.createElement('td');
-      fullnameTd.textContent = user.fullname;
-      tr.appendChild(fullnameTd);
+    const tr = document.createElement('tr');
+    const fullnameTd = document.createElement('td');
+    fullnameTd.textContent = user.fullname;
+    tr.appendChild(fullnameTd);
 
-      const companyTd = document.createElement('td');
-      companyTd.textContent = user.Company || '-';
-      tr.appendChild(companyTd);
+    const companyTd = document.createElement('td');
+    companyTd.textContent = user.Company || '-';
+    tr.appendChild(companyTd);
 
-      const statusTd = document.createElement('td');
-      statusTd.textContent = user.status || 'user';
-      tr.appendChild(statusTd);
+    const departmentTd = document.createElement('td');
+    departmentTd.textContent = user.Department || '-';
+    tr.appendChild(departmentTd);
 
-      const actionTd = document.createElement('td');
+    const taskTd = document.createElement('td');
+    taskTd.textContent = user.Task || '-';
+    tr.appendChild(taskTd);
 
-      const makeAdminBtn = document.createElement('button');
-      makeAdminBtn.textContent = 'Make Admin';
-      makeAdminBtn.onclick = () => updateUserStatus(userId, 'admin');
+    const statusTd = document.createElement('td');
+    statusTd.textContent = user.status || 'user';
+    tr.appendChild(statusTd);
 
-      const revokeAdminBtn = document.createElement('button');
-      revokeAdminBtn.textContent = 'Revoke Admin';
-      revokeAdminBtn.onclick = () => updateUserStatus(userId, 'user');
+    const actionTd = document.createElement('td');
+    const makeAdminBtn = document.createElement('button');
+    makeAdminBtn.textContent = 'Make Admin';
+    makeAdminBtn.onclick = () => updateUserStatus(userId, 'admin');
 
-      // 🚫 Skip superadmin users
-  if (user.status === 'superadmin') return;
+    const revokeAdminBtn = document.createElement('button');
+    revokeAdminBtn.textContent = 'Revoke Admin';
+    revokeAdminBtn.onclick = () => updateUserStatus(userId, 'user');
 
-      if (user.status === 'admin') {
-        actionTd.appendChild(revokeAdminBtn);
-        tr.appendChild(actionTd);
-        adminTbody.appendChild(tr);
-      } else {
-        actionTd.appendChild(makeAdminBtn);
-        tr.appendChild(actionTd);
-        respondentTbody.appendChild(tr);
+    // 🚫 Skip superadmin users
+    if (user.status === 'superadmin') return;
+
+    if (user.status === 'admin') {
+      actionTd.appendChild(revokeAdminBtn);
+      tr.appendChild(actionTd);
+      adminTbody.appendChild(tr);
+    } else {
+      actionTd.appendChild(makeAdminBtn);
+      tr.appendChild(actionTd);
+      respondentTbody.appendChild(tr);
+    }
+  });
+
+  // Listen for changes to existing users (child_changed)
+  onChildChanged(dbRef, (snapshot) => {
+    const userId = snapshot.key;
+    const user = snapshot.val();
+    
+    // Re-fetch the table content (reload the list)
+    loadUsersFromFirebase();
+  });
+
+  // Listen for users removed from the database (child_removed)
+  onChildRemoved(dbRef, (snapshot) => {
+    const userId = snapshot.key;
+    
+    // Remove the user row from the table
+    const rows = adminTbody.querySelectorAll('tr');
+    rows.forEach(row => {
+      if (row.dataset.userId === userId) {
+        row.remove();
+      }
+    });
+    
+    const rows2 = respondentTbody.querySelectorAll('tr');
+    rows2.forEach(row => {
+      if (row.dataset.userId === userId) {
+        row.remove();
       }
     });
   });
@@ -566,69 +502,13 @@ function loadProgramList() {
           <button onclick="deleteProgram('${key}')">Delete</button></td>
         `;
         tableBody.appendChild(tr);
-
-        if (data.Fee) {
-          const feeWrapper = document.createElement("div");
-feeWrapper.id = `feeList-${key}`;
-feeWrapper.style.display = "none"; // hidden by default
-
-const feeTable = document.createElement("table");
-feeTable.style.marginTop = "10px";
-feeTable.style.borderCollapse = "collapse";
-feeTable.style.width = "90%";
-feeTable.style.margin = "10px auto";
-feeTable.style.backgroundColor = "#f0f4f8";
-feeTable.style.borderRadius = "8px";
-feeTable.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.1)";
-feeTable.innerHTML = `
-  <thead style="background-color: #1976d2; color: white;">
-    <tr>
-      <th>Category</th>
-      <th>Amount (RM)</th>
-      <th>Label</th>
-      <th>Deadline Type</th>
-      <th>Deadline Date</th>
-      <th>Method</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${Object.entries(data.Fee).map(([feeId, fee]) => `
-      <tr style="background-color: white; border-top: 1px solid #ddd;">
-        <td>${fee.category || '-'}</td>
-        <td>${fee.amount || '-'}</td>
-        <td>${fee.label || '-'}</td>
-        <td>${fee.deadlineType || '-'}</td>
-        <td>${fee.deadlineDate || '-'}</td>
-        <td>${fee.method || '-'}</td>
-        <td>
-          <button onclick="editFee('${key}', '${feeId}')" style="margin-right:5px; background:#4caf50; color:white; border:none; padding:4px 8px; border-radius:4px;">Edit</button>
-          <button onclick="deleteFee('${key}', '${feeId}')" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px;">Remove</button>
-        </td>
-      </tr>
-    `).join("")}
-  </tbody>
-`;
-
-feeWrapper.appendChild(feeTable);
-
-const feeRow = document.createElement("tr");
-const feeCell = document.createElement("td");
-feeCell.colSpan = 10;
-feeCell.appendChild(feeWrapper);
-feeRow.appendChild(feeCell);
-tableBody.appendChild(feeRow);
-}
       });
     }
   });
 }
 
-let editingFeeId = null; // Global variable to track editing
-
 window.saveFeeToProgram = function (programKey) {
   const userId = "user1";
-  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
 
   const fee = {
     category: document.getElementById(`feeCategory-${programKey}`).value,
@@ -639,32 +519,18 @@ window.saveFeeToProgram = function (programKey) {
     method: document.getElementById(`feeMethod-${programKey}`).value,
   };
 
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
   get(progRef).then(snapshot => {
     if (!snapshot.exists()) return alert("Program not found.");
     const program = snapshot.val();
-    const Fee = program.Fee || {};
-
-    const feeId = editingFeeId || `fee${Date.now()}`;
-    Fee[feeId] = fee;
-
-    set(progRef, { ...program, Fee }).then(() => {
-      alert(editingFeeId ? "Fee updated." : "Fee added.");
-      editingFeeId = null;
-      clearFeeForm(programKey);
-      loadProgramList(); // Refresh fee display
-      location.reload();
+    set(progRef, { ...program, fee }).then(() => {
+      alert("Fee structure saved.");
+      location.reload(); 
     });
   });
 };
 
-
 window.editProgram = function (key) {
-  // Set the flag in localStorage when the Edit button is clicked
-  localStorage.setItem("editingProgram", "true");
-
-  // Show the Program Management section immediately when Edit is clicked
-  document.getElementById('programManagementSection').style.display = 'block';
-
   const userId = "user1";
   const progRef = ref(database, `users/${userId}/Program/${key}`);
   get(progRef).then(snapshot => {
@@ -673,7 +539,7 @@ window.editProgram = function (key) {
       currentEditKey = key; // 👈 Set this key
 
       document.getElementById('progTitle').value = data.title || "";
-      document.getElementById('cepPoints').value = data.cepPoints || "";
+      document.getElementById('cepPoints').value = data.cep || "";
       document.getElementById('progState').value = data.state || "";
       document.getElementById('progVenue').value = data.venue || "";
       const [start, end] = (data.dates || "").split(" to ");
@@ -687,66 +553,14 @@ window.editProgram = function (key) {
   });
 };
 
-window.toggleFeeForm = function(programKey) {
-  const formDiv = document.getElementById(`feeForm-${programKey}`);
-  const feeListDiv = document.getElementById(`feeList-${programKey}`);
-  const isVisible = formDiv.style.display === 'block';
-
-  formDiv.style.display = isVisible ? 'none' : 'block';
-  if (feeListDiv) {
-    feeListDiv.style.display = isVisible ? 'none' : 'block';
+window.toggleFeeForm = function (key) {
+  const form = document.getElementById(`feeForm-${key}`);
+  if (form.style.display === "none") {
+    form.style.display = "block";
+  } else {
+    form.style.display = "none";
   }
 };
-
-
-window.deleteFee = function (programKey, feeId) {
-  const progRef = ref(database, `users/user1/Program/${programKey}`);
-  get(progRef).then(snapshot => {
-    const program = snapshot.val();
-    if (program.Fee && program.Fee[feeId]) {
-      delete program.Fee[feeId];
-      set(progRef, program).then(() => {
-        alert("Fee removed.");
-        loadProgramList(); // refresh
-      });
-    }
-  });
-};
-
-window.editFee = function (programKey, feeId) {
-  const userId = "user1";
-  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
-
-  get(progRef).then(snapshot => {
-    if (!snapshot.exists()) return;
-
-    const fee = snapshot.val().Fee?.[feeId];
-    if (!fee) return;
-
-    document.getElementById(`feeCategory-${programKey}`).value = fee.category || '';
-    document.getElementById(`feeAmount-${programKey}`).value = fee.amount || '';
-    document.getElementById(`feeLabel-${programKey}`).value = fee.label || '';
-    document.getElementById(`feeDeadlineType-${programKey}`).value = fee.deadlineType || '';
-    document.getElementById(`feeDeadlineDate-${programKey}`).value = fee.deadlineDate || '';
-    document.getElementById(`feeMethod-${programKey}`).value = fee.method || '';
-
-    editingFeeId = feeId;
-    document.getElementById(`feeForm-${programKey}`).style.display = 'block';
-    const feeList = document.getElementById(`feeList-${programKey}`);
-    if (feeList) feeList.style.display = 'block';
-
-    alert(`Now editing fee: ${fee.category} (${feeId})`);
-  });
-};
-
-function clearFeeForm(programKey) {
-  document.getElementById(`feeCategory-${programKey}`).value = '';
-  document.getElementById(`feeAmount-${programKey}`).value = '';
-  document.getElementById(`feeLabel-${programKey}`).value = '';
-  document.getElementById(`feeDeadlineType-${programKey}`).value = '';
-  document.getElementById(`feeDeadlineDate-${programKey}`).value = '';
-  document.getElementById(`feeMethod-${programKey}`).value = '';
-}
 
 window.manageParticipants = function (programKey) {
   const container = document.getElementById("participantManager");
@@ -852,81 +666,57 @@ function updateUserStatus(userId, newStatus) {
     .catch(err => console.error('Update failed:', err));
 }
 
+
 // Call this on page load
 loadUsersFromFirebase();
 
-function saveCompanyData() {
+
+    function saveCompanyData() {
   const companyName = document.getElementById('companyInput').value.trim();
-  const departments = Array.from(document.querySelectorAll('.department-input')).map(input => input.value.trim()).filter(Boolean);
-  const tasks = Array.from(document.querySelectorAll('.task-input')).map(input => input.value.trim()).filter(Boolean);
-  const tasksByDept = departments.reduce((obj, dept) => {
-    obj[dept] = tasks;
-    return obj;
-  }, {});
+  const departmentList = Array.from(document.querySelectorAll('.department-input')).map(input => input.value.trim()).filter(Boolean);
+  const taskList = Array.from(document.querySelectorAll('.task-input')).map(input => input.value.trim()).filter(Boolean);
 
-  const companyRef = ref(database, `users/${userId}/ListCompany/${companyName}`);
-  set(companyRef, {
-    departments,
-    tasks: tasksByDept
-  }).then(() => {
-    alert("Company saved.");
-    populateCompanySelect();
-    renderCompanyList();
-  });
-}
-
-function populateCompanySelect() {
-  const userId = "user1";
-  const select = document.getElementById('companySelect');
-  select.innerHTML = '<option value="">-- Select Company --</option>';
-
-  const companiesRef = ref(database, `users/${userId}/ListCompany`);
-  get(companiesRef).then(snapshot => {
-    if (snapshot.exists()) {
-      const companies = snapshot.val();
-      Object.entries(companies).forEach(([key, company]) => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = company.name || key;
-        select.appendChild(option);
-      });
-    }
-  });
-}
-
-function addCompany() {
-  const userId = "user1";
-  const companyName = document.getElementById('companyInput').value.trim();
   if (!companyName) {
-    alert("Company name is required.");
+    alert("Please enter a company name.");
     return;
   }
 
-  const listCompanyRef = ref(database, `users/${userId}/ListCompany`);
-
-  get(listCompanyRef).then(snapshot => {
-    let count = 0;
-    if (snapshot.exists()) {
-      const companies = snapshot.val();
-      count = Object.keys(companies).length;
+  const companies = JSON.parse(localStorage.getItem('companies')) || {};
+  companies[companyName] = {
+  departments: {
+    [departmentName]: {
+      tasks: taskList // List of tasks for this department
     }
+  }
+};
 
-    const newKey = `ListCompany${count + 1}`;
-    const newCompanyRef = ref(database, `users/${userId}/ListCompany/${newKey}`);
-
-    set(newCompanyRef, {
-      name: companyName,
-      departments: [],
-      tasks: {}
-    }).then(() => {
-      alert("Company added.");
-      populateCompanySelect();
-      renderCompanyList();
-      document.getElementById('companyInput').value = '';
-    });
-  });
+  localStorage.setItem('companies', JSON.stringify(companies));
+  populateCompanySelect();
+  alert("Company data saved!");
+  console.log("Saved to localStorage:", JSON.stringify(companies, null, 2));
 }
 
+    function populateCompanySelect() {
+      const select = document.getElementById('companySelect');
+      select.innerHTML = '<option value="">-- Select Company --</option>';
+      for (const company in companies) {
+        const option = document.createElement('option');
+        option.value = company;
+        option.textContent = company;
+        select.appendChild(option);
+      }
+    }
+
+    function addCompany() {
+  const companyName = document.getElementById('companyInput').value.trim();
+  if (companyName && !companies[companyName]) {
+    companies[companyName] = { departments: [] };
+    localStorage.setItem('companies', JSON.stringify(companies));
+    populateCompanySelect();
+    document.getElementById('companyInput').value = '';
+    alert('Company added.');
+  }
+}
 
 document.getElementById('deptSelect').onchange = function () {
   selectedDepartment = this.value;
@@ -942,112 +732,103 @@ function selectCompany() {
   document.getElementById('taskList').innerHTML = '';
 }
 
-function deleteCompany() {
-  const userId = "user1";
+    function deleteCompany() {
+      if (selectedCompany && confirm(`Delete ${selectedCompany}?`)) {
+        delete companies[selectedCompany];
+        populateCompanySelect();
+        document.getElementById('deptList').innerHTML = '';
+        document.getElementById('taskList').innerHTML = '';
+        alert('Company deleted.');
+        console.log("Data successfully saved to localStorage:");
+        console.log(JSON.stringify(companies, null, 2));
+      }
+    }
 
-  if (selectedCompany && confirm(`Delete ${selectedCompany}?`)) {
-    const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-
-    set(companyRef, null).then(() => {
-      alert("Company deleted.");
-      location.reload(); // Reloads the page to refresh the UI
-    }).catch(error => {
-      console.error("🔥 Failed to delete company:", error);
-    });
-  }
-}
-
-
-function addDepartment() {
-  const userId = "user1";
+    function addDepartment() {
   const deptName = document.getElementById('deptInput').value.trim();
-  if (!selectedCompany || !deptName) return;
-
-  const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-  get(companyRef).then(snapshot => {
-    const data = snapshot.val();
-    const departments = data.departments || [];
-    if (!departments.includes(deptName)) departments.push(deptName);
-    set(companyRef, { ...data, departments }).then(() => {
-      alert("Department added.");
-      loadDepartments();
-      renderCompanyList();
-    });
-  });
+  if (selectedCompany && deptName) {
+    companies[selectedCompany].departments.push(deptName);
+    localStorage.setItem('companies', JSON.stringify(companies)); // Update storage
+    loadDepartments(); // Refresh departments
+    document.getElementById('deptInput').value = ''; // Clear input field
+  }
 }
 
 function selectDepartment() {
   selectedDepartment = document.getElementById('deptSelect').value;
-  document.getElementById('selectedDeptName').textContent = selectedDepartment || "[Select Department]";
-  loadTasks();
 }
 
 function addTask() {
-  const userId = "user1";
   const taskName = document.getElementById('taskInput').value.trim();
-  if (!selectedCompany || !selectedDepartment || !taskName) return;
+  
+  // Check for empty or invalid task name
+  if (!taskName) {
+    alert('Task name cannot be empty!');
+    return;
+  }
 
-  const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-  get(companyRef).then(snapshot => {
-    const data = snapshot.val();
-    const tasks = data.tasks || {};
-    if (!tasks[selectedDepartment]) tasks[selectedDepartment] = [];
-    tasks[selectedDepartment].push(taskName);
-    set(companyRef, { ...data, tasks }).then(() => {
-      alert("Task added.");
-      loadTasks();
-      renderCompanyList();
-    });
-  });
+  // Make sure we have valid selected company and department
+  if (!companies[selectedCompany]) {
+    console.log('Company not found!');
+    return;
+  }
+  if (!companies[selectedCompany].tasks) {
+    companies[selectedCompany].tasks = {}; // Ensure tasks object exists
+  }
+
+  if (!companies[selectedCompany].tasks[selectedDepartment]) {
+    companies[selectedCompany].tasks[selectedDepartment] = [];
+  }
+
+  // Add task only if it's valid
+  companies[selectedCompany].tasks[selectedDepartment].push(taskName);
+
+  // Remove the empty task key if it exists
+  delete companies[selectedCompany].tasks[""]; // Remove any empty key in tasks
+  
+  localStorage.setItem('companies', JSON.stringify(companies));
+
+  loadTasks(); // Refresh task list
+  console.log(JSON.parse(localStorage.getItem('companies')));
+  document.getElementById('taskInput').value = ''; // Clear input
 }
 
+
 function loadDepartments() {
-  const userId = "user1";
   const deptSelect = document.getElementById('deptSelect');
-  deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+  deptSelect.innerHTML = '<option value="">-- Select Department --</option>'; // Reset dropdown
 
-  const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-  get(companyRef).then(snapshot => {
-    const data = snapshot.val();
-    const departments = data.departments || [];
-
-    const deptList = document.getElementById('deptList');
-    deptList.innerHTML = '';
-
-    departments.forEach((dept, index) => {
+  if (companies[selectedCompany]) {
+    companies[selectedCompany].departments.forEach(dept => {
       const option = document.createElement('option');
       option.value = dept;
       option.textContent = dept;
       deptSelect.appendChild(option);
-
-      const li = document.createElement('li');
-      li.textContent = dept + ' ';
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'Delete';
-      delBtn.onclick = () => deleteDepartment(index);
-      li.appendChild(delBtn);
-      deptList.appendChild(li);
     });
+  }
+
+  // Populate the department list below the dropdown
+  const deptList = document.getElementById('deptList');
+  deptList.innerHTML = ''; // Clear list first
+  companies[selectedCompany]?.departments.forEach((dept, index) => {
+    const li = document.createElement('li');
+    li.textContent = dept + ' ';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = () => {
+      deleteDepartment(index);
+    };
+    li.appendChild(delBtn);
+    deptList.appendChild(li);
   });
 }
 
 function deleteDepartment(index) {
-  const userId = "user1";
-  const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-  get(companyRef).then(snapshot => {
-    const data = snapshot.val();
-    const departments = data.departments || [];
-    const tasks = data.tasks || {};
-    const deptName = departments[index];
-    departments.splice(index, 1);
-    delete tasks[deptName];
-    set(companyRef, { ...data, departments, tasks }).then(() => {
-      alert("Department deleted.");
-      loadDepartments();
-      renderCompanyList();
-      location.reload();
-    });
-  });
+  if (selectedCompany) {
+    companies[selectedCompany].departments.splice(index, 1);
+    localStorage.setItem('companies', JSON.stringify(companies)); // Update storage
+    loadDepartments(); // Refresh departments list
+  }
 }
 
 window.deleteProgram = function (key) {
@@ -1064,106 +845,25 @@ window.deleteProgram = function (key) {
     .catch(err => console.error("Error deleting program:", err));
 };
 
-// Toggle for Program Management
-let isProgramFormVisible = false;
-function toggleProgramForm() {
-    const section = document.getElementById('programManagementSection');
-    if (!section) return;
-
-    if (isProgramFormVisible) {
-        section.style.display = 'none';
-    } else {
-        section.style.display = 'block';
-    }
-
-    isProgramFormVisible = !isProgramFormVisible;
-}
-
-function hideProgramForm() {
-    const section = document.getElementById('programManagementSection');
-    if (!section) return;
-
-    section.style.display = 'none';
-    isProgramFormVisible = false;
-}
-
-// Toggle for Company Management Group
-let isCompanyGroupVisible = false;
-function toggleCompanyGroup() {
-  isCompanyGroupVisible = !isCompanyGroupVisible;
-  document.getElementById('companyGroupSection').style.display = isCompanyGroupVisible ? 'block' : 'none';
-  document.getElementById('toggleCompanyBtn').textContent = isCompanyGroupVisible ? 'Hide Add Company' : 'Add Company';
-}
-
-// Show Program list on load
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('programManagementSection').style.display = 'none';
-  document.getElementById('companyGroupSection').style.display = 'none';
-  renderCompanyList();
-
-  const programSection = document.getElementById('programManagementSection');
-  if (programSection) programSection.style.display = 'none';
-
-  const addBtn = document.getElementById('toggleProgramBtn');
-  if (addBtn) {
-    addBtn.addEventListener('click', () => {
-      // 🔥 Only runs when Add button is clicked
-      currentEditKey = null;
-      localStorage.removeItem("editingProgram");
-
-      const clearFields = ["progTitle", "progState", "progVenue", "progSlots", "progSession", "cepPoints"];
-      clearFields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-
-      document.getElementById('startDate').value = '';
-      document.getElementById('endDate').value = '';
-
-      programSection.style.display = 'block';
-      isProgramFormVisible = true;
-
-      alert("Switched to Add Mode: Ready to enter a new program.");
-    });
-  }
-});
-
-
 function deleteTask(index) {
-  const userId = "user1";
-  const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-  get(companyRef).then(snapshot => {
-    const data = snapshot.val();
-    const tasks = data.tasks || {};
-    tasks[selectedDepartment].splice(index, 1);
-    set(companyRef, { ...data, tasks }).then(() => {
-      alert("Task deleted.");
-      loadTasks();
-      renderCompanyList();
-      location.reload();
-    });
-  });
+  companies[selectedCompany].tasks[selectedDepartment].splice(index, 1);
+  localStorage.setItem('companies', JSON.stringify(companies));
+  loadTasks();
 }
 
 function loadTasks() {
-  const userId = "user1";
   const taskList = document.getElementById('taskList');
   taskList.innerHTML = '';
 
-  const companyRef = ref(database, `users/${userId}/ListCompany/${selectedCompany}`);
-  get(companyRef).then(snapshot => {
-    const data = snapshot.val();
-    const tasks = data.tasks?.[selectedDepartment] || [];
-
-    tasks.forEach((task, index) => {
-      const li = document.createElement('li');
-      li.textContent = task + ' ';
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'Delete';
-      delBtn.onclick = () => deleteTask(index);
-      li.appendChild(delBtn);
-      taskList.appendChild(li);
-    });
+  const tasks = companies[selectedCompany]?.tasks?.[selectedDepartment] || [];
+  tasks.forEach((task, index) => {
+    const li = document.createElement('li');
+    li.textContent = task + ' ';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = () => deleteTask(index);
+    li.appendChild(delBtn);
+    taskList.appendChild(li);
   });
 }
 
@@ -1181,12 +881,6 @@ window.deleteCompany = deleteCompany;
 window.addDepartment = addDepartment;
 window.addTask = addTask;
 window.saveProgramToFirebase = saveProgramToFirebase;
-window.toggleProgramForm = toggleProgramForm;
-window.toggleCompanyGroup = toggleCompanyGroup;
-window.editCompany = editCompany;
-window.toggleCompanyEdit = toggleCompanyEdit;
-window.deleteCompanyEntry = deleteCompanyEntry;
-window.hideProgramForm = hideProgramForm;
 
 loadProgramList();
   </script>
