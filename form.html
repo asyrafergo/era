@@ -155,12 +155,13 @@
     </form>
   </div>
 
-    <div id="confirmationMessage" style="display: none;">
-      <h2>Thank you for your registration! 😊</h2>
-      <p>The owner will email you back soon. If you made a mistake, you can edit your registration below.</p>
-      <button onclick="editRegistration()">Edit Registration</button>
-      <button id="logoutButton">Logout</button>
-    </div>
+  <div id="confirmationMessage" style="display: none;">
+    <h2>Thank you for your registration! 😊</h2>
+    <p id="userCodeDisplay"></p> <!-- Display user code here -->
+    <p>The owner will email you back soon. If you made a mistake, you can edit your registration below.</p>
+    <button onclick="editRegistration()">Edit Registration</button>
+    <button id="logoutButton">Logout</button>
+  </div>  
   </div>
 
   <script type="module">
@@ -206,6 +207,14 @@ const db = getDatabase(app);
 let hasLoaded = false;
 let latestRegistrationId = ""; // Will store the ID if editing
 let isEditing = false; // Tracks edit mode
+
+function generateUnique4Digit(existingNumbers) {
+  let code;
+  do {
+    code = Math.floor(1000 + Math.random() * 9000).toString(); // Generates 1000–9999
+  } while (existingNumbers.has(code));
+  return code;
+}
 
 function formatDateRange(dates) {
   const [startStr, endStr] = dates.split(" to ");
@@ -319,16 +328,57 @@ if (!isValidEmail(formData.email)) {
   
   get(userRef).then((snapshot) => {
 
-    let registrationCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
     const isNew = !latestRegistrationId;
-const registrationId = isNew ? `Registration${registrationCount + 1}` : latestRegistrationId;
+
+let registrationId;
+if (isNew) {
+  const existingKeys = snapshot.exists() ? Object.keys(snapshot.val()) : [];
+
+  // Extract all numbers from keys like "Registration1", "Registration2"
+  const usedNumbers = existingKeys
+    .map(key => parseInt(key.replace("Registration", ""), 10))
+    .filter(num => !isNaN(num));
+
+  // Find the smallest unused number
+  let nextNumber = 1;
+  while (usedNumbers.includes(nextNumber)) {
+    nextNumber++;
+  }
+
+  registrationId = `Registration${nextNumber}`;
+  latestRegistrationId = registrationId; // Save globally
+} else {
+  registrationId = latestRegistrationId;
+}
+
 latestRegistrationId = registrationId; // Save it globally
+
+const registrations = snapshot.exists() ? snapshot.val() : {};
+  const existingNumbers = new Set();
+
+  // Collect all 4-digit numbers already used
+  Object.values(registrations).forEach(reg => {
+    if (reg.userCode) existingNumbers.add(reg.userCode);
+  });
+
+  // Generate 4-digit user code only if not already exists
+  let userCode = formData.userCode;
+  if (!userCode) {
+    userCode = generateUnique4Digit(existingNumbers);
+  }
+
+  // Attach user code to formData
+  formData.userCode = userCode;
 
 set(ref(db, `users/user1/ListRegistration/${registrationId}`), formData)
       .then(() => {
+
+
         // Hide the form and show the confirmation message
         document.getElementById("registrationForm").style.display = "none";
   document.getElementById("confirmationMessage").style.display = "block";
+  document.getElementById("userCodeDisplay").textContent =
+  `Your registration code: ${formData.userCode}`;
 
   // Hide resubmit after done
   document.getElementById("resubmitButton").style.display = "none";
@@ -358,26 +408,41 @@ document.getElementById("resubmitButton").addEventListener("click", function () 
     return;
   }
 
-  const updatedData = {
-    name: document.getElementById("name").value,
-    ic: document.getElementById("ic").value,
-    email: document.getElementById("email").value,
-    phone: document.getElementById("phone").value,
-    companyName: document.getElementById("companyName").value,
-    companyAddress: document.getElementById("companyAddress").value,
-    fee: document.getElementById("fee").value,
-    receipt: document.getElementById("receipt").files,
-  };
+  // Fetch existing data first
+  const existingRef = ref(db, `users/user1/ListRegistration/${latestRegistrationId}`);
+  get(existingRef).then((snapshot) => {
+    if (!snapshot.exists()) {
+      alert("Original registration data not found.");
+      return;
+    }
 
-  set(ref(db, `users/user1/ListRegistration/${latestRegistrationId}`), updatedData)
-    .then(() => {
-      alert("Registration updated!");
-      document.getElementById("registrationForm").style.display = "none";
-      document.getElementById("confirmationMessage").style.display = "block";
-    })
-    .catch((error) => {
-      alert("Update failed: " + error.message);
-    });
+    const existingData = snapshot.val();
+
+    const updatedData = {
+      name: document.getElementById("name").value,
+      ic: document.getElementById("ic").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      companyName: document.getElementById("companyName").value,
+      companyAddress: document.getElementById("companyAddress").value,
+      fee: document.getElementById("fee").value,
+      receipt: document.getElementById("receipt").files,
+      userCode: existingData.userCode || "" // ✅ Preserve existing userCode
+    };
+
+    set(existingRef, updatedData)
+      .then(() => {
+        alert("Registration updated!");
+
+        document.getElementById("registrationForm").style.display = "none";
+        document.getElementById("confirmationMessage").style.display = "block";
+        document.getElementById("userCodeDisplay").textContent =
+  `Your registration code: ${updatedData.userCode}`;
+      })
+      .catch((error) => {
+        alert("Update failed: " + error.message);
+      });
+  });
 });
 
 window.editRegistration = function () {
