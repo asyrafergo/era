@@ -191,14 +191,19 @@
 
     window.nextStep = async function () {
   const fullName = document.getElementById('fullName').value.trim();
-  const company = document.getElementById('company').value;
+  const companyKey = document.getElementById('company').value;
   const department = document.getElementById('department').value;
   const task = document.getElementById('task').value;
 
-  if (!fullName || !company || !department || !task) {
+  if (!fullName || !companyKey || !department || !task) {
     alert('Please fill all required fields.');
     return;
   }
+
+  // Get the company name using the selected key
+  const companyRef = ref(database, `users/user1/ListCompany/${companyKey}`);
+  const snapshot = await get(companyRef);
+  const companyName = snapshot.exists() ? snapshot.val().name : "";
 
   const matricNumber = await generateNextMatricNumber();
   document.getElementById('step1').style.display = 'none';
@@ -206,7 +211,7 @@
 
   const form = document.getElementById('registerForm');
   form.dataset.matric = matricNumber;
-  form.dataset.company = company;
+  form.dataset.company = companyName; // Save the readable name, not the key
   form.dataset.department = department;
   form.dataset.task = task;
 }
