@@ -165,30 +165,8 @@
   </div>
 
   <script type="module">
-    import { init, send } from 'https://cdn.skypack.dev/@emailjs/browser';
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
   import { getDatabase, ref, get, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-  // ✅ Initialize EmailJS
-  init("N3SdkmAQJM_0-7whu");
-
-  // ✅ Define email sending function
-  window.sendGmailAlert = function(formData, readableData) {
-  send("service_593zdyf", "template_ovjeavl", {
-    name: formData.name,
-    email: formData.email,
-    phone: formData.phone,
-    companyName: formData.companyName,
-    fee: readableData.feeText,              // human-readable fee
-    programTitle: readableData.programTitle,
-    programDetails: readableData.programDetails
-  })
-  .then(() => {
-    console.log("Email sent!");
-  }, (error) => {
-    console.error("Email error:", error);
-  });
-};
 
 const firebaseConfig = {
   apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
@@ -204,6 +182,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+let currentProgram = null;
 let hasLoaded = false;
 let latestRegistrationId = ""; // Will store the ID if editing
 let isEditing = false; // Tracks edit mode
@@ -237,10 +216,11 @@ document.getElementById("logoutButton").addEventListener("click", function() {
   });
 
 function loadProgramToPage(program) {
+  currentProgram = program; // Save for later use
   // Set program title and details
   document.getElementById("programTitle").textContent = program.title || "Program Title";
   document.getElementById("programDetails").textContent =
-    `${formatDateRange(program.dates)}, ${program.state}`;
+    `${formatDateRange(program.dates)}, ${program.venue}, ${program.state}`;
 
   // Populate fee options
   const feeSelect = document.getElementById("fee");
@@ -370,7 +350,14 @@ const registrations = snapshot.exists() ? snapshot.val() : {};
   // Attach user code to formData
   formData.userCode = userCode;
 
-set(ref(db, `users/user1/ListRegistration/${registrationId}`), formData)
+  set(ref(db, `users/user1/ListRegistration/${registrationId}`), {
+  ...formData,
+  programTitle: document.getElementById("programTitle").textContent,
+  programDates: document.getElementById("programDetails").textContent.split(",")[0].trim(), // e.g., "26–27 April 2025"
+  programVenue: currentProgram?.venue || "",
+programState: currentProgram?.state || "",
+  statusRegistration: "Pending"
+})
       .then(() => {
 
 
@@ -393,7 +380,6 @@ const readableData = {
   programDetails: document.getElementById("programDetails").textContent
 };
 
-window.sendGmailAlert(formData, readableData);
 
       })
       .catch((error) => {
