@@ -19,8 +19,8 @@
     
     <!-- Participant Info -->
     <div class="bg-blue-50 p-4 rounded-lg mb-6">
-      <p class="text-lg"><strong>Name:</strong> <span id="name">Fatin Nabila Binti Shafee</span></p>
-      <p class="text-lg"><strong>NRIC:</strong> <span id="nric">950726-09-5088</span></p>
+      <p class="text-lg"><strong>Name:</strong> <span id="name">ERROR NAME</span></p>
+      <p class="text-lg"><strong>NRIC:</strong> <span id="nric">ERROR IC</span></p>
       <p class="text-lg"><strong>Status:</strong> <span id="status" class="text-green-600 font-semibold">Approved</span></p>
       <p class="text-lg"><strong>Form:</strong> <span id="form" class="text-green-600 font-semibold">Settle</span></p>
     </div>
@@ -35,8 +35,12 @@
     <div class="border border-gray-300 rounded-lg p-4 mb-6 bg-gray-50">
       <h2 class="text-xl font-semibold text-center mb-2">Certificate of Attendance</h2>
       <p class="text-center text-gray-600 mb-4">You have successfully attended the workshop:</p>
-      <p class="text-center font-medium">"WORKSHOP ON ERGONOMIC TRAINED PERSON: INITIAL ERGONOMICS RISK ASSESSMENT"</p>
-      <p class="text-center text-sm text-gray-500 mt-2">April 26–27, 2025 | Jitra, Kedah</p>
+      <p class="text-center font-medium certificate-title">
+        "X0X"
+      </p>
+      <p class="text-center text-sm text-gray-500 mt-2 certificate-date">
+        X0X | X0X
+      </p>
     </div>
 
     <!-- Buttons -->
@@ -44,14 +48,96 @@
       <button onclick="generatePDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow-md transition">
         Print Certificate
       </button>
-      <button onclick="alert('Redirecting to form...')" class="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded shadow-md transition">
+      <button onclick="window.location.href='https://asyrafergo.github.io/era/full.html'" class="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded shadow-md transition">
         Fill Form
       </button>
     </div>
   </div>
 
-  <script>
-    async function generatePDF() {
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, get, set, child, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAxfj2GwpREdwwvSL1_LhTUnSWAUwUT9pQ",
+      authDomain: "ergo-1140d.firebaseapp.com",
+      databaseURL: "https://ergo-1140d-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ergo-1140d",
+      storageBucket: "ergo-1140d.appspot.com",
+      messagingSenderId: "139659476541",
+      appId: "1:139659476541:web:78fd5c1593fae30f747454",
+      measurementId: "G-NNGVRF3E5D"
+    };
+
+    let userData = {};
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const analytics = getAnalytics(app);
+
+    // Function to get URL parameters
+  function getURLParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      username: params.get("username"),
+      password: params.get("password"),
+    };
+  }
+
+  // Main function to load participant data
+  async function loadParticipantData() {
+  const { username, password } = getURLParams();
+  const dbRef = ref(database);
+
+  try {
+    const snapshot = await get(child(dbRef, "users"));
+
+    if (snapshot.exists()) {
+      const users = snapshot.val();
+
+      for (const key in users) {
+        const user = users[key];
+
+        if (user.username === username && user.password === password) {
+          // Populate UI
+          document.getElementById("name").innerText = user.fullname || "-";
+          document.getElementById("nric").innerText = user.ic || "-";
+          document.getElementById("form").innerText = user.programDate ? "Settle" : "Pending";
+          document.getElementById("reg-status-text").innerText = user.registrationStatus || "";
+
+          document.querySelector(".certificate-title").innerText = `"${user.progTitle || "Program Title"}"`;
+          document.querySelector(".certificate-date").innerText = `${user.programDate || "Date"} | ${user.venue || "Venue"} ${user.progState || "State"}`;
+
+          // Populate userData for PDF
+          userData = {
+            fullname: user.fullname,
+            nric: user.ic,
+            progTitle: user.progTitle,
+            programDate: user.programDate,
+            progState: user.progState,
+            venue: user.venue
+          };
+
+          return;
+        }
+      }
+    }
+
+    document.getElementById("reg-status-text").innerText = "User not found or invalid credentials.";
+  } catch (error) {
+    console.error("Error reading from database:", error);
+  }
+}
+
+  loadParticipantData();
+
+
+const dbRef = ref(database);
+const urlParams = new URLSearchParams(window.location.search);
+const username = urlParams.get("username");
+const password = urlParams.get("password");
+
+  window.generatePDF = async function () {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({
         orientation: "portrait",
@@ -91,12 +177,25 @@ doc.addImage(
       doc.setTextColor(255, 255, 255);
 
       let y = 60;
-      doc.setFontSize(18);
-      doc.text("FATIN NABILA BINTI SHAFEE", 105, y, { align: "center" });
+doc.setFontSize(18);
+
+const fullName = (userData.fullname || "Participant Name").toUpperCase();
+
+// Automatically split the name into multiple lines (max 160mm wide)
+const nameLines = doc.splitTextToSize(fullName, 160);
+const lineHeight = 8;
+
+// Loop through each line and draw it centered
+nameLines.forEach((line, index) => {
+  doc.text(line, 105, y + index * lineHeight, { align: "center" });
+});
+
+// Update y for the next section after the name
+y += nameLines.length * lineHeight;
 
       y += 8;
       doc.setFontSize(14);
-      doc.text("(NRIC NO: 950726-09-5088)", 105, y, { align: "center" });
+      doc.text(`(NRIC NO: ${userData.nric || "IC Number"})`, 105, y, { align: "center" });
 
       y += 25;
       doc.setFont("Helvetica", "bolditalic");
@@ -118,19 +217,16 @@ doc.addImage(
       y += 25;
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(18);
-      doc.text("WORKSHOP ON ERGONOMIC TRAINED PERSON:", 105, y, { align: "center" });
+      doc.text((userData.progTitle || "Untitled Program").toUpperCase(), 105, y, { align: "center" }); // Dynamic program title
 
-      y += 8;
-      doc.text("INITIAL ERGONOMICS RISK ASSESSMENT", 105, y, { align: "center" });
-
-      y += 30;
+      y += 20;
       doc.setFont("Helvetica", "italic");
       doc.setFontSize(12);
-      doc.text("Northern Ergonomics Solutions PLT,", leftMargin, y);
+      doc.text(userData.venue || "Default Venue", leftMargin, y); // Dynamic state
       y += 6;
-      doc.text("Jitra, Kedah", leftMargin, y);
+      doc.text(userData.progState || "Program State", leftMargin, y);
       y += 6;
-      doc.text("April 26-27, 2025", leftMargin, y);
+      doc.text(userData.programDate || "Program Date", leftMargin, y); // Dynamic date
 
       // Signature at bottom-left
       let bottomY = 260;
