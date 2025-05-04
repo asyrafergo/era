@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Modern Register</title>
+  <title> Register</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
   <style>
     * {
@@ -152,6 +152,15 @@
 
       <div id="step2" style="display: none;">
         <div class="input-group">
+          <label for="userCode">User Code</label>
+          <input type="text" id="userCode" placeholder="Enter your user code" required />
+        </div>
+        <button type="button" onclick="verifyUserCode()">Next</button>
+      </div>
+      
+      <!-- Updated Step 3 (was Step 2) -->
+      <div id="step3" style="display: none;">
+        <div class="input-group">
           <label for="username">Username</label>
           <input type="text" id="username" placeholder="Create a username" required pattern="[a-zA-Z0-9]+" />
         </div>
@@ -160,7 +169,7 @@
           <input type="password" id="password" placeholder="Create a password" required pattern="[a-zA-Z0-9]+" />
         </div>
         <button type="submit">Done Register</button>
-      </div>
+      </div>      
       <div style="text-align: center; margin-top: 20px;">
         <a href="https://asyrafergo.github.io/era/index.html" style="color: #0078d4; font-weight: 500; text-decoration: none;">
           ← Back to Login
@@ -200,7 +209,6 @@
     return;
   }
 
-  // Get the company name using the selected key
   const companyRef = ref(database, `users/user1/ListCompany/${companyKey}`);
   const snapshot = await get(companyRef);
   const companyName = snapshot.exists() ? snapshot.val().name : "";
@@ -211,11 +219,56 @@
 
   const form = document.getElementById('registerForm');
   form.dataset.matric = matricNumber;
-  form.dataset.company = companyName; // Save the readable name, not the key
+  form.dataset.company = companyName;
   form.dataset.department = department;
   form.dataset.task = task;
-}
+};
 
+window.verifyUserCode = async function () {
+  const enteredCode = document.getElementById('userCode').value.trim();
+
+  if (!enteredCode) {
+    alert('Please enter your user code.');
+    return;
+  }
+
+  const listRegistrationRef = ref(database, 'users/user1/ListRegistration');
+  const snapshot = await get(listRegistrationRef);
+
+  if (!snapshot.exists()) {
+    alert('No registration data found.');
+    return;
+  }
+
+  const registrations = snapshot.val();
+  let matchedData = null;
+
+  for (const key in registrations) {
+    if (registrations[key].userCode === enteredCode) {
+      matchedData = registrations[key];
+      break;
+    }
+  }
+
+  if (!matchedData) {
+    alert('Invalid user code. Please check again.');
+    return;
+  }
+
+  // Store matched registration data in form dataset
+  const form = document.getElementById('registerForm');
+  form.dataset.ic = matchedData.ic || '';
+  form.dataset.programDate = matchedData.programDates || '';
+  form.dataset.progState = matchedData.programState || '';
+  form.dataset.progTitle = matchedData.programTitle || '';
+  form.dataset.venue = matchedData.programVenue || '';
+  form.dataset.email = matchedData.email || '';
+  form.dataset.status = matchedData.statusRegistration || '';
+
+  // Move to next step
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'block';
+};
 
     async function generateNextMatricNumber() {
       const usersRef = ref(database, 'users');
@@ -280,16 +333,24 @@ while (existingUserIds.includes('user' + userIdNumber)) {
 
 const newUserId = 'user' + userIdNumber;
 
-      const newUser = {
+const newUser = {
   Company: document.getElementById('registerForm').dataset.company,
   Department: document.getElementById('registerForm').dataset.department,
   Task: document.getElementById('registerForm').dataset.task,
-        fullname: fullName,
-        matrik: matricNumber,
-        username: username,
-        password: password,
-        status: "user"
-      };
+  fullname: fullName,
+  matrik: matricNumber,
+  username: username,
+  password: password,
+  status: "user",
+  ic: document.getElementById('registerForm').dataset.ic,
+  programDate: document.getElementById('registerForm').dataset.programDate,
+  progState: document.getElementById('registerForm').dataset.progState,
+  progTitle: document.getElementById('registerForm').dataset.progTitle,
+  venue: document.getElementById('registerForm').dataset.venue,
+  email: document.getElementById('registerForm').dataset.email,
+  registrationStatus: document.getElementById('registerForm').dataset.status
+};
+
 
       await set(child(usersRef, newUserId), newUser);
       alert('User registered successfully!');
@@ -326,8 +387,6 @@ function loadCompanies() {
     }
   });
 }
-
-
 
 // Load Departments and Tasks
 window.loadDepartmentsAndTasks = function () {
