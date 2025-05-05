@@ -133,7 +133,7 @@
         <!-- Below Program List Section -->
         <button onclick="hideProgramForm()">Hide Program</button>
 <button id="toggleProgramBtn" onclick="toggleProgramForm()">Add Program</button>
-      </div>     
+      </div> 
 
       <div id="programManagementSection" class="section">
         <h2>Program Management</h2>
@@ -184,6 +184,40 @@
   </select>
         <button onclick="saveProgramToFirebase()">Save Program</button>
       </div> 
+
+      <div class="section">
+        <h2 class="text-center mb-4">Registration List</h2>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Program Title</th>
+                <th>Venue</th>
+                <th>State</th>
+                <th>Date</th>
+                <th>User Code</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="registrationTableBody">
+              <!-- Rows will be added here dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Modal for Editing Registration -->
+      <div id="editModal" style="display:none; background:white; padding:20px; border:1px solid #ccc; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 1000;">
+        <h4>Edit Registration</h4>
+        <input type="text" id="editName" placeholder="Name"><br>
+        <input type="text" id="editCompany" placeholder="Company"><br>
+        <select id="editProgram" class="form-select form-select-sm"></select><br>
+        <button id="saveEditBtn">Save</button>
+        <button onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+      </div>
+      
 
     <div class="section">
         <h2>Admin Users</h2>
@@ -319,6 +353,137 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebas
   localStorage.setItem('programInfo', JSON.stringify(program));
   alert("Program information saved!");
 }
+
+let programData = {}; // Store original data for reference
+
+// Function to format the date in "15–15 May 2025" format
+function formatDateRange(dateRange) {
+  const [startDate, endDate] = dateRange.split(" to ");
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Define options for formatting the date
+  const options = { day: '2-digit', month: 'long', year: 'numeric' };
+
+  const startFormatted = start.toLocaleDateString('en-GB', options); // Format as "DD Month YYYY"
+  const endFormatted = end.toLocaleDateString('en-GB', options); // Format as "DD Month YYYY"
+
+  return `${startFormatted.split(' ')[0]}–${endFormatted.split(' ')[0]} ${startFormatted.split(' ')[1]} ${startFormatted.split(' ')[2]}`;
+}
+
+// Load combined program dropdown with formatted date range
+function loadCombinedProgramDropdown() {
+  const db = getDatabase();
+  const programRef = ref(db, "users/user1/Program"); // Adjust path as needed
+
+  get(programRef).then(snapshot => {
+    if (snapshot.exists()) {
+      programData = snapshot.val();
+
+      const select = document.getElementById("editProgram"); // Use this for combined select
+      select.innerHTML = '<option value="">Select Program</option>';
+
+      Object.entries(programData).forEach(([key, prog]) => {
+        // Format the dates
+        const formattedDates = formatDateRange(prog.dates);
+        
+        // Combine title, venue, state, and the formatted date range
+        const displayText = `${prog.title} | ${prog.venue} | ${prog.state} | ${formattedDates}`;
+        
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = displayText;
+        select.appendChild(option);
+      });
+    }
+  }).catch(err => {
+    console.error("Error loading programs:", err);
+  });
+}
+
+// Add event listener to the edit buttons in the table
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("edit-btn")) {
+    const reg = JSON.parse(e.target.dataset.reg);
+    const userId = e.target.dataset.userId;
+    const regKey = e.target.dataset.regKey;
+
+    // Fill modal inputs
+    document.getElementById("editName").value = reg.name || '';
+    document.getElementById("editCompany").value = reg.companyName || '';
+    loadCombinedProgramDropdown(); // Load the dropdown dynamically
+
+    // Show modal
+    document.getElementById("editModal").style.display = "block";
+
+    // Save updated data
+    document.getElementById("saveEditBtn").onclick = function () {
+      const selectedKey = document.getElementById("editProgram").value;
+      const prog = programData[selectedKey];
+
+      // Format the programDates to match your desired format before saving
+      const formattedProgramDates = formatDateRange(prog?.dates || '');
+
+      const updatedReg = {
+        name: document.getElementById("editName").value,
+        companyName: document.getElementById("editCompany").value,
+        programTitle: prog?.title || '',
+        programVenue: prog?.venue || '',
+        programState: prog?.state || '',
+        programDates: formattedProgramDates // Use formatted date
+      };
+
+      const regRef = ref(getDatabase(), `users/${userId}/ListRegistration/${regKey}`);
+      update(regRef, updatedReg).then(() => {
+        alert("Updated");
+        location.reload();
+      });
+    };
+  }
+});
+
+const db = getDatabase();
+  const usersRef = ref(db, 'users');
+  const tableBody = document.getElementById("registrationTableBody");
+
+  get(usersRef).then(snapshot => {
+    if (!snapshot.exists()) return;
+
+    const users = snapshot.val();
+
+    Object.entries(users).forEach(([userKey, userData]) => {
+      if (userData.ListRegistration) {
+        Object.entries(userData.ListRegistration).forEach(([regKey, reg]) => {
+          const row = document.createElement("tr");
+          row.dataset.userId = userKey;
+          row.dataset.regKey = regKey;
+
+          row.innerHTML = `
+            <td>${reg.name || '-'}</td>
+            <td>${reg.companyName || '-'}</td>
+            <td>${reg.programTitle || '-'}</td>
+            <td>${reg.programVenue || '-'}</td>
+            <td>${reg.programState || '-'}</td>
+            <td>${reg.programDates || '-'}</td>
+            <td>${reg.userCode || '-'}</td>
+             <td>
+  <button class="btn btn-sm btn-primary me-1 edit-btn" 
+            data-user-id="${userKey}" 
+            data-reg-key="${regKey}" 
+            data-reg='${JSON.stringify(reg).replace(/'/g, "&#39;")}'>
+      Edit
+    </button>
+  <button class="btn btn-sm btn-danger">Remove</button>
+</td>
+          `;
+
+          tableBody.appendChild(row);
+        });
+      }
+    });
+  }).catch(error => {
+    console.error("Error loading registration data:", error);
+  });
 
 function renderCompanyList() {
   const userId = "user1";
@@ -542,6 +707,34 @@ actionWrapper.classList.add('action-buttons'); // Apply CSS flex style
   });
 }
 
+function saveEdit(userId, regKey) {
+  const db = getDatabase();
+  const name = document.getElementById("editName").value;
+  const companyName = document.querySelector('select').value;
+  const programKey = document.querySelectorAll('select')[1].value;
+
+  get(ref(db, `programs/${programKey}`)).then(snap => {
+    if (!snap.exists()) return alert("Program not found");
+
+    const program = snap.val();
+
+    const updatedData = {
+      name,
+      companyName,
+      programTitle: program.title,
+      programVenue: program.venue,
+      programState: program.state,
+      programDates: program.date,
+    };
+
+    const regRef = ref(db, `users/${userId}/ListRegistration/${regKey}`);
+    update(regRef, updatedData).then(() => {
+      alert("Updated successfully");
+      location.reload();
+    });
+  });
+}
+
 function editUser(userId, user) {
   const userRef = ref(database, 'users/' + userId);
   const listCompanyRef = ref(database, 'users/user1/ListCompany');
@@ -726,7 +919,7 @@ function loadProgramList() {
   </td>
           <td>
   <div style="display: flex; gap: 5px;">
-    <button onclick="editProgram('${key}')">Edit</button>
+    <button onclick="editRegister('${key}')">Edit</button>
     <button onclick="deleteProgram('${key}')">Delete</button>
   </div>
 </td>
