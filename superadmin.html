@@ -978,6 +978,7 @@ feeCell.appendChild(feeWrapper);
 feeRow.appendChild(feeCell);
 tableBody.appendChild(feeRow);
 }
+matchAndAddParticipant(key);
       });
     }
   });
@@ -1133,7 +1134,9 @@ window.manageParticipants = function (programKey) {
 
     participantKeys.forEach(pid => {
       html += `<li>${participants[pid]} 
-        <button type="button" onclick="removeParticipant('${programKey}', '${pid}')">Remove</button></li>`;
+        <button type="button" onclick="removeParticipant('${programKey}', '${pid}')">Remove</button>
+        <button type="button" onclick="editParticipant('${programKey}', '${pid}', '${participants[pid]}')">Edit</button>
+        </li>`;
     });
 
     html += `</ul>`;
@@ -1149,6 +1152,95 @@ window.manageParticipants = function (programKey) {
 
     container.innerHTML = html;
   });
+};
+
+window.editParticipant = async function (currentProgramKey, pid, participantName) {
+  const userId = "user1";
+  const db = getDatabase();
+
+  const programsRef = ref(db, `users/${userId}/Program`);
+  const programsSnap = await get(programsRef);
+
+  if (!programsSnap.exists()) return alert("No programs found.");
+
+  const programs = programsSnap.val();
+
+  // Build a dropdown form
+  let formHtml = `
+    <h4>Edit Program for: ${participantName}</h4>
+    <select id="programSelect">
+      <option value="">Select a program</option>
+  `;
+
+  for (const [key, prog] of Object.entries(programs)) {
+    const formattedDate = Array.isArray(prog.dates) ? formatDateRange(prog.dates) : prog.dates;
+    const label = `${prog.title} | ${prog.venue} | ${prog.state} | ${formattedDate}`;
+    formHtml += `<option value="${key}">${label}</option>`;
+  }
+
+  formHtml += `</select>
+    <button onclick="confirmEditParticipant('${currentProgramKey}', '${pid}', '${participantName}')">Confirm</button>
+  `;
+
+  // Display form in a container
+  const container = document.getElementById("participantManager");
+  container.innerHTML += `<div id="editForm">${formHtml}</div>`;
+};
+
+window.confirmEditParticipant = async function (currentProgramKey, pid, name) {
+  const userId = "user1";
+  const db = getDatabase();
+  const newProgramKey = document.getElementById("programSelect").value;
+
+  if (!newProgramKey) return alert("Please select a program.");
+
+  const currentProgRef = ref(db, `users/${userId}/Program/${currentProgramKey}`);
+  const newProgRef = ref(db, `users/${userId}/Program/${newProgramKey}`);
+  const usersRef = ref(db, "users");
+
+  const [currentSnap, newSnap, usersSnap] = await Promise.all([
+    get(currentProgRef),
+    get(newProgRef),
+    get(usersRef),
+  ]);
+
+  const currentData = currentSnap.val();
+  const newData = newSnap.val();
+  const newParticipants = newData.participants || {};
+  const max = newData.slots || 0;
+
+  if (Object.keys(newParticipants).length >= max) {
+    return alert("Selected program is full.");
+  }
+
+  // Add to new program
+  const newPid = `p${Date.now()}`;
+  newParticipants[newPid] = name;
+  await update(newProgRef, { participants: newParticipants });
+
+  // Remove from old program
+  const currentParticipants = currentData.participants || {};
+  delete currentParticipants[pid];
+  await update(currentProgRef, { participants: currentParticipants });
+
+  // Update user record
+  if (usersSnap.exists()) {
+    const users = usersSnap.val();
+    for (const [uid, user] of Object.entries(users)) {
+      if (user.fullname === name) {
+        await update(ref(db, `users/${uid}`), {
+  progTitle: newData.title || "",
+  programDate: formatDateRange(newData.dates || ""), // ✅ uses your format
+  venue: newData.venue || "",
+  progState: newData.state || ""
+});
+        break;
+      }
+    }
+  }
+
+  alert("Participant updated successfully.");
+  location.reload();
 };
 
 // Add participant
@@ -1200,6 +1292,87 @@ window.removeParticipant = function (programKey, pid) {
       location.reload();
     });
   });
+};
+
+function normalize(str) {
+  return (str || "")
+    .replace(/–/g, "-")      // Convert en dash to hyphen
+    .replace(/\s+/g, " ")    // Collapse multiple spaces
+    .trim()
+    .toLowerCase();
+}
+
+window.matchAndAddParticipant = async function (programKey) {
+  const userId = "user1";
+  const db = getDatabase();
+  const programRef = ref(db, `users/${userId}/Program/${programKey}`);
+  const usersRef = ref(db, "users");
+
+  try {
+    const [programSnap, userSnap] = await Promise.all([
+      get(programRef),
+      get(usersRef),
+    ]);
+
+    if (!programSnap.exists()) {
+      console.log("Program not found!");
+      return;
+    }
+
+    const program = programSnap.val();
+
+    // Initialize participant_slot if missing
+    if (!program.participant_slot) {
+      await update(programRef, { participant_slot: [] });
+      console.log(`Initialized participant_slot for program ${programKey}`);
+    }
+
+    if (!userSnap.exists()) {
+      console.log("No users found in the database.");
+      return [];
+    }
+
+    const users = userSnap.val();
+    const matchingUsers = [];
+
+    for (const [userId, userData] of Object.entries(users)) {
+      if (
+        normalize(userData.progTitle) === normalize(program.title) &&
+        normalize(userData.programDate) === normalize(formatDateRange(program.dates)) &&
+        normalize(userData.progState) === normalize(program.state) &&
+        normalize(userData.venue) === normalize(program.venue)
+      ) {
+        console.log(`Matched user: ${userData.fullname}`);
+        matchingUsers.push(userData.fullname);
+      }
+    }
+
+    await update(programRef, { participant_slot: matchingUsers });
+console.log(`Updated program ${programKey} with participant_slot:`, matchingUsers);
+
+// Merge into participants with slot check
+const currentParticipants = program.participants || {};
+const maxSlots = program.slots || 0;
+let currentCount = Object.keys(currentParticipants).length;
+
+for (const name of matchingUsers) {
+  const alreadyExists = Object.values(currentParticipants).includes(name);
+  if (!alreadyExists && currentCount < maxSlots) {
+    const newKey = `p${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    currentParticipants[newKey] = name;
+    currentCount++;
+  }
+}
+
+await update(programRef, { participants: currentParticipants });
+console.log(`Updated program ${programKey} with participants:`, currentParticipants);
+
+return matchingUsers;
+
+
+  } catch (error) {
+    console.error("Error matching and adding participants:", error);
+  }
 };
 
 function updateUserStatus(userId, newStatus) {
