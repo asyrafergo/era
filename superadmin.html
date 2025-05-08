@@ -1133,10 +1133,14 @@ window.manageParticipants = function (programKey) {
     let html = `<h3>Participants for: ${data.title}</h3><ul id="participantList">`;
 
     participantKeys.forEach(pid => {
-      html += `<li>${participants[pid]} 
-        <button type="button" onclick="removeParticipant('${programKey}', '${pid}')">Remove</button>
-        <button type="button" onclick="editParticipant('${programKey}', '${pid}', '${participants[pid]}')">Edit</button>
-        </li>`;
+      html += `
+  <li>
+    ${participants[pid]} 
+    <button type="button" onclick="removeParticipant('${programKey}', '${pid}')">Remove</button>
+    <button type="button" onclick="editParticipant('${programKey}', '${pid}', '${participants[pid]}')">Edit</button>
+    <div id="editContainer_${pid}" style="margin-top: 10px;"></div>
+  </li>
+`;
     });
 
     html += `</ul>`;
@@ -1158,17 +1162,25 @@ window.editParticipant = async function (currentProgramKey, pid, participantName
   const userId = "user1";
   const db = getDatabase();
 
+  const editContainerId = `editContainer_${pid}`;
+  const editContainer = document.getElementById(editContainerId);
+
+  // Toggle visibility
+  if (editContainer.style.display === "block") {
+    editContainer.style.display = "none";
+    return; // ✅ This return is now inside a function
+  }
+
   const programsRef = ref(db, `users/${userId}/Program`);
   const programsSnap = await get(programsRef);
-
   if (!programsSnap.exists()) return alert("No programs found.");
 
   const programs = programsSnap.val();
 
-  // Build a dropdown form
+  // Build the dropdown form
   let formHtml = `
     <h4>Edit Program for: ${participantName}</h4>
-    <select id="programSelect">
+    <select id="programSelect_${pid}">
       <option value="">Select a program</option>
   `;
 
@@ -1178,69 +1190,54 @@ window.editParticipant = async function (currentProgramKey, pid, participantName
     formHtml += `<option value="${key}">${label}</option>`;
   }
 
-  formHtml += `</select>
+  formHtml += `
+    </select>
     <button onclick="confirmEditParticipant('${currentProgramKey}', '${pid}', '${participantName}')">Confirm</button>
   `;
 
-  // Display form in a container
-  const container = document.getElementById("participantManager");
-  container.innerHTML += `<div id="editForm">${formHtml}</div>`;
+  editContainer.innerHTML = formHtml;
+  editContainer.style.display = "block";
 };
 
-window.confirmEditParticipant = async function (currentProgramKey, pid, name) {
+window.confirmEditParticipant = function (participantId) {
+  let container = document.getElementById(`editParticipant_${participantId}`);
+
+  // If it exists, just toggle visibility
+  if (container) {
+    const isVisible = container.style.display === "block";
+    container.style.display = isVisible ? "none" : "block";
+    return;
+  }
+
+  // If it doesn't exist, create and display it
   const userId = "user1";
-  const db = getDatabase();
-  const newProgramKey = document.getElementById("programSelect").value;
+  const programsRef = ref(database, `users/${userId}/Program`);
 
-  if (!newProgramKey) return alert("Please select a program.");
+  get(programsRef).then(snapshot => {
+    if (!snapshot.exists()) return alert("No programs found.");
 
-  const currentProgRef = ref(db, `users/${userId}/Program/${currentProgramKey}`);
-  const newProgRef = ref(db, `users/${userId}/Program/${newProgramKey}`);
-  const usersRef = ref(db, "users");
+    const programs = snapshot.val();
 
-  const [currentSnap, newSnap, usersSnap] = await Promise.all([
-    get(currentProgRef),
-    get(newProgRef),
-    get(usersRef),
-  ]);
+    container = document.createElement("div");
+    container.id = `editParticipant_${participantId}`;
+    container.style.marginTop = "10px";
 
-  const currentData = currentSnap.val();
-  const newData = newSnap.val();
-  const newParticipants = newData.participants || {};
-  const max = newData.slots || 0;
+    let html = `<p><strong>Edit Program for:</strong> ${participantId}</p>
+      <select id="programSelect_${participantId}">
+        <option disabled selected>Select a program</option>`;
 
-  if (Object.keys(newParticipants).length >= max) {
-    return alert("Selected program is full.");
-  }
-
-  // Add to new program
-  const newPid = `p${Date.now()}`;
-  newParticipants[newPid] = name;
-  await update(newProgRef, { participants: newParticipants });
-
-  // Remove from old program
-  const currentParticipants = currentData.participants || {};
-  delete currentParticipants[pid];
-  await update(currentProgRef, { participants: currentParticipants });
-
-  // Update user record
-  if (usersSnap.exists()) {
-    const users = usersSnap.val();
-    for (const [uid, user] of Object.entries(users)) {
-      if (user.fullname === name) {
-        await update(ref(db, `users/${uid}`), {
-  progTitle: newData.title || "",
-  programDate: formatDateRange(newData.dates || ""), // ✅ uses your format
-  venue: newData.venue || "",
-  progState: newData.state || ""
-});
-        break;
-      }
+    for (const [key, prog] of Object.entries(programs)) {
+      const formattedDate = formatDateRange(prog.dates);
+      html += `<option value="${key}">${prog.title} | ${formattedDate} | ${prog.venue} | ${prog.state}</option>`;
     }
-  }
 
-  alert("Participant updated successfully.");
-  location.reload();
+    html += `</select>
+      <button onclick="applyEditParticipant('${participantId}')">Confirm</button>`;
+
+    container.innerHTML = html;
+    document.getElementById("participantList").appendChild(container);
+    container.style.display = "block";
+  });
 };
 
 // Add participant
