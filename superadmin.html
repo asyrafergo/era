@@ -889,37 +889,52 @@ function loadProgramList() {
           <td>
     <button onclick="toggleFeeForm('${key}')">Fee</button>
     <div id="feeForm-${key}" style="display:none; margin-top:10px; border: 1px solid #ccc; padding: 8px; background: #f9f9f9; border-radius: 6px;">
-      <select id="feeCategory-${key}" style="margin-bottom:5px; width: 80%;">
-        <option value="">Fee Category</option>
-        <option value="Competency">Competency</option>
-        <option value="Non Competency">Non Competency</option>
-        <option value="Refresher">Refresher</option>
-      </select>
-      <input type="number" id="feeAmount-${key}" placeholder="Amount (RM)" style="margin-bottom:5px; width: 70%;">
-      <select id="feeLabel-${key}" style="margin-bottom:5px; width: 80%;">
-        <option value="">Label</option>
-        <option value="Early Bird">Early Bird</option>
-        <option value="Standard">Standard</option>
-        <option value="Company Sponsored">Company Sponsored</option>
-      </select>
-      <select id="feeDeadlineType-${key}" style="margin-bottom:5px; width: 80%;">
-        <option value="">Deadline</option>
-        <option value="Paid On / Before">Paid On / Before</option>
-        <option value="Paid After">Paid After</option>
-      </select>
-      <input type="date" id="feeDeadlineDate-${key}" style="margin-bottom:5px; width: 70%;">
-      <select id="feeMethod-${key}" style="margin-bottom:5px; width: 80%;">
-        <option value="">Method</option>
-        <option value="Cash">Cash</option>
-        <option value="HRD Corp">HRD Corp</option>
-        <option value="Company Sponsored">Company Sponsored</option>
-      </select>
-      <button onclick="saveFeeToProgram('${key}')">Save Fee</button>
-    </div>
+  <select id="feeCategory-${key}" style="margin-bottom:5px; width: 80%;">
+    <option value="">Fee Category</option>
+    <option value="Competency">Competency</option>
+    <option value="Non Competency">Non Competency</option>
+    <option value="Refresher">Refresher</option>
+  </select>
+
+  <input type="number" id="feeAmount-${key}" placeholder="Amount (RM)" style="margin-bottom:5px; width: 70%;">
+
+  <select id="feeLabel-${key}" style="margin-bottom:5px; width: 80%;">
+    <option value="">Label</option>
+    <option value="Early Bird">Early Bird</option>
+    <option value="Standard">Standard</option>
+    <option value="Company Sponsored">Company Sponsored</option>
+  </select>
+
+  <select id="feeDeadlineType-${key}" style="margin-bottom:5px; width: 80%;">
+    <option value="">Deadline</option>
+    <option value="Paid On / Before">Paid On / Before</option>
+    <option value="Paid After">Paid After</option>
+  </select>
+
+  <input type="date" id="feeDeadlineDate-${key}" style="margin-bottom:5px; width: 70%;">
+
+  <select id="feeMethod-${key}" style="margin-bottom:5px; width: 80%;">
+    <option value="">Method</option>
+    <option value="Cash">Cash</option>
+    <option value="HRD Corp">HRD Corp</option>
+    <option value="Company Sponsored">Company Sponsored</option>
+  </select>
+
+  <!-- 👇 Add this dropdown for selecting a fee to edit -->
+  <select id="selectFeeToEdit-${key}" style="margin-bottom:5px; width: 80%;">
+    <option value="">Select Fee to Edit</option>
+    ${Object.entries(data.Fee || {}).map(([feeId, fee]) => `
+      <option value="${feeId}">${fee.label} - RM ${fee.amount}</option>
+    `).join("")}
+  </select>
+
+  <!-- Existing Save button -->
+  <button onclick="saveFeeToProgram('${key}')">Save Fee</button>
+</div>
   </td>
           <td>
   <div style="display: flex; gap: 5px;">
-    <button onclick="editRegister('${key}')">Edit</button>
+    <button onclick="editProgram('${key}')">Edit</button>
     <button onclick="deleteProgram('${key}')">Delete</button>
   </div>
 </td>
@@ -1075,8 +1090,11 @@ window.deleteFee = function (programKey, feeId) {
 
 window.editFee = function (programKey, feeId) {
   const userId = "user1";
-  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
 
+  // 💡 Force open the section
+  toggleFeeForm(programKey);
+
+  const progRef = ref(database, `users/${userId}/Program/${programKey}`);
   get(progRef).then(snapshot => {
     if (!snapshot.exists()) return;
 
@@ -1090,11 +1108,15 @@ window.editFee = function (programKey, feeId) {
     document.getElementById(`feeDeadlineDate-${programKey}`).value = fee.deadlineDate || '';
     document.getElementById(`feeMethod-${programKey}`).value = fee.method || '';
 
-    editingFeeId = feeId;
-    document.getElementById(`feeForm-${programKey}`).style.display = 'block';
+    const formDiv = document.getElementById(`feeForm-${programKey}`);
+    formDiv.style.display = 'block';
+
     const feeList = document.getElementById(`feeList-${programKey}`);
     if (feeList) feeList.style.display = 'block';
 
+    formDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    editingFeeId = feeId;
     alert(`Now editing fee: ${fee.category} (${feeId})`);
   });
 };
