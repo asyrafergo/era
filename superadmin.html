@@ -920,14 +920,6 @@ function loadProgramList() {
     <option value="Company Sponsored">Company Sponsored</option>
   </select>
 
-  <!-- 👇 Add this dropdown for selecting a fee to edit -->
-  <select id="selectFeeToEdit-${key}" style="margin-bottom:5px; width: 80%;">
-    <option value="">Select Fee to Edit</option>
-    ${Object.entries(data.Fee || {}).map(([feeId, fee]) => `
-      <option value="${feeId}">${fee.label} - RM ${fee.amount}</option>
-    `).join("")}
-  </select>
-
   <!-- Existing Save button -->
   <button onclick="saveFeeToProgram('${key}')">Save Fee</button>
 </div>
