@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIRARC Form - Vertical Text Hazard Classification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .form-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        table {
+            margin-left: 0;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border: 1px solid #000;
+        }
+        th, td {
+    border: 1px solid #000;
+    padding: 5px;
+    word-wrap: break-word;
+}
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .header-table {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+            text-align: center;
+        }
+        input[type="text"], textarea, input[type="checkbox"] {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+        textarea {
+    min-height: 50px;
+    resize: both; /* allow resizing in both directions */
+    width: 100%;
+    box-sizing: border-box;
+}
+        input[type="checkbox"] {
+            width: auto;
+            height: 15px;
+            margin: 0 auto;
+            display: block;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.delete {
+            background-color: #f44336;
+        }
+        button.delete:hover {
+            background-color: #d32f2f;
+        }
+        button.print {
+            background-color: #2196F3;
+        }
+        button.print:hover {
+            background-color: #0b7dda;
+        }
+        @media print {
+            button {
+                display: none;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        .hazard-checkbox {
+            text-align: center;
+        }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            text-align: center;
+            padding: 5px 2px;
+            width: 20px;
+        }
+        .vertical-text2 {
+    width: 10px;
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+}
+.vertical-text2 input[type="text"] {
+    width: 20px;  /* ↓ this controls the VISIBLE height (rotate = width) */
+    height: auto; /* ensure height does not stretch */
+    text-align: center;
+    padding: 2px;
+    box-sizing: border-box;
+}
+        .action-column {
+            width: 5%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- Header Table -->
+        <!-- Replace your entire header table with this corrected version: -->
+<table class="header-table">
+    <tr>
+        <td colspan="4"><strong>JABATAN/BAHAGIAN</strong></td>
+        <td colspan="2"><strong>PENTAKSIR RISIKO</strong></td>
+        <td rowspan="2"><strong>DILULUSKAN OLEH:</strong></td>
+        <td><strong>NO. RUJUKAN:</strong></td>
+    </tr>
+    <tr>
+        <td colspan="4"><input type="text" id="department"></td>
+        <td colspan="2"><input type="text" id="riskAssessor"></td>
+        <td rowspan="9"><input type="text" id="referenceNo" style="height: 100%;"></td>
+    </tr>
+    <tr>
+        <td colspan="4"><strong>PROSES</strong></td>
+        <td colspan="2"><strong>AHLI KUMPULAN 1</strong></td>
+        <td><strong>T.TANGAN</strong></td>
+    </tr>
+    <tr>
+        <td colspan="4"><input type="text" id="process"></td>
+        <td colspan="2"><input type="text" id="analysisGroup1"></td>
+        <td><input type="text" id="signature"></td>
+    </tr>
+    <tr>
+        <td colspan="4"><strong>LOKASI</strong></td>
+        <td colspan="2"><strong>AHLI KUMPULAN 2</strong></td>
+        <td><strong>NAMA</strong></td>
+    </tr>
+    <tr>
+        <td colspan="4"><input type="text" id="location"></td>
+        <td colspan="2"><input type="text" id="analysisGroup2"></td>
+        <td><input type="text" id="name"></td>
+    </tr>
+    <tr>
+        <td colspan="4"><strong>TARIKH PENTAKSIRAN / TARIKH SEMAKAN</strong></td>
+        <td colspan="2"><strong>AHLI KUMPULAN 3</strong></td>
+        <td><strong>JAWATAN</strong></td>
+    </tr>
+    <tr>
+        <td colspan="4"><input type="text" id="assessmentDate"></td>
+        <td colspan="2"><input type="text" id="analysisGroup3"></td>
+        <td><input type="text" id="position"></td>
+    </tr>
+    <tr>
+        <td colspan="4"><strong>PENTAKSIRAN TERAKHIR</strong></td>
+        <td colspan="2"><strong>AHLI KUMPULAN 4</strong></td>
+        <td><strong>TARIKH</strong></td>
+    </tr>
+    <tr>
+        <td colspan="4"><input type="text" id="lastAssessment"></td>
+        <td colspan="2"><input type="text" id="analysisGroup4"></td>
+        <td><input type="text" id="date"></td>
+    </tr>
+</table>
+
+        <!-- Hazard Identification Table -->
+        <table class="hazard-table" id="hazardTable">
+    <thead>
+        <tr>
+            <th rowspan="2">NO</th>
+            <th colspan="10">PENGENALPASTIAN HAZARD</th>
+            <th colspan="5">PENILAIAN RISIKO</th>
+            <th>KAWALAN RISIKO</th>
+            <th colspan="4">PENILAIAN SEMULA RISIKO</th>
+            <th rowspan="3">CATATAN</th>
+        </tr>
+        <tr>
+            <th rowspan="2" colspan="2">AKTIVITI KERJA</th>
+            <th rowspan="2" colspan="2">HAZARD</th>
+            <th colspan="5">PENGELASAN HAZARD</th>
+            <th>KEJADIAN DAN AKIBAT</th>
+            <th>KAWALAN RISIKO SEDIA ADA (JIKA ADA)</th>
+            <th>JUSTIFIKASI KEMUNGKINAN</th>
+            <th class="vertical-text">KEMUNGKINAN (L)</th>
+            <th class="vertical-text">KETERUKAN (S)</th>
+            <th class="vertical-text">RMN</th>
+            <th>KAWALAN RISIKO TAMBAHAN</th>
+            <th class="vertical-text">KEMUNGKINAN (L)</th>
+            <th class="vertical-text">KETERUKAN (S)</th>
+            <th class="vertical-text">RMN</th>
+            <th>ORANG YANG DITUGASKAN (TARIKH AKHIR)</th>
+        </tr>
+        <tr>
+            <th colspan="2"></th>
+            <th class="vertical-text">FIZIKAL</th>
+            <th class="vertical-text">KIMIA (FIZIKAL)</th>
+            <th class="vertical-text">BIOLOGIKAL</th>
+            <th class="vertical-text">ERGONOMIK</th>
+            <th class="vertical-text">PSIKOSOSIAL</th>
+            <th colspan="11"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><input type="text" class="row-number" value="1" readonly></td>
+            <td colspan="2"><textarea></textarea></td>
+            <td colspan="2"><textarea></textarea></td>
+            <td class="hazard-checkbox"><input type="checkbox"></td>
+            <td class="hazard-checkbox"><input type="checkbox"></td>
+            <td class="hazard-checkbox"><input type="checkbox"></td>
+            <td class="hazard-checkbox"><input type="checkbox"></td>
+            <td class="hazard-checkbox"><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+            <td><textarea></textarea></td>
+            <td><textarea></textarea></td>
+            <td class="vertical-text2"><input type="text"></td>
+            <td class="vertical-text2"><input type="text"></td>
+            <td class="vertical-text2"><input type="text"></td>
+            <td><textarea></textarea></td>
+            <td class="vertical-text2"><input type="text"></td>
+            <td class="vertical-text2"><input type="text"></td>
+            <td class="vertical-text2"><input type="text"></td>
+            <td><textarea></textarea></td>
+            <td><textarea></textarea></td>
+            <td class="action-column"><button class="delete" onclick="deleteRow(this)">×</button></td>
+        </tr>
+    </tbody>
+</table>
+
+        <div class="button-container">
+            <button id="addRow">Add Row</button>
+            <button class="print" id="printBtn">Print/PDF</button>
+        </div>
+    </div>
+
+    <script>
+        // Add new row
+        document.getElementById('addRow').addEventListener('click', function() {
+            const table = document.getElementById('hazardTable').getElementsByTagName('tbody')[0];
+            const rows = table.getElementsByTagName('tr');
+            const newRow = rows[rows.length - 1].cloneNode(true);
+            
+            // Update the row number
+            const rowNumberInput = newRow.querySelector('.row-number');
+            rowNumberInput.value = rows.length + 1;
+            
+            // Clear all input fields in the new row
+            const inputs = newRow.querySelectorAll('input:not(.row-number), textarea');
+            inputs.forEach(input => {
+                if (input.tagName === 'INPUT' && input.type !== 'checkbox') {
+                    input.value = '';
+                } else if (input.tagName === 'TEXTAREA') {
+                    input.value = '';
+                } else if (input.type === 'checkbox') {
+                    input.checked = false;
+                }
+            });
+            
+            table.appendChild(newRow);
+            
+            // Renumber all rows
+            renumberRows();
+        });
+
+        // Delete row
+        function deleteRow(btn) {
+            const row = btn.parentNode.parentNode;
+            if (document.getElementById('hazardTable').getElementsByTagName('tbody')[0].rows.length > 1) {
+                row.parentNode.removeChild(row);
+                renumberRows();
+            } else {
+                alert("You cannot delete the last row.");
+            }
+        }
+
+        // Renumber all rows
+        function renumberRows() {
+            const rows = document.getElementById('hazardTable').getElementsByTagName('tbody')[0].rows;
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].querySelector('.row-number').value = i + 1;
+            }
+        }
+
+        // Print/PDF function
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
+        });
+    </script>
+</body>
+</html>
