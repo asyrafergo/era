@@ -86,14 +86,23 @@
             background-color: #0b7dda;
         }
         @media print {
-            button {
-                display: none;
-            }
-            body {
-                margin: 0;
-                padding: 0;
-            }
-        }
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    table {
+        margin-left: 0 !important; /* Force to left */
+        margin-right: auto !important;
+    }
+    .form-container {
+        max-width: none !important; /* Allow full page width */
+        width: 100% !important;
+    }
+    th, td {
+        font-size: 10px; /* Slightly smaller text for fitting */
+        padding: 3px;
+    }
+}
         .hazard-checkbox {
             text-align: center;
         }
