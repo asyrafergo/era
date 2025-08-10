@@ -91,16 +91,29 @@
         padding: 0;
     }
     table {
-        margin-left: 0 !important; /* Force to left */
+        margin-left: 0 !important;
         margin-right: auto !important;
     }
     .form-container {
-        max-width: none !important; /* Allow full page width */
+        max-width: none !important;
         width: 100% !important;
     }
     th, td {
-        font-size: 10px; /* Slightly smaller text for fitting */
-        padding: 3px;
+        font-size: 8px !important; /* Changed from 10px to 8px */
+        padding: 2px !important;   /* Reduced padding */
+        line-height: 1.2 !important; /* Tighter line spacing */
+    }
+    /* Add these new rules for print optimization */
+    textarea, input[type="text"] {
+        font-size: 8px !important;
+        padding: 1px !important;
+    }
+    .vertical-text, .vertical-text2 {
+        font-size: 7px !important;
+        padding: 1px !important;
+    }
+    button {
+        display: none !important;
     }
 }
         .hazard-checkbox {
@@ -195,7 +208,7 @@
         <table class="hazard-table" id="hazardTable">
     <thead>
         <tr>
-            <th rowspan="2">NO</th>
+            <th rowspan="3">NO</th>
             <th colspan="10">PENGENALPASTIAN HAZARD</th>
             <th colspan="5">PENILAIAN RISIKO</th>
             <th>KAWALAN RISIKO</th>
@@ -206,26 +219,24 @@
             <th rowspan="2" colspan="2">AKTIVITI KERJA</th>
             <th rowspan="2" colspan="2">HAZARD</th>
             <th colspan="5">PENGELASAN HAZARD</th>
-            <th>KEJADIAN DAN AKIBAT</th>
-            <th>KAWALAN RISIKO SEDIA ADA (JIKA ADA)</th>
-            <th>JUSTIFIKASI KEMUNGKINAN</th>
-            <th class="vertical-text">KEMUNGKINAN (L)</th>
-            <th class="vertical-text">KETERUKAN (S)</th>
-            <th class="vertical-text">RMN</th>
-            <th>KAWALAN RISIKO TAMBAHAN</th>
-            <th class="vertical-text">KEMUNGKINAN (L)</th>
-            <th class="vertical-text">KETERUKAN (S)</th>
-            <th class="vertical-text">RMN</th>
-            <th>ORANG YANG DITUGASKAN (TARIKH AKHIR)</th>
+            <th rowspan="2">KEJADIAN DAN AKIBAT</th>
+            <th rowspan="2">KAWALAN RISIKO SEDIA ADA (JIKA ADA)</th>
+            <th rowspan="2">JUSTIFIKASI KEMUNGKINAN</th>
+            <th rowspan="2" class="vertical-text">KEMUNGKINAN (L)</th>
+            <th rowspan="2" class="vertical-text">KETERUKAN (S)</th>
+            <th rowspan="2" class="vertical-text">RMN</th>
+            <th rowspan="2">KAWALAN RISIKO TAMBAHAN</th>
+            <th rowspan="2" class="vertical-text">KEMUNGKINAN (L)</th>
+            <th rowspan="2" class="vertical-text">KETERUKAN (S)</th>
+            <th rowspan="2" class="vertical-text">RMN</th>
+            <th rowspan="2">ORANG YANG DITUGASKAN (TARIKH AKHIR)</th>
         </tr>
         <tr>
-            <th colspan="2"></th>
             <th class="vertical-text">FIZIKAL</th>
             <th class="vertical-text">KIMIA (FIZIKAL)</th>
             <th class="vertical-text">BIOLOGIKAL</th>
             <th class="vertical-text">ERGONOMIK</th>
             <th class="vertical-text">PSIKOSOSIAL</th>
-            <th colspan="11"></th>
         </tr>
     </thead>
     <tbody>
