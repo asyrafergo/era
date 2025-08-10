@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Symptom Survey</title>
+    <style>
+        /* Header and form styles */
+        .header-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .form-box {
+            border: 1px solid #000;
+            padding: 8px;  /* Reduced from 10px */
+            background-color: #f9f9f9;
+            width: 28%;  /* Reduced from 30% */
+        }
+        .title-box {
+            border: 1px solid #000;
+            padding: 8px;  /* Reduced from 10px */
+            text-align: center;
+            background-color: #f2f2f2;
+            font-weight: bold;
+            flex-grow: 1;
+            margin: 0 8px;  /* Reduced from 10px */
+            font-size: 14px;  /* Control title size */
+        }
+        .form-field {
+            margin-bottom: 5px;
+        }
+        .form-field label {
+            display: inline-block;
+            width: 100px;
+        }
+        .form-field input {
+            width: calc(100% - 110px);  /* Reduce this value to make inputs narrower */
+            padding: 2px;  /* Reduced from 3px */
+            border: 1px solid #ccc;
+            font-size: 12px;  /* Add this to control text size */
+            height: 18px;  /* Add fixed height */
+        }
+        .instruction-box {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .note-box {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            font-size: 12px;
+        }
+        .note-box ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        /* Your existing styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+       /* Modify existing styles */
+.tables-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align items at the top */
+    width: 100%;
+}
+
+.container {
+    width: 70%; /* Reduce width to make space for image */
+}
+
+.left-container {
+    margin-right: 2px; /* Add some space between left table and image */
+}
+
+.right-container {
+    margin-left: 2px; /* Add some space between image and right table */
+}
+
+/* Add new styles for image container */
+.image-container {
+    width: 80%;                 /* keep width */
+    height: 500px;               /* make taller — adjust value */
+    position: relative;          /* so the image can be positioned inside */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    z-index: 1;                   /* ensure it's above background */
+}
+
+.image-container img {
+    height: 130%;                 /* fill container height */
+    width: auto;                  /* maintain proportions */
+    position: absolute;           /* allows overlap with tables */
+    top: 0;                       /* start at top */
+    left: 50%;
+    transform: translateX(-50%);
+}
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .th2 {
+            background-color: transparent;
+            border: none;
+            padding: 0;
+        }
+        .body-part {
+            text-align: left;
+            font-weight: bold;
+            background-color: #f9f9f9;
+            font-size: 13px;
+        }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            text-align: center;
+            padding: 5px 2px;
+            width: 20px;
+            font-size: 11px;
+        }
+        .vertical-text2 {
+            writing-mode: vertical-lr;
+            transform: rotate(0deg);
+            white-space: nowrap;
+            text-align: center;
+            padding: 5px 2px;
+            width: 20px;
+            font-size: 11px;
+        }
+        .symptom {
+            text-align: left;
+            width: 180px;
+            font-size: 12px;
+            padding-left: 8px;
+        }
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            margin: 0;
+        }
+        input[type="radio"] {
+            transform: scale(1.2);
+            margin: 0;
+        }
+        .print-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        @media print {
+            .form-field input {
+        width: 100px !important;  /* Even narrower for print */
+        padding: 1px !important;
+        font-size: 10px !important;
+        height: 6px !important;
+    }
+
+    .container {
+        width: 44% !important; /* Adjust for print if needed */
+    }
+    
+    .image-container {
+        width: 50% !important; /* Adjust for print if needed */
+    }
+    
+    .image-container img {
+        max-width: 130% !important;
+        height: auto !important;
+    }
+    
+    .form-box, .title-box {
+        padding: 1px !important;  /* Reduced padding for print */
+        height  : 200px !important;
+    }
+    
+    .title-box {
+        font-size: 12px !important;  /* Smaller title for print */
+    }
+    
+    .form-field label {
+        width: 80px !important;  /* Make labels narrower */
+        font-size: 10px !important;
+    }
+            /* Make input values visible when printing */
+    input[type="text"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 1px solid #000 !important;
+            background: white !important;
+            color: black !important;
+            width: auto !important;
+            height: auto !important;
+            font-size: 10px !important;
+        }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .print-btn {
+                display: none;
+            }
+            table {
+        font-size: 8px !important; /* Tiny but readable */
+    }
+    
+    th, td {
+        padding: 1px !important; /* Minimal padding */
+    }
+    .symptom {
+        width: auto !important; /* Even narrower */
+    }
+    .vertical-text, .vertical-text2 {
+        width: 12px !important;
+        font-size: 7px !important;
+    }
+    
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header-container">
+        <!-- Personal Information and Title -->
+        <div class="form-row">
+            <div class="form-box">
+                <div class="form-field">
+                    <label>Name:</label>
+                    <input type="text" oninput="this.setAttribute('value', this.value)">
+                </div>
+                <div class="form-field">
+                    <label>Staff ID:</label>
+                    <input type="text" oninput="this.setAttribute('value', this.value)">
+                </div>
+                <div class="form-field">
+                    <label>Date:</label>
+                    <input type="text" oninput="this.setAttribute('value', this.value)">
+                </div>
+                <div class="form-field">
+                    <label>Dept:</label>
+                    <input type="text" oninput="this.setAttribute('value', this.value)">
+                </div>
+                <div class="form-field">
+                    <label>Company:</label>
+                    <input type="text" oninput="this.setAttribute('value', this.value)">
+                </div>
+            </div>
+            
+            <div class="title-box">
+                BOSS (Body Symptom Survey) QUESTIONNAIRE
+                <p><strong>Instruction:</strong></p>
+            <p><strong>STEP 1:</strong> Mark the body parts that you have any discomfort or pain during last 12 months? Mark on the Figure below.</p>
+            <p><strong>STEP 2:</strong> Mark the severity. Mark in boxes shaded light red.</p>
+            <p><strong>STEP 3:</strong> Mark the frequency of occurrence (same row as marked in STEP 2). Mark in boxes shaded light blue.</p>
+            <p><strong>STEP 4:</strong> Do you think it's due work? Mark (due to work) or N (not due to work)</p>
+            </div>
+            
+            <div class="form-box">
+                <div class="form-field">
+                    <label>Job Task:</label>
+                    <textarea style="min-width: 250px; font-size: 10px; padding: 8px; box-sizing: border-box;"></textarea>
+                </div>
+
+            </div>
+        </div>
+
+    <!-- Your existing tables -->
+    <div class="tables-container">
+        <!-- Left Side Table -->
+        <div class="container left-container">
+            <table>
+                <thead>
+                <tr>
+                    <th class="vertical-text">Due to work? Y/N</th>
+                    <th class="vertical-text">Everyday</th>
+                    <th class="vertical-text">A few times a week</th>
+                    <th class="vertical-text">Once a week</th>
+                    <th class="vertical-text">A few times a month</th>
+                    <th class="vertical-text">Once a month</th>
+                    <th class="vertical-text">A few times a year</th>
+                    <th class="vertical-text">Once a year</th>
+                    <th class="th2"></th>
+                    <th class="th2"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- NECK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: right">A : NECK</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">
+                        <label><input type="radio" name="neck_work" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="neck_work" value="N"> N</label>
+                    </td>
+                    <td colspan="7"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- SHOULDER -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: right">B : SHOULDER</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">
+                        <label><input type="radio" name="shoulder_work" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="shoulder_work" value="N"> N</label>
+                    </td>
+                    <td colspan="7"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- UPPER BACK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: right">C: UPPER BACK</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">
+                        <label><input type="radio" name="upper_back" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="upper_back" value="N"> N</label>
+                    </td>
+                    <td colspan="7"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- LOWER BACK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: right">D: LOWER BACK</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">
+                        <label><input type="radio" name="lower_back" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="lower_back" value="N"> N</label>
+                    </td>
+                    <td colspan="7"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: right">E: UPPER ARM</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">
+                        <label><input type="radio" name="upper_arm" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="upper_arm" value="N"> N</label>
+                    </td>
+                    <td colspan="7"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- SHOULDER -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: right">F: ELBOW</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">
+                        <label><input type="radio" name="elbow_work" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="elbow_work" value="N"> N</label>
+                    </td>
+                    <td colspan="7"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+
+        <!-- Image in the middle -->
+    <div class="image-container">
+        <img src="c:/Users/DELL/Downloads/label-removebg-preview.png" alt="Body Diagram">
+    </div>
+
+        <!-- Right Side Table -->
+        <div class="container right-container">
+            <table>
+            <thead>
+                <tr>
+                    <th class="th2"></th>
+                    <th class="th2"></th>
+                    <th class="vertical-text2">Once a year</th>
+                    <th class="vertical-text2">A few times a year</th>
+                    <th class="vertical-text2">Once a month</th>
+                    <th class="vertical-text2">A few times a month</th>
+                    <th class="vertical-text2">Once a week</th>
+                    <th class="vertical-text2">A few times a week</th>
+                    <th class="vertical-text2">Everyday</th>
+                    <th class="vertical-text2">Due to work? Y/N</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- NECK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: left">G: LOWER ARM</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td colspan="7"></td>
+                    <td rowspan="4">
+                        <label><input type="radio" name="lower_arm" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="lower_arm" value="N"> N</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- SHOULDER -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: left">H: HAND / WRIST</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td colspan="7"></td>
+                    <td rowspan="4">
+                        <label><input type="radio" name="hand_wrist" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="hand_wrist" value="N"> N</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- UPPER BACK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: left">I: THIGH</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td colspan="7"></td>
+                    <td rowspan="4">
+                        <label><input type="radio" name="thigh_work" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="thigh_work" value="N"> N</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                
+                <!-- LOWER BACK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: left">J: KNEE</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td colspan="7"></td>
+                    <td rowspan="4">
+                        <label><input type="radio" name="knee_work" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="knee_work" value="N"> N</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+
+                <!-- LOWER BACK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: left">K: LOWER LEG</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td colspan="7"></td>
+                    <td rowspan="4">
+                        <label><input type="radio" name="lower_leg" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="lower_leg" value="N"> N</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <!-- LOWER BACK -->
+                <tr>
+                    <td class="body-part" colspan="10" style="text-align: left">L: ANKLE/FOOT</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">No/Very Mild Discomfort</td>
+                    <td colspan="7"></td>
+                    <td rowspan="4">
+                        <label><input type="radio" name="ankle_foot" value="Y"> Y</label><br><br>
+                        <label><input type="radio" name="ankle_foot" value="N"> N</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Discomfort</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (able to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td class="symptom">Pain (unable to continue work)</td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Single Print Button -->
+    <div style="text-align: center;">
+        <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('input[type="radio"][value="N"]').forEach(function (radio) {
+        radio.checked = true;
+    });
+});
+
+        // Update all inputs before printing
+    window.onbeforeprint = function() {
+        const inputs = document.querySelectorAll('input[type="text"]');
+        inputs.forEach(input => {
+            input.setAttribute('value', input.value);
+        });
+    };
+        // Your existing script
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const groupName = this.name;
+                document.querySelectorAll(`input[name="${groupName}"]`).forEach(r => {
+                    if (r !== this) r.checked = false;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
