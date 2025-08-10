@@ -117,7 +117,7 @@
         }
         th, td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 4px;
             text-align: center;
             font-size: 12px;
         }
@@ -181,11 +181,14 @@
             border-radius: 4px;
         }
         @media print {
+            .form-field {
+        margin-bottom: 0px !important; /* increase vertical spacing */
+    }
             .form-field input {
-        width: 100px !important;  /* Even narrower for print */
+        width: 70px !important;  /* Even narrower for print */
         padding: 1px !important;
         font-size: 10px !important;
-        height: 6px !important;
+        height: 3px !important;
     }
 
     .container {
@@ -203,11 +206,11 @@
     
     .form-box, .title-box {
         padding: 1px !important;  /* Reduced padding for print */
-        height  : 200px !important;
+        height  : 185px !important;
     }
     
     .title-box {
-        font-size: 12px !important;  /* Smaller title for print */
+        font-size: 10px !important;  /* Smaller title for print */
     }
     
     .form-field label {
@@ -242,7 +245,9 @@
         padding: 1px !important; /* Minimal padding */
     }
     .symptom {
-        width: auto !important; /* Even narrower */
+        width: auto !important;
+        font-size: 8px !important; /* smaller font for print */
+        padding-left: 4px !important; /* optional: tighter padding */
     }
     .vertical-text, .vertical-text2 {
         width: 12px !important;
