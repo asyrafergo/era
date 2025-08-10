@@ -2,9 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Body Symptom Survey</title>
     <style>
+
+        /* Add these new mobile styles at the end of your style section */
+    @media only screen and (max-width: 768px) {
+        /* Stack form boxes vertically on mobile */
+        .form-row {
+            flex-direction: column;
+        }
+        
+        .form-box, .title-box {
+            width: 100% !important;
+            margin: 5px 0 !important;
+        }
+        
+        /* Stack tables and image vertically */
+        .tables-container {
+            flex-direction: column;
+        }
+        
+        .container {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+        
+        .image-container {
+            width: 100% !important;
+            height: auto !important;
+            padding: 10px 0 !important;
+            order: -1; /* Move image to top */
+        }
+        
+        .image-container img {
+            position: static !important;
+            transform: none !important;
+            height: auto !important;
+            width: 80% !important;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        /* Make inputs more touch-friendly */
+        .form-field input {
+            height: 28px !important;
+            font-size: 16px !important;
+        }
+        
+        /* Adjust table layout for small screens */
+        table {
+            font-size: 10px !important;
+        }
+        
+        .symptom {
+            width: 120px !important;
+            font-size: 10px !important;
+        }
+        
+        /* Make checkboxes and radios larger for touch */
+        input[type="checkbox"], 
+        input[type="radio"] {
+            transform: scale(1.5);
+            margin: 5px !important;
+        }
+    }
+
+    /* For very small screens (e.g., phones in portrait) */
+    @media only screen and (max-width: 480px) {
+        .vertical-text, 
+        .vertical-text2 {
+            writing-mode: horizontal-tb !important;
+            transform: none !important;
+            width: auto !important;
+            padding: 2px !important;
+        }
+        
+        .form-field label {
+            width: 70px !important;
+            font-size: 12px !important;
+        }
+    }
+        
         /* Header and form styles */
         .header-container {
             width: 100%;
