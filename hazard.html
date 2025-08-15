@@ -150,57 +150,71 @@
     <div class="form-container">
         <!-- Header Table -->
         <!-- Replace your entire header table with this corrected version: -->
-<table class="header-table">
+<table class="header-table" style="border-collapse: collapse; width: 100%;">
+    <colgroup>
+        <col style="width: 30%;"> <!-- JABATAN/BAHAGIAN shorter -->
+        <col style="width: 20%;"> <!-- PENTAKSIR RISIKO -->
+        <col style="width: 20%;"> <!-- AHLI KUMPULAN -->
+        <col style="width: 20%;"> <!-- T.TANGAN -->
+        <col style="width: 20%;"> <!-- NO. RUJUKAN -->
+    </colgroup>
     <tr>
-        <td colspan="4"><strong>JABATAN/BAHAGIAN</strong></td>
-        <td colspan="2"><strong>PENTAKSIR RISIKO</strong></td>
-        <td rowspan="2"><strong>DILULUSKAN OLEH:</strong></td>
+        <td><strong>JABATAN/BAHAGIAN</strong></td>
+        <td><strong>PENTAKSIR RISIKO</strong></td>
+        <td colspan="2" rowspan="2"><strong>DILULUSKAN OLEH:</strong></td>
         <td><strong>NO. RUJUKAN:</strong></td>
     </tr>
     <tr>
-        <td colspan="4"><input type="text" id="department"></td>
-        <td colspan="2"><input type="text" id="riskAssessor"></td>
-        <td rowspan="9"><input type="text" id="referenceNo" style="height: 100%;"></td>
+        <td><input type="text" id="department" style="width: 100%;"></td>
+        <td style="padding: 2px;">
+            <textarea style="width: 100%; min-height: 10px; resize: vertical; 
+                             box-sizing: border-box; border: 1px solid #ccc; padding: 4px;"></textarea>
+        </td>
+        <td rowspan="9"><input type="text" id="referenceNo" style="height: 100%; width: 100%;"></td>
     </tr>
     <tr>
-        <td colspan="4"><strong>PROSES</strong></td>
-        <td colspan="2"><strong>AHLI KUMPULAN 1</strong></td>
-        <td><strong>T.TANGAN</strong></td>
+        <td><strong>PROSES</strong></td>
+        <td><strong>AHLI KUMPULAN 1</strong></td>
+        <td colspan="2"><strong>T.TANGAN</strong></td>
     </tr>
     <tr>
-        <td colspan="4"><input type="text" id="process"></td>
-        <td colspan="2"><input type="text" id="analysisGroup1"></td>
-        <td><input type="text" id="signature"></td>
+        <td><input type="text" id="process" style="width: 100%;"></td>
+        <td><textarea style="width: 100%; min-height: 10px; resize: vertical; 
+                             box-sizing: border-box; border: 1px solid #ccc; padding: 4px;"></textarea></td>
+        <td colspan="2"><input type="text" id="signature" style="width: 100%;"></td>
     </tr>
     <tr>
-        <td colspan="4"><strong>LOKASI</strong></td>
-        <td colspan="2"><strong>AHLI KUMPULAN 2</strong></td>
-        <td><strong>NAMA</strong></td>
+        <td><strong>LOKASI</strong></td>
+        <td><strong>AHLI KUMPULAN 2</strong></td>
+        <td colspan="2"><strong>NAMA</strong></td>
     </tr>
     <tr>
-        <td colspan="4"><input type="text" id="location"></td>
-        <td colspan="2"><input type="text" id="analysisGroup2"></td>
-        <td><input type="text" id="name"></td>
+        <td><input type="text" id="location" style="width: 100%;"></td>
+        <td><textarea style="width: 100%; min-height: 10px; resize: vertical; 
+                             box-sizing: border-box; border: 1px solid #ccc; padding: 4px;"></textarea></td>
+        <td colspan="2"><input type="text" id="name" style="width: 100%;"></td>
     </tr>
     <tr>
-        <td colspan="4"><strong>TARIKH PENTAKSIRAN / TARIKH SEMAKAN</strong></td>
-        <td colspan="2"><strong>AHLI KUMPULAN 3</strong></td>
-        <td><strong>JAWATAN</strong></td>
+        <td><strong>TARIKH PENTAKSIRAN / TARIKH SEMAKAN</strong></td>
+        <td><strong>AHLI KUMPULAN 3</strong></td>
+        <td colspan="2"><strong>JAWATAN</strong></td>
     </tr>
     <tr>
-        <td colspan="4"><input type="text" id="assessmentDate"></td>
-        <td colspan="2"><input type="text" id="analysisGroup3"></td>
-        <td><input type="text" id="position"></td>
+        <td><input type="text" id="assessmentDate" style="width: 100%;"></td>
+        <td><textarea style="width: 100%; min-height: 10px; resize: vertical; 
+                             box-sizing: border-box; border: 1px solid #ccc; padding: 4px;"></textarea></td>
+        <td colspan="2"><input type="text" id="position" style="width: 100%;"></td>
     </tr>
     <tr>
-        <td colspan="4"><strong>PENTAKSIRAN TERAKHIR</strong></td>
-        <td colspan="2"><strong>AHLI KUMPULAN 4</strong></td>
-        <td><strong>TARIKH</strong></td>
+        <td><strong>PENTAKSIRAN TERAKHIR</strong></td>
+        <td><strong>AHLI KUMPULAN 4</strong></td>
+        <td colspan="2"><strong>TARIKH</strong></td>
     </tr>
     <tr>
-        <td colspan="4"><input type="text" id="lastAssessment"></td>
-        <td colspan="2"><input type="text" id="analysisGroup4"></td>
-        <td><input type="text" id="date"></td>
+        <td><input type="text" id="lastAssessment" style="width: 100%;"></td>
+        <td><textarea style="width: 100%; min-height: 10px; resize: vertical; 
+                             box-sizing: border-box; border: 1px solid #ccc; padding: 4px;"></textarea></td>
+        <td colspan="2"><input type="text" id="date" style="width: 100%;"></td>
     </tr>
 </table>
 
