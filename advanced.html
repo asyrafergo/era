@@ -521,17 +521,27 @@
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
 
-      const pxToMm = px => px * 25.4 / (96 * scale);
-      const imgWmm = pxToMm(canvas.width);
-      const imgHmm = pxToMm(canvas.height);
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / imgWmm, pageH / imgHmm);
-      const renderW = imgWmm * ratio;
-      const renderH = imgHmm * ratio;
-      const x = (pageW - renderW) / 2;
-      const y = 8;
-      pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
+      // simpler, robust sizing: fill page width (or height if needed) while keeping aspect ratio
+const pageW = pdf.internal.pageSize.getWidth();   // mm
+const pageH = pdf.internal.pageSize.getHeight();  // mm
+
+// compute image aspect ratio from canvas pixels
+const imgAspect = canvas.width / canvas.height;
+
+// try to use full page width first
+let renderW = pageW;
+let renderH = pageW / imgAspect;
+
+// if image height would overflow page, fit to page height instead
+if (renderH > pageH - 16) { // leave small top/bottom margin (16mm total)
+  renderH = pageH - 16;
+  renderW = renderH * imgAspect;
+}
+
+// center image on page (small top margin of 8mm)
+const x = (pageW - renderW) / 2;
+const y = 8;
+pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
 
       // 3) produce blob
       const blob = await pdf.output('blob');
