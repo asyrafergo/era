@@ -8,6 +8,7 @@
   <!-- dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
     :root{
@@ -439,76 +440,155 @@
   </div>
 
   <script>
-    // Note: This HTML expects these files to exist in the same folder:
-    // Figure_1.png, Figure_2.png, Figure_3.png, Figure_4.png, Figure_5.png
-    // If they're present they will be shown automatically. No upload required.
+  // --- Google Drive OAuth / upload setup ---
+  const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com';
+  const DRIVE_UPLOAD_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  const TARGET_FOLDER_ID = '1ObyTWIF6tx1-G-SpLlMAZGXgMj9oBfbc';
 
-    // Backend url (change to your server)
-    const UPLOAD_ENDPOINT = 'http://localhost:3000/upload'; // keep same as your backend
+  let tokenClient = null;
 
-    async function generatePDF() {
-      const status = document.getElementById('status');
-      status.textContent = 'Rendering PDF…';
-      const captureEl = document.getElementById('captureArea');
-      const scale = 2.5;
+  function initGIS() {
+    if (!window.google || tokenClient) return;
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: DRIVE_UPLOAD_SCOPE,
+      // callback will be set on-demand in requestDriveToken
+      callback: () => {}
+    });
+  }
 
+  // ensure GIS initialized when google API available
+  window.addEventListener('load', () => {
+    initGIS();
+  });
+
+  // Request token (shows consent the first time)
+  function requestDriveToken() {
+    return new Promise((resolve, reject) => {
+      if (!tokenClient) {
+        return reject(new Error('Google Identity Services not initialized. Ensure <script src="https://accounts.google.com/gsi/client" async defer></script> is in <head>.'));
+      }
+      tokenClient.callback = (resp) => {
+        if (resp.error) reject(resp);
+        else resolve(resp.access_token);
+      };
+      // Use 'consent' first time so user chooses account; you can remove prompt after testing
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    });
+  }
+
+  async function uploadPdfToDrive(blob, filename) {
+    const token = await requestDriveToken();
+    const metadata = {
+      name: filename,
+      mimeType: 'application/pdf',
+      parents: [TARGET_FOLDER_ID]
+    };
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', blob, filename);
+
+    // ask for webViewLink in response
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error('Upload failed: ' + res.status + ' ' + txt);
+    }
+    return await res.json(); // { id, webViewLink }
+  }
+
+  // --- PDF generation + upload (integrated) ---
+  async function generatePDF() {
+    const status = document.getElementById('status');
+    status.textContent = 'Rendering PDF…';
+    const captureEl = document.getElementById('captureArea');
+    const scale = 2.5;
+
+    try {
+      // 1) render canvas
+      const canvas = await html2canvas(captureEl, {
+        scale, useCORS:true, logging:false, scrollY:-window.scrollY
+      });
+
+      // 2) put into jsPDF (single page scaled to A4)
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+
+      const pxToMm = px => px * 25.4 / (96 * scale);
+      const imgWmm = pxToMm(canvas.width);
+      const imgHmm = pxToMm(canvas.height);
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageW / imgWmm, pageH / imgHmm);
+      const renderW = imgWmm * ratio;
+      const renderH = imgHmm * ratio;
+      const x = (pageW - renderW) / 2;
+      const y = 8;
+      pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
+
+      // 3) produce blob
+      const blob = await pdf.output('blob');
+
+      // 4) filename
+      const nameField = (document.getElementById('name')||{}).value || 'anon';
+      const filename = `Advanced_ERA_${nameField}_${new Date().toISOString().replace(/[:.]/g,'-')}.pdf`;
+
+      // 5) show uploading message element
+      const uploadingMsg = document.createElement('div');
+      uploadingMsg.id = 'uploadingMsg';
+      uploadingMsg.style.position = 'fixed';
+      uploadingMsg.style.right = '12px';
+      uploadingMsg.style.bottom = '12px';
+      uploadingMsg.style.padding = '10px 14px';
+      uploadingMsg.style.background = '#0b61ff';
+      uploadingMsg.style.color = '#fff';
+      uploadingMsg.style.borderRadius = '8px';
+      uploadingMsg.style.zIndex = '9999';
+      uploadingMsg.textContent = 'Uploading PDF to Google Drive…';
+      document.body.appendChild(uploadingMsg);
+      status.textContent = 'Uploading to Google Drive…';
+
+      // 6) attempt upload
       try {
-        const canvas = await html2canvas(captureEl, {
-          scale, useCORS:true, logging:false, scrollY:-window.scrollY
-        });
-
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-
-        // calculate size and add image
-        const pxToMm = px => px * 25.4 / (96 * scale);
-        const imgWmm = pxToMm(canvas.width);
-        const imgHmm = pxToMm(canvas.height);
-        const pageW = pdf.internal.pageSize.getWidth();
-        const pageH = pdf.internal.pageSize.getHeight();
-        const ratio = Math.min(pageW / imgWmm, pageH / imgHmm);
-        const renderW = imgWmm * ratio;
-        const renderH = imgHmm * ratio;
-        const x = (pageW - renderW) / 2;
-        const y = 8;
-        pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
-
-        // blob and filename
-        const blob = await pdf.output('blob');
-        const nameField = (document.getElementById('name')||{}).value || 'anon';
-        const filename = `Advanced_ERA_${nameField}_${new Date().toISOString().replace(/[:.]/g,'-')}.pdf`;
-
-        // build form
-        const form = new FormData();
-        form.append('file', blob, filename);
-        form.append('filename', filename);
-
-        status.textContent = 'Uploading to server…';
-
-        const res = await fetch(UPLOAD_ENDPOINT, { method: 'POST', body: form });
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error('Upload failed: ' + res.status + ' ' + txt);
-        }
-        const json = await res.json();
+        const result = await uploadPdfToDrive(blob, filename);
+        // success
+        document.body.removeChild(uploadingMsg);
         status.textContent = 'Upload successful';
         const linkDiv = document.getElementById('resultLink');
-        linkDiv.innerHTML = `<a href="${json.webViewLink || ('https://drive.google.com/file/d/' + json.id + '/view')}" target="_blank">Open uploaded PDF in Google Drive</a>`;
-      } catch (err) {
-        console.error(err);
-        status.textContent = 'Error: ' + (err.message || err);
-        alert('Failed — saved PDF will be downloaded as fallback.');
-        try { pdf && pdf.save && pdf.save(); } catch(e){}
-      }
-    }
+        const url = result.webViewLink || `https://drive.google.com/file/d/${result.id}/view`;
+        linkDiv.innerHTML = `<a href="${url}" target="_blank">Open uploaded PDF in Google Drive</a>`;
 
-    function resetForm() {
-      if (!confirm('Clear all fields?')) return;
-      document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(i => i.value = '');
-      document.getElementById('status').textContent = 'Ready';
-      document.getElementById('resultLink').innerHTML = '';
+        // optional alert for confirmation
+        alert('Upload successful!');
+      } catch (upErr) {
+        // upload failed — fallback to local download
+        document.body.removeChild(uploadingMsg);
+        console.error('Upload failed:', upErr);
+        status.textContent = 'Upload failed — PDF downloaded locally';
+        alert('Upload failed; the PDF will be downloaded instead. Error: ' + (upErr.message || JSON.stringify(upErr)));
+        pdf.save(filename);
+      }
+    } catch (err) {
+      console.error('PDF generation failed', err);
+      status.textContent = 'Error: ' + (err.message || err);
+      alert('PDF generation failed: ' + (err.message || err));
     }
-  </script>
+  }
+
+  // keep reset function
+  function resetForm() {
+    if (!confirm('Clear all fields?')) return;
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(i => i.value = '');
+    document.getElementById('status').textContent = 'Ready';
+    document.getElementById('resultLink').innerHTML = '';
+  }
+</script>
 </body>
 </html>
