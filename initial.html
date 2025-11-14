@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Initial ERA — Fill & Print (improved readability)</title>
+
+  <!-- html2canvas and jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root{
+      --paper-width: 210mm;
+      --paper-height: 297mm;
+      --margin: 18mm;
+      --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --base-font-size: 15px;
+      --input-padding: 10px;
+    }
+
+    /* Page and card */
+    body {
+      background: #f3f4f6;
+      font-family: var(--font);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .sheet {
+      width: calc(var(--paper-width) - 2 * var(--margin));
+      max-width: 980px;
+      min-height: calc(var(--paper-height) - 2 * var(--margin));
+      background: #fff;
+      padding: 20px 26px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      box-sizing: border-box;
+      border-radius: 6px;
+    }
+
+    h1 { text-align:center; font-size:18px; margin:6px 0 14px; }
+    .meta { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+    .meta .field { display:flex; flex-direction:column; flex: 1 1 200px; min-width:160px; }
+    .meta label { font-weight:600; font-size:13px; margin-bottom:6px; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea {
+      font-size: var(--base-font-size);
+      padding: var(--input-padding);
+      border: 1px solid #c8ccd0;
+      border-radius: 6px;
+      box-sizing: border-box;
+      width:100%;
+      background: transparent;
+      line-height:1.3;
+    }
+    textarea { min-height:90px; resize:vertical; }
+
+    .section { margin-top:14px; page-break-inside:avoid; }
+    .q-title { font-weight:700; margin-bottom:8px; font-size:15px; }
+
+    /* Responsive table-like layout */
+    .table-like { width:100%; border-collapse: collapse; margin-top:8px; }
+    .table-like th, .table-like td {
+      border:1px solid #d0d4d8;
+      padding:8px;
+      vertical-align: top;
+      text-align:left;
+      font-size:14px;
+    }
+    .table-like thead th { background:#f6f7f9; font-weight:700; }
+
+    /* Make numeric column small, others flexible */
+    .col-no { width:42px; text-align:center; font-weight:700; }
+    .col-risk { width: 45%; }      /* flexible */
+    .col-example { width: 55%; }   /* flexible */
+
+    /* Inputs inside table cells fill space */
+    .table-like input[type="text"] { width:100%; padding:8px; font-size:14px; }
+
+    /* Controls */
+    .controls { display:flex; gap:8px; align-items:center; margin-top:16px; flex-wrap:wrap; }
+    button { padding:10px 14px; border-radius:8px; border:0; cursor:pointer; font-weight:700; }
+    .btn-primary { background:#0b61ff; color:white; }
+    .btn-secondary { background:#6c757d; color:white; }
+
+    /* Improve readability on small screens: labels on top, stacked */
+    @media (max-width:760px) {
+      .meta { flex-direction:column; }
+      .col-risk, .col-example { width: auto; display:block; }
+      .sheet { padding:16px; }
+    }
+
+    /* Print styles */
+    @media print {
+      body { background: white; }
+      .sheet { box-shadow:none; border:none; margin:0; width:auto; }
+      .controls { display:none; }
+      input, textarea { border: none; box-shadow:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet" id="captureArea">
+    <h1>Initial Ergonomics Risk Assessment (Written Assessment)</h1>
+
+    <div class="meta" role="group" aria-label="Personal details">
+      <div class="field"><label for="name">Name</label><input id="name" type="text" placeholder="Full name"></div>
+      <div class="field"><label for="nric">NRIC No</label><input id="nric" type="text" placeholder="NRIC"></div>
+      <div class="field"><label for="date">Date</label><input id="date" type="date"></div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" placeholder="email@example.com"></div>
+      <div class="field"><label for="tel">Tel</label><input id="tel" type="tel" placeholder="Telephone number"></div>
+    </div>
+
+    <div class="section">
+      <div class="q-title">ASSESSMENT - INITIAL ERA</div>
+
+      <div class="section" id="q1">
+        <div class="q-title">1) What is ergonomics? (2 Marks)</div>
+        <textarea id="ans1" placeholder="Answer"></textarea>
+      </div>
+
+      <div class="section" id="q2">
+        <div class="q-title">2) List FIVE (5) physical ergonomics risk factors and give ONE (1) example for each of them. (10 Marks)</div>
+
+        <table class="table-like" aria-label="Physical ergonomics risks">
+          <thead>
+            <tr>
+              <th class="col-no">No</th>
+              <th class="col-risk">Ergonomics Risk Factor</th>
+              <th class="col-example">Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-no">1</td>
+              <td class="col-risk"><input id="risk1" type="text" placeholder="Risk factor 1"></td>
+              <td class="col-example"><input id="risk1ex" type="text" placeholder="Example 1"></td>
+            </tr>
+            <tr>
+              <td class="col-no">2</td>
+              <td class="col-risk"><input id="risk2" type="text" placeholder="Risk factor 2"></td>
+              <td class="col-example"><input id="risk2ex" type="text" placeholder="Example 2"></td>
+            </tr>
+            <tr>
+              <td class="col-no">3</td>
+              <td class="col-risk"><input id="risk3" type="text" placeholder="Risk factor 3"></td>
+              <td class="col-example"><input id="risk3ex" type="text" placeholder="Example 3"></td>
+            </tr>
+            <tr>
+              <td class="col-no">4</td>
+              <td class="col-risk"><input id="risk4" type="text" placeholder="Risk factor 4"></td>
+              <td class="col-example"><input id="risk4ex" type="text" placeholder="Example 4"></td>
+            </tr>
+            <tr>
+              <td class="col-no">5</td>
+              <td class="col-risk"><input id="risk5" type="text" placeholder="Risk factor 5"></td>
+              <td class="col-example"><input id="risk5ex" type="text" placeholder="Example 5"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section" id="q3">
+        <div class="q-title">3) List THREE (3) ergonomics principles and give one example of application for each of them (6 Marks)</div>
+
+        <table class="table-like" aria-label="Ergonomics principles">
+          <thead>
+            <tr>
+              <th class="col-no">No</th>
+              <th class="col-risk">Ergonomics principle</th>
+              <th class="col-example">Example of application</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-no">1</td>
+              <td class="col-risk"><input id="prin1" type="text" placeholder="Principle 1"></td>
+              <td class="col-example"><input id="prin1ex" type="text" placeholder="Example 1"></td>
+            </tr>
+            <tr>
+              <td class="col-no">2</td>
+              <td class="col-risk"><input id="prin2" type="text" placeholder="Principle 2"></td>
+              <td class="col-example"><input id="prin2ex" type="text" placeholder="Example 2"></td>
+            </tr>
+            <tr>
+              <td class="col-no">3</td>
+              <td class="col-risk"><input id="prin3" type="text" placeholder="Principle 3"></td>
+              <td class="col-example"><input id="prin3ex" type="text" placeholder="Example 3"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section" id="q4">
+        <div class="q-title">4) What are the THREE (3) objectives of ergonomics risk assessment? (6 Marks)</div>
+        <textarea id="ans4" placeholder="Objectives (separate lines)"></textarea>
+      </div>
+
+      <div class="section" id="q5">
+        <div class="q-title">5) Communication and coordination... List FOUR (4) important information that management, supervisor and employee should be informed before assessment. (4 Marks)</div>
+        <table class="table-like">
+          <tbody>
+            <tr><td class="col-no">1</td><td><input id="comm1" type="text" placeholder="Information 1"></td></tr>
+            <tr><td class="col-no">2</td><td><input id="comm2" type="text" placeholder="Information 2"></td></tr>
+            <tr><td class="col-no">3</td><td><input id="comm3" type="text" placeholder="Information 3"></td></tr>
+            <tr><td class="col-no">4</td><td><input id="comm4" type="text" placeholder="Information 4"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section" id="q6">
+        <div class="q-title">6) List THREE (3) proactive and TWO (2) reactive approaches in initiating Initial Ergonomics Risk Assessment. (5 Marks)</div>
+        <textarea id="ans6" placeholder="Proactive (3) and Reactive (2) — separate lines"></textarea>
+      </div>
+
+      <div class="section" id="q7">
+        <div class="q-title">7) What are the TWO (2) main assessments required to be conducted in Initial Ergonomics Risk Assessment? (4 Marks)</div>
+        <textarea id="ans7" placeholder="Assessment 1&#10;Assessment 2"></textarea>
+      </div>
+
+      <div class="section" id="q8">
+        <div class="q-title">8) What are the TWO (2) recommendations required to be included in Initial Ergonomics Risk Assessment report? (3 Marks)</div>
+        <textarea id="ans8" placeholder="Recommendation 1&#10;Recommendation 2"></textarea>
+      </div>
+
+      <div class="section" id="q9">
+        <div class="q-title">9) Imagine you were asked by your employer to conduct an Initial Ergonomics Risk Assessment. Describe the process and procedure... (10 Marks)</div>
+        <textarea id="ans9" style="min-height:140px;" placeholder="Describe the process and procedure you would follow."></textarea>
+      </div>
+
+    </div>
+
+    <div class="controls">
+      <button class="btn-secondary" type="button" onclick="resetForm()">Reset</button>
+      <button class="btn-primary" type="button" id="printBtn" onclick="generatePDF()">Print PDF</button>
+      <div style="font-size:13px; color:#444;">Tip: Print PDF captures the filled form exactly as shown. Allow popups for automatic print preview.</div>
+    </div>
+  </div>
+
+  <script>
+    const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com';
+  const DRIVE_UPLOAD_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  const TARGET_FOLDER_ID = '1qecTuVdyoKMB3gpQn8VZqlG2VKlNPo1B';
+
+  let tokenClient;
+
+  function initGIS() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: DRIVE_UPLOAD_SCOPE,
+      callback: (resp) => {
+        // token will be returned by requestAccessToken, not used directly here
+      }
+    });
+  }
+
+  window.addEventListener('load', () => {
+    if (window.google) initGIS();
+  });
+
+  // Request token (shows consent if first time)
+  function requestDriveToken() {
+    return new Promise((resolve, reject) => {
+      tokenClient.callback = (resp) => {
+        if (resp.error) reject(resp);
+        else resolve(resp.access_token);
+      };
+      tokenClient.requestAccessToken({ prompt: 'consent' }); // remove 'consent' after first successful test if you want silent
+    });
+  }
+
+  async function uploadPdfToDrive(blob, filename) {
+  const token = await requestDriveToken();
+  const metadata = {
+    name: filename,
+    mimeType: 'application/pdf',
+    parents: [TARGET_FOLDER_ID]
+  };
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob, filename);
+
+  // request webViewLink in response
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: form
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error('Upload failed: ' + res.status + ' ' + txt);
+  }
+  return await res.json(); // { id: '...', webViewLink: 'https://...' }
+}
+
+    async function generatePDF() {
+  const captureEl = document.getElementById('captureArea');
+  const scale = 2.5;
+
+  // capture full document as canvas with scale
+  const canvas = await html2canvas(captureEl, {
+    scale: scale,
+    useCORS: true,
+    logging: false,
+    scrollY: -window.scrollY
+  });
+
+  // prepare row/header geometry in canvas pixels (existing table handling)
+  const captureRect = captureEl.getBoundingClientRect();
+  const tables = Array.from(captureEl.querySelectorAll('table'));
+
+  const rowRects = []; // {topPx, bottomPx}
+  const tableInfos = []; // {tableTopPx, tableBottomPx, headerRect}
+
+  tables.forEach(table => {
+    const tableRect = table.getBoundingClientRect();
+    const tableTopPx = Math.round((tableRect.top - captureRect.top) * scale);
+    const tableBottomPx = Math.round((tableRect.bottom - captureRect.top) * scale);
+
+    // find header: prefer <thead>, else first tr
+    let headerEl = table.querySelector('thead');
+    if (!headerEl) headerEl = table.querySelector('tr');
+    let headerRect = null;
+    if (headerEl) {
+      const hr = headerEl.getBoundingClientRect();
+      headerRect = {
+        topPx: Math.round((hr.top - captureRect.top) * scale),
+        bottomPx: Math.round((hr.bottom - captureRect.top) * scale),
+        heightPx: Math.round(hr.height * scale)
+      };
+    }
+
+    // collect all rows of this table
+    const trs = Array.from(table.querySelectorAll('tr'));
+    trs.forEach(tr => {
+      const r = tr.getBoundingClientRect();
+      const topPx = Math.round((r.top - captureRect.top) * scale);
+      const bottomPx = Math.round((r.bottom - captureRect.top) * scale);
+      rowRects.push({ topPx, bottomPx });
+    });
+
+    tableInfos.push({
+      tableTopPx,
+      tableBottomPx,
+      headerRect // maybe null
+    });
+  });
+
+  rowRects.sort((a, b) => a.topPx - b.topPx);
+
+  // NEW: measure question blocks (.section elements that have an id - q1,q2,...)
+  // We treat only those .section elements which represent individual questions: .section[id]
+  const sectionEls = Array.from(captureEl.querySelectorAll('.section[id]'));
+  const sectionRects = sectionEls.map(s => {
+    const r = s.getBoundingClientRect();
+    return {
+      topPx: Math.round((r.top - captureRect.top) * scale),
+      bottomPx: Math.round((r.bottom - captureRect.top) * scale),
+      heightPx: Math.round(r.height * scale)
+    };
+  });
+  // sort
+  sectionRects.sort((a, b) => a.topPx - b.topPx);
+
+  // prepare page sizes in canvas pixels
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pageWidthMm = pdf.internal.pageSize.getWidth();
+  const pageHeightMm = pdf.internal.pageSize.getHeight();
+  const mmToPx = mm => Math.round(mm * (96 / 25.4) * scale);
+  const pageHeightPx = mmToPx(pageHeightMm - 16); // leave small top/bottom margin (16mm)
+  // const pageWidthPx = mmToPx(pageWidthMm - 12); // not used directly
+
+  // slicing loop, but avoid cutting through rows; repeat headers when needed
+  let yPos = 0;
+  const canvasW = canvas.width;
+  let pageIndex = 0;
+
+  while (yPos < canvas.height) {
+    // desired slice end
+    let sliceEnd = Math.min(yPos + pageHeightPx, canvas.height);
+
+    // === NEW: ensure we don't cut a question (.section) ===
+    // If sliceEnd would cut through a question (section), move sliceEnd before that question (so it starts next page)
+    const cuttingSections = sectionRects.filter(s =>
+      (s.topPx < sliceEnd && s.bottomPx > sliceEnd && s.topPx > yPos)
+    );
+    if (cuttingSections.length > 0) {
+      // move cut so the entire question moves to next page
+      const nearestSection = cuttingSections.reduce((min, s) => s.topPx < min.topPx ? s : min, cuttingSections[0]);
+      sliceEnd = nearestSection.topPx;
+    }
+
+    // find any table row that intersects (yPos..sliceEnd). If a row crosses the sliceEnd, move sliceEnd up to that row.top
+    const cuttingRows = rowRects.filter(r => (r.topPx < sliceEnd && r.bottomPx > sliceEnd && r.topPx > yPos));
+    if (cuttingRows.length > 0) {
+      // choose the earliest crossing row and cut before it
+      const nearest = cuttingRows.reduce((min, r) => r.topPx < min.topPx ? r : min, cuttingRows[0]);
+      // only move sliceEnd earlier if that doesn't reintroduce cutting a section
+      const candidateSlice = nearest.topPx;
+      // if candidateSlice would still cut a section (i.e., candidateSlice > yPos and some section.topPx < candidateSlice < section.bottomPx),
+      // then prefer leaving the section rule (we already applied section logic above), else accept candidateSlice.
+      const wouldCutSection = sectionRects.some(s => (s.topPx < candidateSlice && s.bottomPx > candidateSlice && s.topPx > yPos));
+      if (!wouldCutSection) {
+        sliceEnd = candidateSlice;
+      }
+      // else keep sliceEnd as-is (section rule has priority)
+    }
+
+    // ensure progress (avoid infinite loop if sliceEnd == yPos)
+    if (sliceEnd <= yPos) {
+      // Force at least one pixel progress: try advancing to next full row boundary or next section bottom
+      const nextRowAfter = rowRects.find(r => r.topPx > yPos);
+      const nextSectionAfter = sectionRects.find(s => s.topPx > yPos);
+      if (nextSectionAfter && (!nextRowAfter || nextSectionAfter.bottomPx < nextRowAfter.bottomPx)) {
+        // move to end of next section if it's the earliest
+        sliceEnd = nextSectionAfter.bottomPx;
+      } else if (nextRowAfter) {
+        sliceEnd = nextRowAfter.bottomPx;
+      } else {
+        sliceEnd = Math.min(yPos + pageHeightPx, canvas.height);
+      }
+      if (sliceEnd <= yPos) sliceEnd = Math.min(yPos + pageHeightPx, canvas.height);
+    }
+
+    const sliceHeight = sliceEnd - yPos;
+
+    // Determine if this slice starts mid-table (so we need to add the header to top)
+    const tableContinues = tableInfos.find(ti => (ti.tableTopPx < yPos && ti.tableBottomPx > yPos));
+    let headerCanvas = null;
+    let headerHeightPx = 0;
+    if (tableContinues && tableContinues.headerRect) {
+      headerHeightPx = tableContinues.headerRect.heightPx;
+      headerCanvas = document.createElement('canvas');
+      headerCanvas.width = canvasW;
+      headerCanvas.height = headerHeightPx;
+      const hctx = headerCanvas.getContext('2d');
+      hctx.drawImage(canvas, 0, tableContinues.headerRect.topPx, canvasW, headerHeightPx, 0, 0, canvasW, headerHeightPx);
+    }
+
+    // Create the page canvas that includes optional header + slice
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvasW;
+    pageCanvas.height = headerHeightPx + sliceHeight;
+    const pctx = pageCanvas.getContext('2d');
+
+    if (headerCanvas) {
+      pctx.drawImage(headerCanvas, 0, 0);
+    }
+
+    pctx.drawImage(canvas, 0, yPos, canvasW, sliceHeight, 0, headerHeightPx, canvasW, sliceHeight);
+
+    // convert pageCanvas to image and add to pdf (convert px->mm)
+    const imageData = pageCanvas.toDataURL('image/png', 1.0);
+    const pxToMm = px => px * 25.4 / (96 * scale);
+    const imageWidthMm = pxToMm(pageCanvas.width);
+    const imageHeightMm = pxToMm(pageCanvas.height);
+
+    const marginX = 6; // mm
+    const marginY = 8; // mm
+    const usableWidth = pageWidthMm - marginX * 2;
+    const usableHeight = pageHeightMm - marginY * 2;
+
+    const ratio = Math.min(usableWidth / imageWidthMm, usableHeight / imageHeightMm);
+    const renderW = imageWidthMm * ratio;
+    const renderH = imageHeightMm * ratio;
+    const x = (pageWidthMm - renderW) / 2;
+    const y = marginY;
+
+    if (pageIndex > 0) pdf.addPage();
+    pdf.addImage(imageData, 'PNG', x, y, renderW, renderH);
+
+    pageIndex++;
+    yPos = sliceEnd;
+  } // end while
+
+  // 5) output blob and open
+    // 5) create blob and upload to Google Drive (no popup)
+  try {
+    const blob = await pdf.output('blob');
+
+    // choose a filename (include name field if present)
+    const nameField = (document.getElementById('name') && document.getElementById('name').value) || 'anon';
+    const filename = `Initial_ERA_${nameField}_${new Date().toISOString().replace(/[:.]/g, '-')}.pdf`;
+
+    // show a simple "uploading" message element so user knows something is happening
+    const uploadingMsg = document.createElement('div');
+    uploadingMsg.id = 'uploadingMsg';
+    uploadingMsg.style.position = 'fixed';
+    uploadingMsg.style.right = '12px';
+    uploadingMsg.style.bottom = '12px';
+    uploadingMsg.style.padding = '10px 14px';
+    uploadingMsg.style.background = '#0b61ff';
+    uploadingMsg.style.color = '#fff';
+    uploadingMsg.style.borderRadius = '8px';
+    uploadingMsg.style.zIndex = '9999';
+    uploadingMsg.textContent = 'Uploading PDF to Google Drive…';
+    document.body.appendChild(uploadingMsg);
+
+    try {
+      const result = await uploadPdfToDrive(blob, filename);
+      // result contains { id, webViewLink }
+      document.body.removeChild(uploadingMsg);
+      alert('Upload successful! File ID: ' + result.id);
+
+      // Provide a clickable link in the page instead of auto-opening a popup (safer vs popup blockers)
+      const linkWrap = document.createElement('div');
+      linkWrap.style.margin = '12px 0';
+      const a = document.createElement('a');
+      a.href = result.webViewLink || `https://drive.google.com/file/d/${result.id}/view`;
+      a.target = '_blank';
+      a.textContent = 'Open uploaded file in Google Drive';
+      a.style.display = 'inline-block';
+      a.style.background = '#fff';
+      a.style.border = '1px solid #ddd';
+      a.style.padding = '8px 10px';
+      a.style.borderRadius = '6px';
+      a.style.color = '#0b61ff';
+      linkWrap.appendChild(a);
+      // append near controls so user sees it
+      const controls = document.querySelector('.controls') || document.body;
+      controls.appendChild(linkWrap);
+    } catch (upErr) {
+      document.body.removeChild(uploadingMsg);
+      console.error('Upload failed', upErr);
+      // fallback: prompt download
+      pdf.save(filename);
+      alert('Upload failed; PDF downloaded instead. Error: ' + (upErr.message || JSON.stringify(upErr)));
+    }
+  } catch (err) {
+    console.error('PDF generation failed', err);
+    alert('PDF generation failed: ' + (err.message || err));
+  }
+
+}
+
+    function resetForm() {
+      if (!confirm('Clear all fields?')) return;
+      document.querySelectorAll('input, textarea').forEach(e => e.value = '');
+    }
+  </script>
+</body>
+</html>
