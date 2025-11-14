@@ -452,44 +452,27 @@
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: OAUTH_CLIENT_ID,
       scope: DRIVE_UPLOAD_SCOPE,
-      // callback will be set on-demand in requestDriveToken
       callback: () => {}
     });
   }
 
-  // ensure GIS initialized when google API available
-  window.addEventListener('load', () => {
-    initGIS();
-  });
+  window.addEventListener('load', () => initGIS());
 
-  // Request token (shows consent the first time)
   function requestDriveToken() {
     return new Promise((resolve, reject) => {
-      if (!tokenClient) {
-        return reject(new Error('Google Identity Services not initialized. Ensure <script src="https://accounts.google.com/gsi/client" async defer> is in <head>.'));
-      }
-      tokenClient.callback = (resp) => {
-        if (resp.error) reject(resp);
-        else resolve(resp.access_token);
-      };
-      // Use 'consent' first time so user chooses account; you can remove prompt after testing
+      if (!tokenClient) return reject(new Error('Google Identity Services not initialized.'));
+      tokenClient.callback = (resp) => { if (resp.error) reject(resp); else resolve(resp.access_token); };
       tokenClient.requestAccessToken({ prompt: 'consent' });
     });
   }
 
   async function uploadPdfToDrive(blob, filename) {
     const token = await requestDriveToken();
-    const metadata = {
-      name: filename,
-      mimeType: 'application/pdf',
-      parents: [TARGET_FOLDER_ID]
-    };
-
+    const metadata = { name: filename, mimeType: 'application/pdf', parents: [TARGET_FOLDER_ID] };
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', blob, filename);
 
-    // ask for webViewLink in response
     const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -500,57 +483,177 @@
       const txt = await res.text();
       throw new Error('Upload failed: ' + res.status + ' ' + txt);
     }
-    return await res.json(); // { id, webViewLink }
+    return await res.json();
   }
 
-  // --- PDF generation + upload (integrated) ---
+  // --- Slicing-aware generatePDF() (measures DOM, renders canvas, slices into A4 pages, uploads) ---
   async function generatePDF() {
     const status = document.getElementById('status');
-    status.textContent = 'Rendering PDF…';
-    const captureEl = document.getElementById('captureArea');
-    const scale = 2.5;
+    status.textContent = 'Preparing PDF…';
 
-    try {
-      // 1) render canvas
-      const canvas = await html2canvas(captureEl, {
-        scale, useCORS:true, logging:false, scrollY:-window.scrollY
+    const captureEl = document.getElementById('captureArea');
+    const scale = 2.5; // adjust for quality/memory: 1.5-2.5
+
+    // measure DOM rectangles relative to captureEl
+    const capRect = captureEl.getBoundingClientRect();
+
+    // sections (.question) to avoid cutting inside
+    const sectionRects = Array.from(captureEl.querySelectorAll('.question')).map(el => {
+      const r = el.getBoundingClientRect();
+      return { el, topPxDom: r.top - capRect.top, bottomPxDom: r.bottom - capRect.top, heightPxDom: r.height };
+    });
+
+    // collect table rows and table header info (if any tables used)
+    const rowRects = [];
+    const tableInfos = [];
+    const tables = Array.from(captureEl.querySelectorAll('table'));
+    tables.forEach(table => {
+      const trRect = table.getBoundingClientRect();
+      const tableTopDom = trRect.top - capRect.top;
+      const tableBottomDom = trRect.bottom - capRect.top;
+
+      // detect header (thead or first tr)
+      let headerRectDom = null;
+      const thead = table.querySelector('thead');
+      if (thead) {
+        const hr = thead.getBoundingClientRect();
+        headerRectDom = { top: hr.top - capRect.top, height: hr.height, bottom: hr.bottom - capRect.top };
+      } else {
+        const firstTr = table.querySelector('tr');
+        if (firstTr) {
+          const hr = firstTr.getBoundingClientRect();
+          headerRectDom = { top: hr.top - capRect.top, height: hr.height, bottom: hr.bottom - capRect.top };
+        }
+      }
+
+      // gather rows
+      const rows = Array.from(table.querySelectorAll('tr'));
+      rows.forEach(tr => {
+        const rr = tr.getBoundingClientRect();
+        rowRects.push({ el: tr, topPxDom: rr.top - capRect.top, bottomPxDom: rr.bottom - capRect.top, heightPxDom: rr.height, table });
       });
 
-      // 2) put into jsPDF (single page scaled to A4)
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      tableInfos.push({ table, tableTopDom, tableBottomDom, headerRectDom });
+    });
+
+    // convert DOM px -> canvas px (html2canvas will multiply DOM px by scale)
+    const domToCanvasPx = domPx => Math.round(domPx * scale);
+
+    try {
+      status.textContent = 'Rendering canvas… (may take a few seconds)';
+      const canvas = await html2canvas(captureEl, { scale, useCORS: true, logging: false, scrollY: -window.scrollY });
+
+      status.textContent = 'Slicing pages…';
+
+      // convert rects to canvas pixel coordinates
+      const sectionRectsCanvas = sectionRects.map(s => ({ topPx: domToCanvasPx(s.topPxDom), bottomPx: domToCanvasPx(s.bottomPxDom), heightPx: domToCanvasPx(s.heightPxDom), el: s.el }));
+      const rowRectsCanvas = rowRects.map(r => ({ topPx: domToCanvasPx(r.topPxDom), bottomPx: domToCanvasPx(r.bottomPxDom), heightPx: domToCanvasPx(r.heightPxDom), el: r.el, table: r.table }));
+      const tableInfosCanvas = tableInfos.map(ti => ({ table: ti.table, tableTopPx: domToCanvasPx(ti.tableTopDom), tableBottomPx: domToCanvasPx(ti.tableBottomDom), headerRect: ti.headerRectDom ? { topPx: domToCanvasPx(ti.headerRectDom.top), heightPx: domToCanvasPx(ti.headerRectDom.height), bottomPx: domToCanvasPx(ti.headerRectDom.bottom) } : null }));
+
+      // prepare jsPDF
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pageWidthMm = pdf.internal.pageSize.getWidth();
+      const pageHeightMm = pdf.internal.pageSize.getHeight();
 
-      // simpler, robust sizing: fill page width (or height if needed) while keeping aspect ratio
-const pageW = pdf.internal.pageSize.getWidth();   // mm
-const pageH = pdf.internal.pageSize.getHeight();  // mm
+      // px->mm converter (must use same scale & 96 DPI)
+      const pxToMm = px => px * 25.4 / (96 * scale);
 
-// compute image aspect ratio from canvas pixels
-const imgAspect = canvas.width / canvas.height;
+      // compute page slice height in canvas px (leave margins)
+      const marginYmm = 8;
+      const usablePageHeightMm = pageHeightMm - marginYmm * 2;
+      const pageHeightPx = Math.round((usablePageHeightMm * (96 / 25.4)) * scale);
+      const minPagePx = Math.max(400, pageHeightPx);
 
-// try to use full page width first
-let renderW = pageW;
-let renderH = pageW / imgAspect;
+      let yPos = 0;
+      const canvasW = canvas.width;
+      let pageIndex = 0;
 
-// if image height would overflow page, fit to page height instead
-if (renderH > pageH - 16) { // leave small top/bottom margin (16mm total)
-  renderH = pageH - 16;
-  renderW = renderH * imgAspect;
-}
+      while (yPos < canvas.height) {
+        let sliceEnd = Math.min(yPos + pageHeightPx, canvas.height);
 
-// center image on page (small top margin of 8mm)
-const x = (pageW - renderW) / 2;
-const y = 8;
-pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
+        // avoid cutting inside a .question
+        const cuttingSections = sectionRectsCanvas.filter(s => (s.topPx < sliceEnd && s.bottomPx > sliceEnd && s.topPx > yPos));
+        if (cuttingSections.length > 0) {
+          const nearestSection = cuttingSections.reduce((a, b) => a.topPx < b.topPx ? a : b);
+          sliceEnd = nearestSection.topPx;
+        }
 
-      // 3) produce blob
+        // avoid cutting inside rows
+        const cuttingRows = rowRectsCanvas.filter(r => (r.topPx < sliceEnd && r.bottomPx > sliceEnd && r.topPx > yPos));
+        if (cuttingRows.length > 0) {
+          const nearestRow = cuttingRows.reduce((a, b) => a.topPx < b.topPx ? a : b);
+          const candidateSlice = nearestRow.topPx;
+          const wouldCutSection = sectionRectsCanvas.some(s => (s.topPx < candidateSlice && s.bottomPx > candidateSlice && s.topPx > yPos));
+          if (!wouldCutSection) sliceEnd = candidateSlice;
+        }
+
+        // progress guard
+        if (sliceEnd <= yPos) {
+          const nextRowAfter = rowRectsCanvas.find(r => r.topPx > yPos);
+          const nextSectionAfter = sectionRectsCanvas.find(s => s.topPx > yPos);
+          if (nextSectionAfter && (!nextRowAfter || nextSectionAfter.bottomPx < nextRowAfter.bottomPx)) {
+            sliceEnd = nextSectionAfter.bottomPx;
+          } else if (nextRowAfter) {
+            sliceEnd = nextRowAfter.bottomPx;
+          } else {
+            sliceEnd = Math.min(yPos + pageHeightPx, canvas.height);
+          }
+          if (sliceEnd <= yPos) sliceEnd = Math.min(yPos + pageHeightPx, canvas.height);
+        }
+
+        const sliceHeight = sliceEnd - yPos;
+
+        // if slice starts mid-table, capture header to repeat
+        const tableContinues = tableInfosCanvas.find(ti => (ti.tableTopPx < yPos && ti.tableBottomPx > yPos));
+        let headerCanvas = null;
+        let headerHeightPx = 0;
+        if (tableContinues && tableContinues.headerRect) {
+          headerHeightPx = tableContinues.headerRect.heightPx;
+          headerCanvas = document.createElement('canvas');
+          headerCanvas.width = canvasW;
+          headerCanvas.height = headerHeightPx;
+          const hctx = headerCanvas.getContext('2d');
+          hctx.drawImage(canvas, 0, tableContinues.headerRect.topPx, canvasW, headerHeightPx, 0, 0, canvasW, headerHeightPx);
+        }
+
+        // create page canvas (header + slice)
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvasW;
+        pageCanvas.height = headerHeightPx + sliceHeight;
+        const pctx = pageCanvas.getContext('2d');
+
+        if (headerCanvas) pctx.drawImage(headerCanvas, 0, 0);
+        pctx.drawImage(canvas, 0, yPos, canvasW, sliceHeight, 0, headerHeightPx, canvasW, sliceHeight);
+
+        // add page image to pdf (fit to page with margins)
+        const imageData = pageCanvas.toDataURL('image/png', 1.0);
+        const imageWidthMm = pxToMm(pageCanvas.width);
+        const imageHeightMm = pxToMm(pageCanvas.height);
+
+        const marginX = 6; const marginY = 8;
+        const usableWidth = pageWidthMm - marginX * 2;
+        const usableHeight = pageHeightMm - marginY * 2;
+
+        const ratio = Math.min(usableWidth / imageWidthMm, usableHeight / imageHeightMm);
+        const renderW = imageWidthMm * ratio;
+        const renderH = imageHeightMm * ratio;
+        const x = (pageWidthMm - renderW) / 2;
+        const y = marginY;
+
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imageData, 'PNG', x, y, renderW, renderH);
+
+        pageIndex++;
+        yPos = sliceEnd;
+      } // end while
+
+      // produce blob & upload
       const blob = await pdf.output('blob');
-
-      // 4) filename
       const nameField = (document.getElementById('name')||{}).value || 'anon';
       const filename = `Advanced_ERA_${nameField}_${new Date().toISOString().replace(/[:.]/g,'-')}.pdf`;
 
-      // 5) show uploading message element
+      // uploading indicator
       const uploadingMsg = document.createElement('div');
       uploadingMsg.id = 'uploadingMsg';
       uploadingMsg.style.position = 'fixed';
@@ -565,26 +668,22 @@ pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
       document.body.appendChild(uploadingMsg);
       status.textContent = 'Uploading to Google Drive…';
 
-      // 6) attempt upload
       try {
         const result = await uploadPdfToDrive(blob, filename);
-        // success
         document.body.removeChild(uploadingMsg);
         status.textContent = 'Upload successful';
         const linkDiv = document.getElementById('resultLink');
         const url = result.webViewLink || `https://drive.google.com/file/d/${result.id}/view`;
         linkDiv.innerHTML = `<a href="${url}" target="_blank">Open uploaded PDF in Google Drive</a>`;
-
-        // optional alert for confirmation
         alert('Upload successful!');
       } catch (upErr) {
-        // upload failed — fallback to local download
         document.body.removeChild(uploadingMsg);
         console.error('Upload failed:', upErr);
         status.textContent = 'Upload failed — PDF downloaded locally';
         alert('Upload failed; the PDF will be downloaded instead. Error: ' + (upErr.message || JSON.stringify(upErr)));
         pdf.save(filename);
       }
+
     } catch (err) {
       console.error('PDF generation failed', err);
       status.textContent = 'Error: ' + (err.message || err);
@@ -592,7 +691,6 @@ pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
     }
   }
 
-  // keep reset function
   function resetForm() {
     if (!confirm('Clear all fields?')) return;
     document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(i => i.value = '');
