@@ -2,7 +2,7 @@
   "name": "pdf-summarize-backend",
   "version": "1.0.0",
   "main": "server.js",
-  "engines": { "node": "18.x" },
+  "engines": { "node": "22.x" },
   "scripts": {
     "start": "node server.js"
   },
