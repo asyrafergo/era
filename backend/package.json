@@ -1,7 +1,7 @@
 {
   "name": "pdf-summarize-backend",
   "version": "1.0.0",
-  "description": "Backend for PDF summarizer + ChatGPT",
+  "description": "Backend for PDF/Doc generation from ChatGPT markdown table",
   "main": "server.js",
   "type": "commonjs",
   "engines": { "node": "22.x" },
@@ -11,6 +11,8 @@
   "dependencies": {
     "dotenv": "^16.1.4",
     "express": "^4.18.2",
-    "pdfkit": "^0.13.0"
+    "markdown-it": "^13.0.1",
+    "html-docx-js": "^0.4.1",
+    "puppeteer": "^21.3.8"
   }
 }
