@@ -1,18 +1,16 @@
 // server.js
 require('dotenv').config();
 const express = require('express');
-const PDFDocument = require('pdfkit');
-const stream = require('stream');
-
-// If you use Node <18 uncomment node-fetch import:
-// const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const MarkdownIt = require('markdown-it');
+const htmlDocx = require('html-docx-js'); // converts HTML -> .docx (buffer)
+const puppeteer = require('puppeteer');
 
 const app = express();
-app.use(express.json({ limit: '20mb' })); // large payloads for long text
+app.use(express.json({ limit: '25mb' }));
 
-// CORS (allow your GitHub Pages origin or * for testing)
+// CORS - restrict in production to your GitHub Pages origin
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*'); // restrict this in production
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -21,7 +19,7 @@ app.use((req, res, next) => {
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 if (!OPENAI_API_KEY) {
-  console.error('Missing OPENAI_API_KEY in environment');
+  console.error('Missing OPENAI_API_KEY');
   process.exit(1);
 }
 
@@ -29,43 +27,69 @@ const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 const MAX_TEXT_LENGTH = Number(process.env.MAX_TEXT_LENGTH) || 250_000;
 const PORT = process.env.PORT || 10000;
 
-app.get('/', (req, res) => res.send('Backend is working'));
+const md = new MarkdownIt({ html: true, linkify: true });
+
+// Simple CSS for nice table rendering in PDF/Word
+const TABLE_CSS = `
+  <style>
+    body { font-family: "Helvetica", Arial, sans-serif; margin: 24px; color: #222; }
+    h1 { text-align: center; font-size: 18px; margin-bottom: 12px; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; }
+    table, th, td { border: 1px solid #444; }
+    th, td { padding: 8px 10px; vertical-align: top; }
+    th { background: #f2f2f2; text-align: left; }
+    td pre { margin: 0; white-space: pre-wrap; font-family: inherit; }
+    ul { margin: 0; padding-left: 18px; }
+  </style>
+`;
+
+/**
+ * Convert Markdown to full HTML with CSS wrapper (title + content).
+ * Expects the markdown input to contain the table (pipe format)
+ */
+function markdownToFullHtml(markdown, title = "Merged Task Table Summary") {
+  const htmlTable = md.render(markdown); // this will render the markdown table into <table>...</table>
+  // Wrap and include CSS
+  return `<!doctype html><html><head><meta charset="utf-8" />${TABLE_CSS}</head><body><h1>${escapeHtml(title)}</h1>${htmlTable}</body></html>`;
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, m =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+app.get('/', (req, res) => res.send('Backend is working - PDF/Doc generator'));
 
 /**
  * POST /summarize
  * Body: { instruction?: string, text: string }
- * Returns: {
- *   summary: string,
- *   pdfBase64: string,    // base64 encoding of the PDF bytes
- *   docBase64: string,    // base64 encoding of a .doc (HTML) file
- *   raw: object           // raw OpenAI response
- * }
+ * Response: { summary: string, pdfBase64: string, docxBase64: string, raw: any }
  */
 app.post('/summarize', async (req, res) => {
   try {
     const { instruction, text } = req.body || {};
-
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      return res.status(400).json({ error: 'Missing "text" in request body' });
+      return res.status(400).json({ error: 'Missing "text" in body' });
     }
 
-    // Truncate very long input to avoid huge token usage
+    // Truncate if extremely large
     let userText = text;
     if (userText.length > MAX_TEXT_LENGTH) {
-      console.warn(`Truncating input from ${userText.length} to ${MAX_TEXT_LENGTH} characters`);
+      console.warn('Truncating input text: length', userText.length);
       userText = userText.slice(0, MAX_TEXT_LENGTH);
     }
 
-    const defaultInstruction = `You are an expert ergonomics assessor. Using the extracted content from two reports (Report 1 and Report 2), produce ONE combined and harmonized task table in Markdown format. Output only a pipe-separated Markdown table with headers: "No" | "Tasks and Description" | "Workers/Activities". Merge duplicated steps, bold critical actions, preserve numeric weights (e.g., "25 kg"), and harmonize wording. No extra commentary.`;
+    // Build messages for OpenAI
+    const systemContent = (instruction && instruction.trim().length) ? instruction : `You are an expert ergonomics assessor. Produce ONE combined and harmonized task table in Markdown format with headers: "No" | "Tasks and Description" | "Workers/Activities". Output only the Markdown table.`;
+    const messages = [
+      { role: 'system', content: systemContent },
+      { role: 'user', content: userText }
+    ];
 
-    const systemContent = (instruction && instruction.trim().length) ? instruction : defaultInstruction;
-
+    // Call OpenAI Chat Completions
     const payload = {
       model: MODEL,
-      messages: [
-        { role: 'system', content: systemContent },
-        { role: 'user', content: userText }
-      ],
+      messages,
       temperature: 0.2,
       max_tokens: 2000
     };
@@ -87,22 +111,38 @@ app.post('/summarize', async (req, res) => {
 
     const openaiData = await openaiResp.json();
     const assistantMsg = openaiData.choices?.[0]?.message?.content ?? openaiData.choices?.[0]?.text ?? '';
+    const summaryMarkdown = assistantMsg.trim();
 
-    // === Create PDF from assistantMsg (simple text PDF) ===
-    const pdfBuffer = await createPdfBufferFromText(assistantMsg);
+    // Convert markdown -> HTML (with CSS)
+    const html = markdownToFullHtml(summaryMarkdown);
 
-    // === Create Word-compatible .doc (HTML-in-doc) ===
-    const docHtml = createDocHtmlFromText(assistantMsg);
-    const docBuffer = Buffer.from(docHtml, 'utf8'); // .doc file containing HTML is accepted by Word
+    // === Create PDF using Puppeteer ===
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: 'new'
+    });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    // A4 format
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '20mm', bottom: '20mm', left: '12mm', right: '12mm' }
+    });
+    await browser.close();
 
-    // Return base64s so frontend can download easily
+    // === Create docx (Word) from HTML (html-docx-js) ===
+    // html-docx-js expects HTML string; it returns a Buffer when using asBuffer
+    const docxBuffer = htmlDocx.asBuffer(html);
+
+    // Return base64 encoded files + summary
     const pdfBase64 = pdfBuffer.toString('base64');
-    const docBase64 = docBuffer.toString('base64');
+    const docxBase64 = docxBuffer.toString('base64');
 
     return res.json({
-      summary: assistantMsg,
+      summary: summaryMarkdown,
       pdfBase64,
-      docBase64,
+      docxBase64,
       raw: openaiData
     });
 
@@ -112,67 +152,4 @@ app.post('/summarize', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
-
-// ----------------- helpers -----------------
-
-/**
- * Create a PDF (Buffer) from text using pdfkit.
- * The function writes the text and preserves newlines.
- */
-function createPdfBufferFromText(text) {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ margin: 40, size: 'A4' });
-      const chunks = [];
-      doc.on('data', (chunk) => chunks.push(chunk));
-      doc.on('end', () => {
-        const buf = Buffer.concat(chunks);
-        resolve(buf);
-      });
-
-      // Simple styling: title + monospace body
-      doc.fontSize(14).text('Merged Task Table Summary', { align: 'center' });
-      doc.moveDown(1);
-      doc.font('Times-Roman');
-      doc.fontSize(10);
-
-      // We want to preserve Markdown table formatting; write as preformatted text
-      const lines = text.split(/\r?\n/);
-      const pageWidth = 72 * 8; // approx chars per line? pdfkit will wrap anyway
-      for (const line of lines) {
-        doc.text(line, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right });
-      }
-
-      doc.end();
-    } catch (e) {
-      reject(e);
-    }
-  });
-}
-
-/**
- * Create a simple HTML doc that Word can open.
- * We wrap the text (markdown) in a <pre> to preserve the table formatting.
- */
-function createDocHtmlFromText(text) {
-  // Minimal HTML wrapper
-  const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Merged Task Table Summary</title>
-</head>
-<body>
-  <h2>Merged Task Table Summary</h2>
-  <pre style="font-family: Arial, sans-serif; white-space: pre-wrap;">${escapeHtml(text)}</pre>
-</body>
-</html>`;
-  return html;
-}
-
-function escapeHtml(s) {
-  return (s || '').replace(/[&<>"']/g, (m) => {
-    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]);
-  });
-}
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
