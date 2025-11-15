@@ -1,13 +1,16 @@
 {
   "name": "pdf-summarize-backend",
   "version": "1.0.0",
+  "description": "Backend for PDF summarizer + ChatGPT",
   "main": "server.js",
+  "type": "commonjs",
   "engines": { "node": "22.x" },
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "dotenv": "^16.0.0",
-    "express": "^4.18.2"
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "pdfkit": "^0.13.0"
   }
 }
