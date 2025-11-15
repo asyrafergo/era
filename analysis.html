@@ -107,7 +107,7 @@ const downloadPdfBtn = document.createElement('button');
 downloadPdfBtn.textContent = 'Download PDF';
 downloadPdfBtn.style.display = 'none';
 const downloadDocBtn = document.createElement('button');
-downloadDocBtn.textContent = 'Download Word (.doc)';
+downloadDocBtn.textContent = 'Download Word (.docx)';
 downloadDocBtn.style.display = 'none';
 const resultBox = document.createElement('textarea');
 resultBox.placeholder = 'ChatGPT returned Markdown table will appear here...';
@@ -120,6 +120,10 @@ combinedTextEl.parentNode.insertBefore(loadingSpan, summarizeBtn.nextSibling);
 combinedTextEl.parentNode.insertBefore(downloadPdfBtn, loadingSpan.nextSibling);
 combinedTextEl.parentNode.insertBefore(downloadDocBtn, downloadPdfBtn.nextSibling);
 combinedTextEl.parentNode.insertBefore(resultBox, downloadDocBtn.nextSibling);
+
+// store base64 received for download handlers
+let latestPdfBase64 = null;
+let latestDocxBase64 = null;
 
 // ==================== Google API helpers ====================
 function gapiLoaded() { gapi.load('client', initializeGapiClient); }
@@ -179,6 +183,8 @@ async function signOut() {
   resultBox.value = '';
   downloadPdfBtn.style.display = 'none';
   downloadDocBtn.style.display = 'none';
+  latestPdfBase64 = null;
+  latestDocxBase64 = null;
 }
 
 // ==================== List & parse PDFs ====================
@@ -191,6 +197,8 @@ async function listPdfFilesInFolder() {
   resultBox.value = '';
   downloadPdfBtn.style.display = 'none';
   downloadDocBtn.style.display = 'none';
+  latestPdfBase64 = null;
+  latestDocxBase64 = null;
 
   const q = `'${TARGET_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`;
   try {
@@ -271,6 +279,8 @@ summarizeBtn.addEventListener('click', async () => {
   resultBox.value = '';
   downloadPdfBtn.style.display = 'none';
   downloadDocBtn.style.display = 'none';
+  latestPdfBase64 = null;
+  latestDocxBase64 = null;
 
   try {
     // Send both instruction & extracted text to backend
@@ -289,15 +299,24 @@ summarizeBtn.addEventListener('click', async () => {
     }
 
     const data = await resp.json();
-    // backend expected to return { summary: "..." } where summary is the markdown table
+    // backend expected to return { summary: "...", pdfBase64: "...", docxBase64: "..." }
     const summary = data.summary || data.result || data.message || '';
     if (!summary) {
       resultBox.value = 'No summary returned from backend.';
     } else {
       resultBox.value = summary;
-      // enable downloads
-      downloadPdfBtn.style.display = 'inline-block';
-      downloadDocBtn.style.display = 'inline-block';
+      // try to get different file keys for compatibility
+      latestPdfBase64 = data.pdfBase64 || data.pdf_base64 || data.pdf || null;
+      latestDocxBase64 = data.docxBase64 || data.docBase64 || data.doc_base64 || data.doc || data.doc64 || null;
+
+      // Show download buttons only if at least one file available
+      if (latestPdfBase64) downloadPdfBtn.style.display = 'inline-block';
+      if (latestDocxBase64) downloadDocBtn.style.display = 'inline-block';
+      // if none available, still show them but clicking will alert
+      if (!latestPdfBase64 && !latestDocxBase64) {
+        downloadPdfBtn.style.display = 'inline-block';
+        downloadDocBtn.style.display = 'inline-block';
+      }
     }
   } catch (err) {
     console.error(err);
@@ -308,38 +327,31 @@ summarizeBtn.addEventListener('click', async () => {
   }
 });
 
-// ==================== Download helpers ====================
+// ==================== Download helpers (use latestPdfBase64/latestDocxBase64) ====================
 downloadPdfBtn.addEventListener('click', () => {
-  const text = resultBox.value || '';
-  if (!text) return alert('No summary to download.');
-  // create simple PDF using jsPDF
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const margin = 40;
-  const pageWidth = doc.internal.pageSize.getWidth() - margin*2;
-  const lines = doc.splitTextToSize(text, pageWidth);
-  doc.text(lines, margin, 60);
-  doc.save('summary_table.pdf');
-});
-
-downloadDocBtn.addEventListener('click', () => {
-  const text = resultBox.value || '';
-  if (!text) return alert('No summary to download.');
-  // create an HTML wrapper — Word can open .doc files that contain HTML
-  const title = 'Merged Task Table Summary';
-  const html = `
-    <html>
-      <head><meta charset="utf-8"><title>${title}</title></head>
-      <body>
-        <h2>${title}</h2>
-        <pre style="font-family:inherit;white-space:pre-wrap;">${escapeHtml(text)}</pre>
-      </body>
-    </html>`;
-  const blob = new Blob([html], { type: 'application/msword' });
+  const base64 = latestPdfBase64;
+  if (!base64) return alert('No PDF returned by backend.');
+  const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'merged_task_table.doc';
+  a.download = 'merged_table.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 10000);
+});
+
+downloadDocBtn.addEventListener('click', () => {
+  const base64 = latestDocxBase64;
+  if (!base64) return alert('No DOCX returned by backend.');
+  const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'merged_table.docx';
   document.body.appendChild(a);
   a.click();
   a.remove();
