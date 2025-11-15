@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Read PDFs from Google Drive folder + ChatGPT Summary</title>
+  <title>Drive PDFs → ChatGPT Summary → Download</title>
   <style>
     body { font-family: system-ui, Arial; padding: 18px; max-width: 980px; margin: auto; }
     button { padding:10px 14px; margin-right:8px; cursor:pointer; }
     .thumb { width:140px; margin:6px; border:1px solid #ddd; }
     .images { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-    textarea { width:100%; height:160px; margin-top:8px; }
+    textarea { width:100%; height:160px; margin-top:8px; font-family: monospace; }
     .file-entry { border:1px solid #eee; padding:10px; border-radius:6px; margin-top:10px; }
+    .controls { margin-top:14px; }
+    .loading { display:inline-block; margin-left:8px; font-style:italic; color:#444; }
   </style>
 </head>
-
 <body>
   <h2>Drive Folder PDF Reader (OAuth) + ChatGPT Summarizer</h2>
-  <p>This loads 2 PDFs from Google Drive, extracts text + images, then summarizes both using ChatGPT.</p>
+  <p>Loads PDFs from Google Drive → extracts text → sends to ChatGPT → download summary as PDF or Word.</p>
 
   <div>
     <button id="authBtn">Sign in & load PDFs</button>
@@ -34,17 +35,15 @@
   <h3>Thumbnails</h3>
   <div id="images" class="images"></div>
 
-  <!-- pdf.js -->
+  <!-- Libraries -->
   <script src="https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.min.js"></script>
-  <!-- Google API client -->
   <script src="https://apis.google.com/js/api.js"></script>
-  <!-- Google OAuth -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 // ==================== CONFIG ====================
-const BACKEND_URL = "https://pdf-summarize-3go5.onrender.com/summarize"; // your working backend
-
+const BACKEND_URL = "https://pdf-summarize-3go5.onrender.com/summarize"; // <<— your backend
 const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCQMc9sbjDLsYsSzrpdGyyXUH4q0uCb5UE';
 const TARGET_FOLDER_ID = '1uheM2o-LZsoslFv59ccQox4PUjAL0PjS';
@@ -65,10 +64,34 @@ let gapiInited = false;
 let tokenClient;
 let accessToken = null;
 
-// ==================== GOOGLE LOGIN ====================
-function gapiLoaded() {
-  gapi.load('client', initializeGapiClient);
-}
+// create summarizer UI
+const summarizeBtn = document.createElement('button');
+summarizeBtn.textContent = 'Summarize with ChatGPT';
+summarizeBtn.style.marginTop = '12px';
+const loadingSpan = document.createElement('span');
+loadingSpan.className = 'loading';
+loadingSpan.style.display = 'none';
+loadingSpan.textContent = 'Waiting for ChatGPT...';
+const downloadPdfBtn = document.createElement('button');
+downloadPdfBtn.textContent = 'Download PDF';
+downloadPdfBtn.style.display = 'none';
+const downloadDocBtn = document.createElement('button');
+downloadDocBtn.textContent = 'Download Word (.doc)';
+downloadDocBtn.style.display = 'none';
+const resultBox = document.createElement('textarea');
+resultBox.placeholder = 'ChatGPT summary will appear here...';
+resultBox.style.height = '220px';
+resultBox.style.marginTop = '10px';
+
+// append controls after combined text area
+combinedTextEl.parentNode.insertBefore(summarizeBtn, combinedTextEl.nextSibling);
+combinedTextEl.parentNode.insertBefore(loadingSpan, summarizeBtn.nextSibling);
+combinedTextEl.parentNode.insertBefore(downloadPdfBtn, loadingSpan.nextSibling);
+combinedTextEl.parentNode.insertBefore(downloadDocBtn, downloadPdfBtn.nextSibling);
+combinedTextEl.parentNode.insertBefore(resultBox, downloadDocBtn.nextSibling);
+
+// ==================== Google API helpers ====================
+function gapiLoaded() { gapi.load('client', initializeGapiClient); }
 
 async function initializeGapiClient() {
   try {
@@ -92,17 +115,20 @@ function waitForGoogleThenInitTokenClient() {
           client_id: OAUTH_CLIENT_ID,
           scope: SCOPES,
           callback: (resp) => {
-            if (resp.error) return alert("Auth error");
+            if (resp.error) {
+              statusEl.textContent = 'Auth error: ' + resp.error;
+              return;
+            }
             accessToken = resp.access_token;
-            authBtn.style.display = "none";
-            signoutBtn.style.display = "inline-block";
-            statusEl.textContent = "Signed in.";
+            authBtn.style.display = 'none';
+            signoutBtn.style.display = 'inline-block';
+            statusEl.textContent = 'Signed in.';
             listPdfFilesInFolder();
           }
         });
         resolve();
       } else if (Date.now() - start > 5000) {
-        reject(new Error("Google Identity Services did not load"));
+        reject(new Error('Google Identity Services did not load'));
       } else setTimeout(check, 100);
     })();
   });
@@ -113,139 +139,184 @@ async function signOut() {
     await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST' });
   }
   accessToken = null;
-  statusEl.textContent = "Signed out.";
-  authBtn.style.display = "";
-  signoutBtn.style.display = "none";
-  filesList.innerHTML = "";
-  combinedTextEl.value = "";
-  imagesDiv.innerHTML = "";
+  statusEl.textContent = 'Signed out.';
+  authBtn.style.display = '';
+  signoutBtn.style.display = 'none';
+  filesList.innerHTML = '';
+  combinedTextEl.value = '';
+  imagesDiv.innerHTML = '';
+  resultBox.value = '';
+  downloadPdfBtn.style.display = 'none';
+  downloadDocBtn.style.display = 'none';
 }
 
-// ==================== LIST & DOWNLOAD PDFs ====================
+// ==================== List & parse PDFs ====================
 async function listPdfFilesInFolder() {
-  if (!gapiInited) return alert("gapi not ready");
-
-  statusEl.textContent = "Listing PDFs...";
-  filesList.innerHTML = "";
-  combinedTextEl.value = "";
-  imagesDiv.innerHTML = "";
+  if (!gapiInited) return alert('gapi not ready');
+  statusEl.textContent = 'Listing PDF files...';
+  filesList.innerHTML = '';
+  combinedTextEl.value = '';
+  imagesDiv.innerHTML = '';
+  resultBox.value = '';
+  downloadPdfBtn.style.display = 'none';
+  downloadDocBtn.style.display = 'none';
 
   const q = `'${TARGET_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`;
-
   try {
-    const resp = await gapi.client.drive.files.list({
-      q,
-      fields: "files(id,name,size)"
-    });
-
+    const resp = await gapi.client.drive.files.list({ q, fields: 'files(id,name,size)', pageSize: 50 });
     const files = resp.result.files || [];
-    if (!files.length) return statusEl.textContent = "No PDFs found.";
+    if (!files.length) return statusEl.textContent = 'No PDFs found in folder.';
+    statusEl.textContent = `Found ${files.length} PDFs — downloading & parsing...`;
 
-    let allText = "";
-
+    let aggregate = '';
     for (const f of files) {
-      const div = document.createElement("div");
-      div.className = "file-entry";
-      div.innerHTML = `<b>${f.name}</b> (${f.size} bytes)`;
-      filesList.appendChild(div);
+      const row = document.createElement('div');
+      row.className = 'file-entry';
+      row.innerHTML = `<b>${f.name}</b> (${f.size || 'unknown'} bytes)`;
+      filesList.appendChild(row);
 
-      const buf = await downloadFileAsArrayBuffer(f.id);
-      const parsed = await extractPdfTextAndThumbnails(buf, f.name);
-
-      allText += parsed.text + "\n\n";
-      parsed.thumbs.forEach(t => {
-        const img = document.createElement("img");
-        img.src = t.dataUrl;
-        img.className = "thumb";
-        imagesDiv.appendChild(img);
-      });
-
-      div.appendChild(document.createElement("div")).innerText = "Parsed OK";
+      try {
+        const buf = await downloadFileAsArrayBuffer(f.id);
+        const parsed = await extractPdfTextAndThumbnails(buf, f.name);
+        aggregate += parsed.text + '\n\n';
+        parsed.thumbs.forEach(t => {
+          const img = document.createElement('img');
+          img.src = t.dataUrl;
+          img.className = 'thumb';
+          imagesDiv.appendChild(img);
+        });
+        row.appendChild(document.createElement('div')).innerText = 'Parsed OK';
+      } catch (e) {
+        console.error(e);
+        row.appendChild(document.createElement('div')).innerText = 'Error parsing: ' + e.message;
+      }
     }
-
-    combinedTextEl.value = allText;
-    statusEl.textContent = "PDFs processed.";
-
+    combinedTextEl.value = aggregate || '';
+    statusEl.textContent = 'All PDFs processed.';
   } catch (err) {
-    statusEl.textContent = "Error listing files: " + err.message;
+    console.error(err);
+    statusEl.textContent = 'Error listing files: ' + err.message;
   }
 }
 
-async function downloadFileAsArrayBuffer(id) {
-  const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
-
-  const resp = await fetch(url, {
-    headers: { Authorization: "Bearer " + accessToken }
-  });
-
-  if (!resp.ok) throw new Error("Download failed");
-  return await resp.arrayBuffer();
+async function downloadFileAsArrayBuffer(fileId) {
+  if (!accessToken) throw new Error('No access token');
+  const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`;
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken }});
+  if (!r.ok) throw new Error('Download failed: ' + r.status);
+  return await r.arrayBuffer();
 }
 
-async function extractPdfTextAndThumbnails(buf, name) {
-  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  let text = "";
+async function extractPdfTextAndThumbnails(arrayBuffer, name) {
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
   const thumbs = [];
-
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
-    const t = await page.getTextContent();
-    const pageText = t.items.map(i => i.str).join(" ");
+    const txt = await page.getTextContent();
+    const pageText = txt.items.map(i => i.str).join(' ');
     text += `\n--- ${name} PAGE ${p} ---\n` + pageText;
-
     const viewport = page.getViewport({ scale: 1.2 });
-    const canvas = document.createElement("canvas");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    const ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport }).promise;
-
-    thumbs.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.8) });
+    thumbs.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.8) });
   }
-
   return { text, thumbs };
 }
 
-// ==================== CHATGPT SUMMARIZER ====================
-const summarizeBtn = document.createElement("button");
-summarizeBtn.textContent = "Summarize with ChatGPT";
-summarizeBtn.style.marginTop = "20px";
-
-const resultBox = document.createElement("textarea");
-resultBox.placeholder = "ChatGPT summary will appear here...";
-resultBox.style.height = "220px";
-resultBox.style.marginTop = "10px";
-
-document.body.appendChild(summarizeBtn);
-document.body.appendChild(resultBox);
-
-summarizeBtn.addEventListener("click", async () => {
+// ==================== Summarize with ChatGPT (backend) ====================
+summarizeBtn.addEventListener('click', async () => {
   const text = combinedTextEl.value.trim();
-  if (text.length < 20) return alert("Load PDFs first!");
+  if (!text || text.length < 20) {
+    alert('No extracted text available — load PDFs first.');
+    return;
+  }
 
   summarizeBtn.disabled = true;
-  summarizeBtn.textContent = "Summarizing...";
+  loadingSpan.style.display = 'inline-block';
+  resultBox.value = '';
+  downloadPdfBtn.style.display = 'none';
+  downloadDocBtn.style.display = 'none';
 
   try {
     const resp = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
 
+    if (!resp.ok) {
+      const txt = await resp.text().catch(()=>null);
+      throw new Error(txt || `${resp.status} ${resp.statusText}`);
+    }
+
     const data = await resp.json();
-    resultBox.value = data.summary || "No output from ChatGPT";
-
-  } catch (e) {
-    resultBox.value = "Error: " + e.message;
+    const summary = data.summary || data.result || data.message || '';
+    if (!summary) {
+      resultBox.value = 'No summary returned from backend.';
+    } else {
+      resultBox.value = summary;
+      // enable downloads
+      downloadPdfBtn.style.display = 'inline-block';
+      downloadDocBtn.style.display = 'inline-block';
+    }
+  } catch (err) {
+    console.error(err);
+    resultBox.value = 'Error: ' + (err.message || err);
+  } finally {
+    summarizeBtn.disabled = false;
+    loadingSpan.style.display = 'none';
   }
-
-  summarizeBtn.disabled = false;
-  summarizeBtn.textContent = "Summarize with ChatGPT";
 });
 
-// ==================== BOOT ====================
-authBtn.addEventListener("click", async () => {
+// ==================== Download helpers ====================
+downloadPdfBtn.addEventListener('click', () => {
+  const text = resultBox.value || '';
+  if (!text) return alert('No summary to download.');
+  // create simple PDF using jsPDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const margin = 40;
+  const pageWidth = doc.internal.pageSize.getWidth() - margin*2;
+  const lines = doc.splitTextToSize(text, pageWidth);
+  doc.text(lines, margin, 60);
+  doc.save('summary.pdf');
+});
+
+downloadDocBtn.addEventListener('click', () => {
+  const text = resultBox.value || '';
+  if (!text) return alert('No summary to download.');
+  // create an HTML wrapper — Word can open .doc files that contain HTML
+  const title = 'Summary';
+  const html = `
+    <html>
+      <head><meta charset="utf-8"><title>${title}</title></head>
+      <body>
+        <h2>${title}</h2>
+        <pre style="font-family:inherit;white-space:pre-wrap;">${escapeHtml(text)}</pre>
+      </body>
+    </html>`;
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'summary.doc';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 10000);
+});
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, m =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]) );
+}
+
+// ==================== Boot & UI wiring ====================
+authBtn.addEventListener('click', async () => {
   if (!gapiInited) {
     await new Promise(r => gapi.load('client', r));
     await initializeGapiClient();
@@ -254,17 +325,16 @@ authBtn.addEventListener("click", async () => {
   tokenClient.requestAccessToken();
 });
 
-signoutBtn.addEventListener("click", signOut);
+signoutBtn.addEventListener('click', signOut);
 
 window.onload = () => {
-  if (typeof gapi === "undefined") {
-    statusEl.textContent = "Google API failed to load.";
+  if (typeof gapi === 'undefined') {
+    statusEl.textContent = 'Google API script not loaded.';
   } else {
     gapiLoaded();
     statusEl.textContent = "Ready. Click 'Sign in & load PDFs'.";
   }
 };
 </script>
-
 </body>
 </html>
