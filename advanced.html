@@ -79,6 +79,17 @@
     }
     textarea { min-height:90px; resize:vertical; }
 
+    /* Special small inputs used for "Score" / "Color band" — fixed size */
+.small-input {
+  min-width: 110px;
+  width: 110px;
+  max-width: 160px;
+  height: 36px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
     .section-title { font-weight:800; margin-top:10px; font-size:14px; color:#0f172a; }
 
     .questions { margin-top:10px; display:flex; flex-direction:column; gap:12px; }
@@ -266,8 +277,8 @@
             <div style="margin-bottom:8px;">
               <div><strong>Repetition — If worker cuts 25 chickens per minute</strong></div>
               <div style="display:flex; gap:8px; margin-top:6px;">
-                <input id="q7_rep_score" placeholder="Score">
-                <input id="q7_rep_band" placeholder="Color band">
+                <input id="q7_rep_score" class="small-input" placeholder="Score">
+                <input id="q7_rep_band" class="small-input" placeholder="Color band">
               </div>
             </div>
 
@@ -290,7 +301,6 @@
         </div>
       </div>
 
-      <!-- Q8 -->
       <!-- Q8 -->
 <div class="question" id="q8_block">
   <div class="q-head">
@@ -345,14 +355,14 @@
           <div style="flex:1 1 420px;">
             <div style="margin-bottom:8px;"><strong>Load Weight — bag weight 25kg, transfer one bag everyday</strong>
               <div style="display:flex; gap:8px; margin-top:6px;">
-                <input id="q10_load_score" placeholder="Score">
-                <input id="q10_load_band" placeholder="Color band">
+                <input id="q10_load_score" class="small-input" placeholder="Score">
+                <input id="q10_load_band" class="small-input" placeholder="Color band">
               </div>
             </div>
             <div><strong>Hand distance from lower back</strong>
               <div style="display:flex; gap:8px; margin-top:6px;">
-                <input id="q10_hand_score" placeholder="Score">
-                <input id="q10_hand_band" placeholder="Color band">
+                <input id="q10_hand_score" class="small-input" placeholder="Score">
+                <input id="q10_hand_band" class="small-input" placeholder="Color band">
               </div>
             </div>
           </div>
@@ -388,14 +398,14 @@
           <div style="flex:1 1 420px;">
             <div style="margin-bottom:8px;"><strong>Load Weight — drum 300kg</strong>
               <div style="display:flex; gap:8px; margin-top:6px;">
-                <input id="q12_load_score" placeholder="Score">
-                <input id="q12_load_band" placeholder="Color band">
+                <input id="q12_load_score" class="small-input" placeholder="Score">
+                <input id="q12_load_band" class="small-input" placeholder="Color band">
               </div>
             </div>
             <div><strong>Posture</strong>
               <div style="display:flex; gap:8px; margin-top:6px;">
-                <input id="q12_posture_score" placeholder="Score">
-                <input id="q12_posture_band" placeholder="Color band">
+                <input id="q12_posture_score" class="small-input" placeholder="Score">
+                <input id="q12_posture_band" class="small-input" placeholder="Color band">
               </div>
             </div>
           </div>
@@ -420,10 +430,10 @@
           </div>
           <div style="flex:1 1 420px;">
             <div style="margin-bottom:8px;"><strong>Back support — worker is leaning forward and back support is non-adjustable</strong>
-              <div style="margin-top:6px;"><input id="q14_back_score" placeholder="Score"></div>
+              <div style="margin-top:6px;"><input id="q14_back_score" class="small-input" placeholder="Score"></div>
             </div>
             <div><strong>Monitor — no glare and no document holder required</strong>
-              <div style="margin-top:6px;"><input id="q14_monitor_score" placeholder="Score"></div>
+              <div style="margin-top:6px;"><input id="q14_monitor_score" class="small-input" placeholder="Score"></div>
             </div>
           </div>
         </div>
