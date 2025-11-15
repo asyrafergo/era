@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Drive PDFs → ChatGPT Summary → Download</title>
+  <title>Drive PDFs → ChatGPT Table Merge → Download</title>
   <style>
     body { font-family: system-ui, Arial; padding: 18px; max-width: 980px; margin: auto; }
     button { padding:10px 14px; margin-right:8px; cursor:pointer; }
@@ -13,11 +13,12 @@
     .file-entry { border:1px solid #eee; padding:10px; border-radius:6px; margin-top:10px; }
     .controls { margin-top:14px; }
     .loading { display:inline-block; margin-left:8px; font-style:italic; color:#444; }
+    pre { white-space: pre-wrap; word-break: break-word; }
   </style>
 </head>
 <body>
-  <h2>Drive Folder PDF Reader (OAuth) + ChatGPT Summarizer</h2>
-  <p>Loads PDFs from Google Drive → extracts text → sends to ChatGPT → download summary as PDF or Word.</p>
+  <h2>Drive Folder PDF Reader (OAuth) + ChatGPT Table Merge</h2>
+  <p>Loads PDFs from Google Drive → extracts text → sends instruction + text to ChatGPT via your backend → returns a merged task table. You can then download the result as PDF or Word.</p>
 
   <div>
     <button id="authBtn">Sign in & load PDFs</button>
@@ -49,6 +50,36 @@ const API_KEY = 'AIzaSyCQMc9sbjDLsYsSzrpdGyyXUH4q0uCb5UE';
 const TARGET_FOLDER_ID = '1uheM2o-LZsoslFv59ccQox4PUjAL0PjS';
 const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
 
+// System prompt: precise instruction for creating the merged table
+const SYSTEM_INSTRUCTION = `You are an expert ergonomics assessor. Using the extracted content from two reports (Report 1 and Report 2), produce ONE combined and harmonized task table in the following exact style:
+
+--------------------------------------------
+Table Format Required (Markdown table):
+
+Column 1: "No"
+Column 2: "Tasks and Description"
+Column 3: "Workers/Activities"
+--------------------------------------------
+
+For each task found across the reports, create one table row with:
+- No: sequential number starting at 1.
+- Tasks and Description: The task title (bold). Under it, list any photo notes as bullet items like:
+  • Photo: <caption or short description>
+  Then a brief combined description of the task (one or two short sentences).
+
+- Workers/Activities: A bullet list of steps (Step 1, Step 2, ...) extracted and merged from both reports. Use "Step N:" prefix for each bullet. Merge duplicated steps, preserve numeric weights/values (e.g., 25 kg), and harmonize wording. Keep steps ordered logically. Bold critical actions such as **manually transfers**, **lifts**, **pushes**, **uses machine**, etc.
+
+Rules:
+- Merge duplicated or overlapping steps into one clear step.
+- If both reports provide different details for the same step, harmonize into a single concise step that includes relevant numbers/weights and mentions differences in parentheses if necessary.
+- Do not ask the user for more content.
+- Output ONLY a valid Markdown table (pipe-separated) with a header row and separator row. No surrounding explanation or commentary.
+- Keep language professional and concise.
+
+Goal:
+Produce a final merged table that lists all tasks from both reports (as many rows as there are distinct tasks), with merged steps and photo notes where available.
+`;
+
 // pdf.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.worker.min.js';
 
@@ -66,7 +97,7 @@ let accessToken = null;
 
 // create summarizer UI
 const summarizeBtn = document.createElement('button');
-summarizeBtn.textContent = 'Summarize with ChatGPT';
+summarizeBtn.textContent = 'Summarize & Create Table (ChatGPT)';
 summarizeBtn.style.marginTop = '12px';
 const loadingSpan = document.createElement('span');
 loadingSpan.className = 'loading';
@@ -79,7 +110,7 @@ const downloadDocBtn = document.createElement('button');
 downloadDocBtn.textContent = 'Download Word (.doc)';
 downloadDocBtn.style.display = 'none';
 const resultBox = document.createElement('textarea');
-resultBox.placeholder = 'ChatGPT summary will appear here...';
+resultBox.placeholder = 'ChatGPT returned Markdown table will appear here...';
 resultBox.style.height = '220px';
 resultBox.style.marginTop = '10px';
 
@@ -242,10 +273,14 @@ summarizeBtn.addEventListener('click', async () => {
   downloadDocBtn.style.display = 'none';
 
   try {
+    // Send both instruction & extracted text to backend
     const resp = await fetch(BACKEND_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({
+        instruction: SYSTEM_INSTRUCTION,
+        text: text
+      })
     });
 
     if (!resp.ok) {
@@ -254,6 +289,7 @@ summarizeBtn.addEventListener('click', async () => {
     }
 
     const data = await resp.json();
+    // backend expected to return { summary: "..." } where summary is the markdown table
     const summary = data.summary || data.result || data.message || '';
     if (!summary) {
       resultBox.value = 'No summary returned from backend.';
@@ -283,14 +319,14 @@ downloadPdfBtn.addEventListener('click', () => {
   const pageWidth = doc.internal.pageSize.getWidth() - margin*2;
   const lines = doc.splitTextToSize(text, pageWidth);
   doc.text(lines, margin, 60);
-  doc.save('summary.pdf');
+  doc.save('summary_table.pdf');
 });
 
 downloadDocBtn.addEventListener('click', () => {
   const text = resultBox.value || '';
   if (!text) return alert('No summary to download.');
   // create an HTML wrapper — Word can open .doc files that contain HTML
-  const title = 'Summary';
+  const title = 'Merged Task Table Summary';
   const html = `
     <html>
       <head><meta charset="utf-8"><title>${title}</title></head>
@@ -303,7 +339,7 @@ downloadDocBtn.addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'summary.doc';
+  a.download = 'merged_task_table.doc';
   document.body.appendChild(a);
   a.click();
   a.remove();
