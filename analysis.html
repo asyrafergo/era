@@ -37,13 +37,14 @@
   <script src="https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.min.js"></script>
   <!-- Google API client (gapi) -->
   <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Google Identity Services (GSI) - provides `google.accounts.oauth2` -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     // ====== CONFIG - paste your values or use the ones provided ======
-    const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com'; // you provided
-    const API_KEY = 'AIzaSyCQMc9sbjDLsYsSzrpdGyyXUH4q0uCb5UE'; // <<-- PUT YOUR GOOGLE API KEY HERE (enable Drive API) OR leave blank to still use OAuth for downloads
-    const TARGET_FOLDER_ID = '1uheM2o-LZsoslFv59ccQox4PUjAL0PjS'; // folder you provided
-    // recommended scope for readonly listing and download (we'll use OAuth token for media downloads)
+    const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyCQMc9sbjDLsYsSzrpdGyyXUH4q0uCb5UE';
+    const TARGET_FOLDER_ID = '1uheM2o-LZsoslFv59ccQox4PUjAL0PjS';
     const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
 
     // pdf.js worker
@@ -69,7 +70,6 @@
       try {
         await gapi.client.init({
           apiKey: API_KEY || undefined,
-          // discoveryDocs must include Drive v3 to use gapi.client.drive
           discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
         });
         gapiInited = true;
@@ -80,8 +80,27 @@
       }
     }
 
+    // Wait until `google` object exists before creating token client
+    function waitForGoogleThenInitTokenClient() {
+      return new Promise((resolve, reject) => {
+        const maxWaitMs = 5000;
+        const start = Date.now();
+        (function check() {
+          if (window.google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.initTokenClient) {
+            initTokenClient();
+            resolve();
+          } else if (Date.now() - start > maxWaitMs) {
+            reject(new Error('Google Identity Services did not load in time.'));
+          } else {
+            setTimeout(check, 100);
+          }
+        })();
+      });
+    }
+
     // Load token client (OAuth)
     function initTokenClient() {
+      // create token client using GSI
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: OAUTH_CLIENT_ID,
         scope: SCOPES,
@@ -104,7 +123,6 @@
     async function signOut() {
       if (!accessToken) return;
       try {
-        // Revoke token
         await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST' });
       } catch(e){ console.warn('revoke failed', e); }
       accessToken = null;
@@ -127,8 +145,6 @@
       combinedTextEl.value = '';
       imagesDiv.innerHTML = '';
 
-      // Query Drive: files with parent = TARGET_FOLDER_ID and mimeType = application/pdf
-      // fields include nextPageToken and files(id,name,mimeType,size)
       let q = `'${TARGET_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`;
       try {
         const resp = await gapi.client.drive.files.list({
@@ -142,7 +158,6 @@
           return;
         }
         statusEl.textContent = `Found ${files.length} PDF(s). Downloading and parsing...`;
-        // show entries and process each PDF sequentially (or in parallel with care)
         let allText = '';
         for (const f of files) {
           const entry = document.createElement('div');
@@ -216,10 +231,8 @@
 
     // Wire up UI
     authBtn.addEventListener('click', async () => {
-      // Initialize gapi client if not done
       if (!gapiInited) {
         statusEl.textContent = 'Loading Google API...';
-        // load gapi client
         try {
           await new Promise(resolve => {
             gapi.load('client', resolve);
@@ -232,7 +245,13 @@
           return;
         }
       }
-      if (!tokenClient) initTokenClient();
+      // ensure GSI (google.accounts) loaded before requesting token
+      try {
+        await waitForGoogleThenInitTokenClient();
+      } catch (e) {
+        statusEl.textContent = 'Google Identity Services not ready: ' + e.message;
+        return;
+      }
       // request access token (popup)
       tokenClient.requestAccessToken();
     });
@@ -241,11 +260,9 @@
 
     // Boot: load gapi script readiness
     window.onload = () => {
-      // ensure google.accounts is available (gsi script automatically added by google api.js)
       if (typeof gapi === 'undefined') {
         statusEl.textContent = 'Google API script not loaded.';
       } else {
-        // initialize client but wait for user action to request token
         gapiLoaded();
         statusEl.textContent = 'Ready. Click "Sign in & load PDFs".';
       }
