@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Read PDFs from Google Drive folder</title>
+  <title>Read PDFs from Google Drive folder + ChatGPT Summary</title>
   <style>
     body { font-family: system-ui, Arial; padding: 18px; max-width: 980px; margin: auto; }
-    button { padding:10px 14px; margin-right:8px; }
+    button { padding:10px 14px; margin-right:8px; cursor:pointer; }
     .thumb { width:140px; margin:6px; border:1px solid #ddd; }
     .images { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
     textarea { width:100%; height:160px; margin-top:8px; }
     .file-entry { border:1px solid #eee; padding:10px; border-radius:6px; margin-top:10px; }
   </style>
 </head>
+
 <body>
-  <h2>Drive Folder PDF Reader (OAuth)</h2>
-  <p>This will list PDFs inside the Drive folder you specified and extract text + thumbnails.</p>
+  <h2>Drive Folder PDF Reader (OAuth) + ChatGPT Summarizer</h2>
+  <p>This loads 2 PDFs from Google Drive, extracts text + images, then summarizes both using ChatGPT.</p>
 
   <div>
     <button id="authBtn">Sign in & load PDFs</button>
@@ -35,238 +36,235 @@
 
   <!-- pdf.js -->
   <script src="https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.min.js"></script>
-  <!-- Google API client (gapi) -->
+  <!-- Google API client -->
   <script src="https://apis.google.com/js/api.js"></script>
-  <!-- Google Identity Services (GSI) - provides `google.accounts.oauth2` -->
+  <!-- Google OAuth -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <script>
-    // ====== CONFIG - paste your values or use the ones provided ======
-    const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyCQMc9sbjDLsYsSzrpdGyyXUH4q0uCb5UE';
-    const TARGET_FOLDER_ID = '1uheM2o-LZsoslFv59ccQox4PUjAL0PjS';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+<script>
+// ==================== CONFIG ====================
+const BACKEND_URL = "https://pdf-summarize-3go5.onrender.com/summarize"; // your working backend
 
-    // pdf.js worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.worker.min.js';
+const OAUTH_CLIENT_ID = '365509237422-i3lq53klim7uk6ub0ndh1vag17078lkm.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyCQMc9sbjDLsYsSzrpdGyyXUH4q0uCb5UE';
+const TARGET_FOLDER_ID = '1uheM2o-LZsoslFv59ccQox4PUjAL0PjS';
+const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
 
-    const authBtn = document.getElementById('authBtn');
-    const signoutBtn = document.getElementById('signoutBtn');
-    const statusEl = document.getElementById('status');
-    const filesList = document.getElementById('filesList');
-    const combinedTextEl = document.getElementById('combinedText');
-    const imagesDiv = document.getElementById('images');
+// pdf.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.6.172/build/pdf.worker.min.js';
 
-    let gapiInited = false;
-    let tokenClient; // OAuth token client
-    let accessToken = null;
+// UI refs
+const authBtn = document.getElementById('authBtn');
+const signoutBtn = document.getElementById('signoutBtn');
+const statusEl = document.getElementById('status');
+const filesList = document.getElementById('filesList');
+const combinedTextEl = document.getElementById('combinedText');
+const imagesDiv = document.getElementById('images');
 
-    // Load gapi and initialize
-    function gapiLoaded() {
-      gapi.load('client', initializeGapiClient);
-    }
+let gapiInited = false;
+let tokenClient;
+let accessToken = null;
 
-    async function initializeGapiClient() {
-      try {
-        await gapi.client.init({
-          apiKey: API_KEY || undefined,
-          discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
+// ==================== GOOGLE LOGIN ====================
+function gapiLoaded() {
+  gapi.load('client', initializeGapiClient);
+}
+
+async function initializeGapiClient() {
+  try {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
+    });
+    gapiInited = true;
+    statusEl.textContent = 'Google API client initialized.';
+  } catch (err) {
+    statusEl.textContent = 'Error initializing gapi: ' + err.message;
+  }
+}
+
+function waitForGoogleThenInitTokenClient() {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    (function check() {
+      if (window.google && google.accounts && google.accounts.oauth2) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: OAUTH_CLIENT_ID,
+          scope: SCOPES,
+          callback: (resp) => {
+            if (resp.error) return alert("Auth error");
+            accessToken = resp.access_token;
+            authBtn.style.display = "none";
+            signoutBtn.style.display = "inline-block";
+            statusEl.textContent = "Signed in.";
+            listPdfFilesInFolder();
+          }
         });
-        gapiInited = true;
-        statusEl.textContent = 'Google API client initialized.';
-      } catch (err) {
-        console.error('gapi client init error', err);
-        statusEl.textContent = 'Error initializing Google API client: ' + err.message;
-      }
-    }
+        resolve();
+      } else if (Date.now() - start > 5000) {
+        reject(new Error("Google Identity Services did not load"));
+      } else setTimeout(check, 100);
+    })();
+  });
+}
 
-    // Wait until `google` object exists before creating token client
-    function waitForGoogleThenInitTokenClient() {
-      return new Promise((resolve, reject) => {
-        const maxWaitMs = 5000;
-        const start = Date.now();
-        (function check() {
-          if (window.google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.initTokenClient) {
-            initTokenClient();
-            resolve();
-          } else if (Date.now() - start > maxWaitMs) {
-            reject(new Error('Google Identity Services did not load in time.'));
-          } else {
-            setTimeout(check, 100);
-          }
-        })();
-      });
-    }
+async function signOut() {
+  if (accessToken) {
+    await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST' });
+  }
+  accessToken = null;
+  statusEl.textContent = "Signed out.";
+  authBtn.style.display = "";
+  signoutBtn.style.display = "none";
+  filesList.innerHTML = "";
+  combinedTextEl.value = "";
+  imagesDiv.innerHTML = "";
+}
 
-    // Load token client (OAuth)
-    function initTokenClient() {
-      // create token client using GSI
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: OAUTH_CLIENT_ID,
-        scope: SCOPES,
-        callback: (resp) => {
-          if (resp.error) {
-            console.error('Token error', resp);
-            statusEl.textContent = 'Auth error: ' + resp.error;
-            return;
-          }
-          accessToken = resp.access_token;
-          statusEl.textContent = 'Signed in. Access token ready.';
-          signoutBtn.style.display = 'inline-block';
-          authBtn.style.display = 'none';
-          listPdfFilesInFolder();
-        }
-      });
-    }
+// ==================== LIST & DOWNLOAD PDFs ====================
+async function listPdfFilesInFolder() {
+  if (!gapiInited) return alert("gapi not ready");
 
-    // Sign out (revoke token)
-    async function signOut() {
-      if (!accessToken) return;
-      try {
-        await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST' });
-      } catch(e){ console.warn('revoke failed', e); }
-      accessToken = null;
-      statusEl.textContent = 'Signed out.';
-      signoutBtn.style.display = 'none';
-      authBtn.style.display = 'inline-block';
-      filesList.innerHTML = '';
-      combinedTextEl.value = '';
-      imagesDiv.innerHTML = '';
-    }
+  statusEl.textContent = "Listing PDFs...";
+  filesList.innerHTML = "";
+  combinedTextEl.value = "";
+  imagesDiv.innerHTML = "";
 
-    // List PDF files in the target folder
-    async function listPdfFilesInFolder() {
-      if (!gapiInited) {
-        statusEl.textContent = 'gapi not initialized yet.';
-        return;
-      }
-      statusEl.textContent = 'Listing PDF files in folder...';
-      filesList.innerHTML = '';
-      combinedTextEl.value = '';
-      imagesDiv.innerHTML = '';
+  const q = `'${TARGET_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`;
 
-      let q = `'${TARGET_FOLDER_ID}' in parents and mimeType='application/pdf' and trashed=false`;
-      try {
-        const resp = await gapi.client.drive.files.list({
-          q,
-          fields: 'files(id,name,mimeType,size),nextPageToken',
-          pageSize: 100
-        });
-        const files = resp.result.files || [];
-        if (!files.length) {
-          statusEl.textContent = 'No PDF files found in the folder.';
-          return;
-        }
-        statusEl.textContent = `Found ${files.length} PDF(s). Downloading and parsing...`;
-        let allText = '';
-        for (const f of files) {
-          const entry = document.createElement('div');
-          entry.className = 'file-entry';
-          entry.innerHTML = `<strong>${escapeHtml(f.name)}</strong> — ${f.size ? f.size + ' bytes' : ''}`;
-          filesList.appendChild(entry);
-
-          try {
-            const arrayBuffer = await downloadFileAsArrayBuffer(f.id);
-            const r = await extractPdfTextAndThumbnails(arrayBuffer, f.name);
-            allText += r.text + '\n\n';
-            r.thumbs.forEach(t => {
-              const img = document.createElement('img');
-              img.src = t.dataUrl;
-              img.className = 'thumb';
-              img.title = t.label;
-              imagesDiv.appendChild(img);
-            });
-            entry.appendChild(document.createElement('div')).innerText = 'Parsed OK';
-          } catch (err) {
-            console.error('Error processing file', f.name, err);
-            entry.appendChild(document.createElement('div')).innerText = 'Error: ' + (err.message || err);
-          }
-        }
-        combinedTextEl.value = allText || '(no text extracted)';
-        statusEl.textContent = 'All files processed.';
-      } catch (err) {
-        console.error('drive.files.list error', err);
-        statusEl.textContent = 'Error listing files: ' + (err.result?.error?.message || err.message || err);
-      }
-    }
-
-    // Download file using Drive API media endpoint with OAuth token
-    async function downloadFileAsArrayBuffer(fileId) {
-      if (!accessToken) throw new Error('No access token. Authorize first.');
-      const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`;
-      const resp = await fetch(url, {
-        headers: { Authorization: 'Bearer ' + accessToken }
-      });
-      if (!resp.ok) throw new Error('Download failed: ' + resp.status + ' ' + resp.statusText);
-      return await resp.arrayBuffer();
-    }
-
-    // Extract text and render thumbnails using pdf.js (returns {text, thumbs})
-    async function extractPdfTextAndThumbnails(arrayBuffer, label) {
-      const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
-      const pdf = await loadingTask.promise;
-      let combinedText = '';
-      const thumbs = [];
-      for (let p = 1; p <= pdf.numPages; p++) {
-        const page = await pdf.getPage(p);
-        const txtContent = await page.getTextContent();
-        const pageText = txtContent.items.map(i => i.str).join(' ');
-        combinedText += `\n\n--- ${label} — Page ${p} ---\n` + pageText;
-
-        const viewport = page.getViewport({scale: 1.2});
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
-        const ctx = canvas.getContext('2d');
-        await page.render({canvasContext: ctx, viewport}).promise;
-        thumbs.push({dataUrl: canvas.toDataURL('image/jpeg', 0.8), label: `${label} - p${p}`});
-      }
-      return {text: combinedText, thumbs};
-    }
-
-    // Helper: escape HTML text for safe insertion
-    function escapeHtml(s) {
-      return s ? s.replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); }) : '';
-    }
-
-    // Wire up UI
-    authBtn.addEventListener('click', async () => {
-      if (!gapiInited) {
-        statusEl.textContent = 'Loading Google API...';
-        try {
-          await new Promise(resolve => {
-            gapi.load('client', resolve);
-          });
-          await initializeGapiClient();
-          statusEl.textContent = 'Google API loaded.';
-        } catch(e) {
-          console.error(e);
-          statusEl.textContent = 'Failed to load Google API: ' + e.message;
-          return;
-        }
-      }
-      // ensure GSI (google.accounts) loaded before requesting token
-      try {
-        await waitForGoogleThenInitTokenClient();
-      } catch (e) {
-        statusEl.textContent = 'Google Identity Services not ready: ' + e.message;
-        return;
-      }
-      // request access token (popup)
-      tokenClient.requestAccessToken();
+  try {
+    const resp = await gapi.client.drive.files.list({
+      q,
+      fields: "files(id,name,size)"
     });
 
-    signoutBtn.addEventListener('click', signOut);
+    const files = resp.result.files || [];
+    if (!files.length) return statusEl.textContent = "No PDFs found.";
 
-    // Boot: load gapi script readiness
-    window.onload = () => {
-      if (typeof gapi === 'undefined') {
-        statusEl.textContent = 'Google API script not loaded.';
-      } else {
-        gapiLoaded();
-        statusEl.textContent = 'Ready. Click "Sign in & load PDFs".';
-      }
-    };
-  </script>
+    let allText = "";
+
+    for (const f of files) {
+      const div = document.createElement("div");
+      div.className = "file-entry";
+      div.innerHTML = `<b>${f.name}</b> (${f.size} bytes)`;
+      filesList.appendChild(div);
+
+      const buf = await downloadFileAsArrayBuffer(f.id);
+      const parsed = await extractPdfTextAndThumbnails(buf, f.name);
+
+      allText += parsed.text + "\n\n";
+      parsed.thumbs.forEach(t => {
+        const img = document.createElement("img");
+        img.src = t.dataUrl;
+        img.className = "thumb";
+        imagesDiv.appendChild(img);
+      });
+
+      div.appendChild(document.createElement("div")).innerText = "Parsed OK";
+    }
+
+    combinedTextEl.value = allText;
+    statusEl.textContent = "PDFs processed.";
+
+  } catch (err) {
+    statusEl.textContent = "Error listing files: " + err.message;
+  }
+}
+
+async function downloadFileAsArrayBuffer(id) {
+  const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
+
+  const resp = await fetch(url, {
+    headers: { Authorization: "Bearer " + accessToken }
+  });
+
+  if (!resp.ok) throw new Error("Download failed");
+  return await resp.arrayBuffer();
+}
+
+async function extractPdfTextAndThumbnails(buf, name) {
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text = "";
+  const thumbs = [];
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const t = await page.getTextContent();
+    const pageText = t.items.map(i => i.str).join(" ");
+    text += `\n--- ${name} PAGE ${p} ---\n` + pageText;
+
+    const viewport = page.getViewport({ scale: 1.2 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    thumbs.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.8) });
+  }
+
+  return { text, thumbs };
+}
+
+// ==================== CHATGPT SUMMARIZER ====================
+const summarizeBtn = document.createElement("button");
+summarizeBtn.textContent = "Summarize with ChatGPT";
+summarizeBtn.style.marginTop = "20px";
+
+const resultBox = document.createElement("textarea");
+resultBox.placeholder = "ChatGPT summary will appear here...";
+resultBox.style.height = "220px";
+resultBox.style.marginTop = "10px";
+
+document.body.appendChild(summarizeBtn);
+document.body.appendChild(resultBox);
+
+summarizeBtn.addEventListener("click", async () => {
+  const text = combinedTextEl.value.trim();
+  if (text.length < 20) return alert("Load PDFs first!");
+
+  summarizeBtn.disabled = true;
+  summarizeBtn.textContent = "Summarizing...";
+
+  try {
+    const resp = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    const data = await resp.json();
+    resultBox.value = data.summary || "No output from ChatGPT";
+
+  } catch (e) {
+    resultBox.value = "Error: " + e.message;
+  }
+
+  summarizeBtn.disabled = false;
+  summarizeBtn.textContent = "Summarize with ChatGPT";
+});
+
+// ==================== BOOT ====================
+authBtn.addEventListener("click", async () => {
+  if (!gapiInited) {
+    await new Promise(r => gapi.load('client', r));
+    await initializeGapiClient();
+  }
+  await waitForGoogleThenInitTokenClient();
+  tokenClient.requestAccessToken();
+});
+
+signoutBtn.addEventListener("click", signOut);
+
+window.onload = () => {
+  if (typeof gapi === "undefined") {
+    statusEl.textContent = "Google API failed to load.";
+  } else {
+    gapiLoaded();
+    statusEl.textContent = "Ready. Click 'Sign in & load PDFs'.";
+  }
+};
+</script>
+
 </body>
 </html>
