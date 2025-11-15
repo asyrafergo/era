@@ -73,6 +73,7 @@
       padding:10px;
       border:1px solid #e6e9ee;
       border-radius:6px;
+      min-height:40px;  
       line-height: 1.4;            /* avoid text clipping */
       font-size:var(--base-font);
       background:transparent;
@@ -80,14 +81,17 @@
     textarea { min-height:90px; resize:vertical; }
 
     /* Special small inputs used for "Score" / "Color band" — fixed size */
+/* Special small inputs used for "Score" / "Color band" — same height as normal inputs */
 .small-input {
   min-width: 110px;
   width: 110px;
   max-width: 160px;
-  height: 36px;
-  padding: 8px 10px;
+  padding: 10px 12px;   /* same padding as other inputs */
   font-size: 13px;
-  line-height: 1.2;
+  line-height: 1.4;
+  min-height: 40px;     /* IMPORTANT: gives enough vertical space */
+  height: auto;         /* do NOT force a smaller height */
+  box-sizing: border-box;
 }
 
     .section-title { font-weight:800; margin-top:10px; font-size:14px; color:#0f172a; }
